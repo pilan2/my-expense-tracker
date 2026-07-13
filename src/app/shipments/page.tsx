@@ -1,44 +1,167 @@
 import Link from "next/link";
-import { getUpcomingShipments } from "@/lib/items";
+import { getShipmentsInMonth, getUpcomingShipments } from "@/lib/items";
+import { getMonthGrid, shiftMonth } from "@/lib/calendar";
 import { BackButton } from "@/components/back-button";
-import { formatDDay, isOverdue } from "@/lib/dday";
+import { ItemCardContent } from "@/components/item-card";
+import { isOverdue } from "@/lib/dday";
 
-export default async function ShipmentsPage() {
-  const items = await getUpcomingShipments();
+const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
+
+function parseMonthParam(monthParam?: string): { year: number; month: number } {
+  if (monthParam && /^\d{4}-\d{2}$/.test(monthParam)) {
+    const [year, month] = monthParam.split("-").map(Number);
+    return { year, month };
+  }
+  const now = new Date();
+  return { year: now.getFullYear(), month: now.getMonth() + 1 };
+}
+
+function monthHref(year: number, month: number) {
+  return `/shipments?view=calendar&month=${year}-${String(month).padStart(2, "0")}`;
+}
+
+export default async function ShipmentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ view?: string; month?: string }>;
+}) {
+  const { view: viewParam, month: monthParam } = await searchParams;
+  const view = viewParam === "list" ? "list" : "calendar";
 
   return (
     <div className="mx-auto max-w-3xl p-6">
       <BackButton />
-      <h1 className="mb-6 text-xl font-semibold">발송 예정 전체</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-xl font-semibold">발송 예정</h1>
+        <div className="flex gap-1 rounded-md border border-neutral-200 p-1 text-sm dark:border-neutral-800">
+          <Link
+            href="/shipments?view=calendar"
+            className={`rounded px-3 py-1 ${view === "calendar" ? "bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900" : ""}`}
+          >
+            달력
+          </Link>
+          <Link
+            href="/shipments?view=list"
+            className={`rounded px-3 py-1 ${view === "list" ? "bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900" : ""}`}
+          >
+            목록
+          </Link>
+        </div>
+      </div>
 
-      {items.length === 0 ? (
-        <p className="py-10 text-center text-neutral-500">발송 예정인 품목이 없습니다.</p>
+      {view === "calendar" ? (
+        <CalendarView monthParam={monthParam} />
       ) : (
-        <ul className="flex flex-col gap-2">
-          {items.map((item) => (
-            <li key={item.id}>
-              <Link
-                href={`/items/${item.id}`}
-                className="flex items-center justify-between rounded-md border border-neutral-200 p-3 hover:opacity-70 dark:border-neutral-800"
-              >
-                <div>
-                  <p className="font-medium">
-                    {item.genre} · {item.character} · {item.detail}
-                  </p>
-                  <p className="text-sm text-neutral-500">
-                    발송예정 {item.expectedShipDate!.toLocaleDateString("ko-KR")}
-                  </p>
-                </div>
-                <span
-                  className={`font-medium ${isOverdue(item.expectedShipDate!) ? "text-red-600" : "text-blue-600"}`}
-                >
-                  {formatDDay(item.expectedShipDate!)}
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <ListView />
       )}
     </div>
+  );
+}
+
+async function CalendarView({ monthParam }: { monthParam?: string }) {
+  const { year, month } = parseMonthParam(monthParam);
+  const items = await getShipmentsInMonth(year, month);
+
+  const itemsByDay = new Map<number, typeof items>();
+  for (const item of items) {
+    const day = item.expectedShipDate!.getDate();
+    if (!itemsByDay.has(day)) itemsByDay.set(day, []);
+    itemsByDay.get(day)!.push(item);
+  }
+
+  const weeks = getMonthGrid(year, month);
+  const prev = shiftMonth(year, month, -1);
+  const next = shiftMonth(year, month, 1);
+
+  const today = new Date();
+  const isCurrentMonth = today.getFullYear() === year && today.getMonth() + 1 === month;
+
+  return (
+    <>
+      <div className="mb-4 flex items-center justify-between">
+        <Link href={monthHref(prev.year, prev.month)} className="text-sm underline">
+          ← 이전달
+        </Link>
+        <p className="font-medium">
+          {year}년 {month}월
+        </p>
+        <Link href={monthHref(next.year, next.month)} className="text-sm underline">
+          다음달 →
+        </Link>
+      </div>
+
+      <div className="mb-1 grid grid-cols-7 gap-1 text-center text-xs font-medium text-neutral-500">
+        {WEEKDAYS.map((d) => (
+          <div key={d}>{d}</div>
+        ))}
+      </div>
+
+      <div className="flex flex-col gap-1">
+        {weeks.map((week, i) => (
+          <div key={i} className="grid grid-cols-7 gap-1">
+            {week.map((day, j) => {
+              const dayItems = day ? (itemsByDay.get(day) ?? []) : [];
+              const isToday = isCurrentMonth && day === today.getDate();
+
+              return (
+                <div
+                  key={j}
+                  className={`min-h-16 rounded-md border p-1 text-xs ${
+                    day ? "border-neutral-200 dark:border-neutral-800" : "border-transparent"
+                  } ${isToday ? "ring-2 ring-blue-500" : ""}`}
+                >
+                  {day && (
+                    <>
+                      <p className="mb-1 text-neutral-500">{day}</p>
+                      <div className="flex flex-col gap-0.5">
+                        {dayItems.slice(0, 3).map((item) => (
+                          <Link
+                            key={item.id}
+                            href={`/items/${item.id}`}
+                            className={`truncate rounded px-1 py-0.5 ${
+                              isOverdue(item.expectedShipDate!)
+                                ? "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300"
+                                : "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
+                            }`}
+                          >
+                            {item.character}
+                          </Link>
+                        ))}
+                        {dayItems.length > 3 && (
+                          <span className="text-neutral-500">+{dayItems.length - 3}개</span>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
+async function ListView() {
+  const items = await getUpcomingShipments();
+
+  if (items.length === 0) {
+    return <p className="py-10 text-center text-neutral-500">발송 예정인 품목이 없습니다.</p>;
+  }
+
+  return (
+    <ul className="flex flex-col gap-2">
+      {items.map((item) => (
+        <li key={item.id}>
+          <Link
+            href={`/items/${item.id}`}
+            className="block rounded-md border border-neutral-200 p-3 hover:opacity-70 dark:border-neutral-800"
+          >
+            <ItemCardContent {...item} />
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 }

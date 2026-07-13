@@ -33,11 +33,28 @@ export function getItem(id: string) {
 }
 
 // 아직 현물이 아닌(=발송 대기 중인) 품목을 발송예정일이 가까운 순으로. limit 없으면 전부.
-export function getUpcomingShipments(limit?: number) {
-  return prisma.item.findMany({
+export async function getUpcomingShipments(limit?: number) {
+  const items = await prisma.item.findMany({
     where: { isPhysical: false, expectedShipDate: { not: null } },
     orderBy: { expectedShipDate: "asc" },
+    include: { sales: { select: { quantitySold: true } } },
     ...(limit ? { take: limit } : {}),
+  });
+
+  return items.map((item) => ({
+    ...item,
+    remainingQuantity: calcRemainingQuantity(item.quantity, item.sales),
+  }));
+}
+
+// /shipments 달력에서 특정 달(month: 1~12)에 발송예정일이 있는 품목만.
+export function getShipmentsInMonth(year: number, month: number) {
+  const start = new Date(year, month - 1, 1);
+  const end = new Date(year, month, 1);
+
+  return prisma.item.findMany({
+    where: { isPhysical: false, expectedShipDate: { gte: start, lt: end } },
+    orderBy: { expectedShipDate: "asc" },
   });
 }
 
