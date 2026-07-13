@@ -17,6 +17,8 @@ type ItemCardProps = {
   expectedShipDate: Date | null;
   /** 장르/캐릭터로 이미 필터된 화면(브라우즈 하위 목록)에서는 중복 표시를 줄이기 위해 숨긴다 */
   showGenreCharacter?: boolean;
+  /** 물품 종류(대분류)별로 묶어서 섹션 제목으로 이미 보여주는 화면에서는 중복 표시를 줄이기 위해 숨긴다 */
+  showItemType?: boolean;
 };
 
 export function ItemCardContent({
@@ -32,12 +34,14 @@ export function ItemCardContent({
   isPhysical,
   expectedShipDate,
   showGenreCharacter = true,
+  showItemType = true,
 }: ItemCardProps) {
   return (
     <div className="flex flex-col gap-1">
       <p className="font-medium">
         {showGenreCharacter ? `${genre} · ${character}${series ? ` (${series})` : ""} · ` : ""}
-        {itemType} · {detail}
+        {showItemType ? `${itemType} · ` : ""}
+        {detail}
       </p>
       <p className="text-sm text-neutral-500">
         수량 {quantity}
