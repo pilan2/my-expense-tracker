@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/update-shipped",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}

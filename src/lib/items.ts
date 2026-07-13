@@ -18,6 +18,15 @@ export function getItem(id: string) {
   return prisma.item.findUnique({ where: { id } });
 }
 
+// 대시보드에 띄울, 아직 현물이 아닌(=발송 대기 중인) 품목을 발송예정일이 가까운 순으로.
+export function getUpcomingShipments() {
+  return prisma.item.findMany({
+    where: { isPhysical: false, expectedShipDate: { not: null } },
+    orderBy: { expectedShipDate: "asc" },
+    take: 10,
+  });
+}
+
 export async function getFieldSuggestions() {
   const [genres, characters, series, itemTypes] = await Promise.all([
     prisma.item.findMany({ distinct: ["genre"], select: { genre: true }, orderBy: { genre: "asc" } }),

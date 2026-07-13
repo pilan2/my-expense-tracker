@@ -3,6 +3,7 @@ import { getItems } from "@/lib/items";
 import { assignShippingFee } from "@/lib/actions/shipping";
 import { BackButton } from "@/components/back-button";
 import { NumberInput } from "@/components/number-input";
+import { formatDDay, isOverdue } from "@/lib/dday";
 
 export default async function ItemsPage() {
   const items = await getItems();
@@ -72,8 +73,19 @@ export default async function ItemsPage() {
                         : item.isPhysical
                           ? " · 현물"
                           : item.expectedShipDate
-                            ? ` · 발송예정 ${item.expectedShipDate.toLocaleDateString("ko-KR")}`
+                            ? ` · 발송예정 ${item.expectedShipDate.toLocaleDateString("ko-KR")} `
                             : ""}
+                      {!item.isPhysical && item.expectedShipDate && (
+                        <span
+                          className={
+                            isOverdue(item.expectedShipDate)
+                              ? "font-medium text-red-600"
+                              : "font-medium text-blue-600"
+                          }
+                        >
+                          {formatDDay(item.expectedShipDate)}
+                        </span>
+                      )}
                     </p>
                   </div>
                 </Link>

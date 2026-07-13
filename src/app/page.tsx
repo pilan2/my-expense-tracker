@@ -1,9 +1,15 @@
 import Link from "next/link";
 import { getSpendingSummary, getSalesSummary } from "@/lib/spending";
+import { getUpcomingShipments } from "@/lib/items";
 import { CategoryBreakdown } from "@/components/category-breakdown";
+import { formatDDay, isOverdue } from "@/lib/dday";
 
 export default async function Home() {
-  const [spending, sales] = await Promise.all([getSpendingSummary(), getSalesSummary()]);
+  const [spending, sales, upcomingShipments] = await Promise.all([
+    getSpendingSummary(),
+    getSalesSummary(),
+    getUpcomingShipments(),
+  ]);
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-8 p-6">
@@ -17,6 +23,28 @@ export default async function Home() {
           <p className="text-3xl font-semibold">{sales.total.toLocaleString("ko-KR")}원</p>
         </div>
       </div>
+
+      {upcomingShipments.length > 0 && (
+        <div>
+          <h2 className="mb-4 text-lg font-semibold">발송 예정</h2>
+          <ul className="divide-y divide-neutral-200 rounded-lg border border-neutral-200 dark:divide-neutral-800 dark:border-neutral-800">
+            {upcomingShipments.map((item) => (
+              <li key={item.id} className="flex items-center justify-between px-4 py-2 text-sm">
+                <Link href={`/items/${item.id}`} className="hover:opacity-70">
+                  {item.genre} · {item.character} · {item.detail}
+                </Link>
+                <span
+                  className={`font-medium ${
+                    isOverdue(item.expectedShipDate!) ? "text-red-600" : "text-blue-600"
+                  }`}
+                >
+                  {formatDDay(item.expectedShipDate!)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div>
         <h2 className="mb-4 text-lg font-semibold">소비 집계</h2>

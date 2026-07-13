@@ -7,6 +7,7 @@ import { ItemForm, type ItemFormDefaults } from "@/components/item-form";
 import { BackButton } from "@/components/back-button";
 import { NumberInput } from "@/components/number-input";
 import { wonToManwon } from "@/lib/money";
+import { formatDDay, isOverdue } from "@/lib/dday";
 
 export default async function ItemDetailPage({
   params,
@@ -48,7 +49,16 @@ export default async function ItemDetailPage({
   return (
     <div className="mx-auto max-w-xl p-6">
       <BackButton />
-      <h1 className="mb-6 text-xl font-semibold">품목 수정</h1>
+      <h1 className="mb-2 text-xl font-semibold">품목 수정</h1>
+      {!item.isPhysical && item.expectedShipDate && (
+        <p className="mb-6 text-sm">
+          발송예정 {item.expectedShipDate.toLocaleDateString("ko-KR")} ·{" "}
+          <span className={`font-medium ${isOverdue(item.expectedShipDate) ? "text-red-600" : "text-blue-600"}`}>
+            {formatDDay(item.expectedShipDate)}
+          </span>
+          {isOverdue(item.expectedShipDate) && " (곧 자동으로 현물 전환됩니다)"}
+        </p>
+      )}
       <ItemForm
         action={updateItem.bind(null, item.id)}
         suggestions={suggestions}
