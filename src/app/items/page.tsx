@@ -25,7 +25,7 @@ export default async function ItemsPage() {
         <p className="py-10 text-center text-neutral-500">등록된 품목이 없습니다.</p>
       ) : (
         <form action={assignShippingFee}>
-          <div className="mb-4 flex items-end gap-3 rounded-md border border-neutral-200 p-4 text-sm dark:border-neutral-800">
+          <div className="mb-4 flex flex-col gap-3 rounded-md border border-neutral-200 p-4 text-sm sm:flex-row sm:items-end dark:border-neutral-800">
             <label className="flex flex-1 flex-col gap-1">
               <span className="font-medium">
                 아래에서 같이 배송받은 품목을 체크하고, 총 배송비(만원 단위)를 입력하면 각
