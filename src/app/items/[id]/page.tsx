@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getItem, getFieldSuggestions } from "@/lib/items";
 import { updateItem, deleteItem } from "@/lib/actions/items";
 import { ItemForm, type ItemFormDefaults } from "@/components/item-form";
+import { BackButton } from "@/components/back-button";
 
 export default async function ItemDetailPage({
   params,
@@ -32,6 +33,7 @@ export default async function ItemDetailPage({
 
   return (
     <div className="mx-auto max-w-xl p-6">
+      <BackButton />
       <h1 className="mb-6 text-xl font-semibold">품목 수정</h1>
       <ItemForm
         action={updateItem.bind(null, item.id)}

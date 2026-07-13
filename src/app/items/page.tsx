@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { getItems } from "@/lib/items";
+import { BackButton } from "@/components/back-button";
 
 export default async function ItemsPage() {
   const items = await getItems();
 
   return (
     <div className="mx-auto max-w-3xl p-6">
+      <BackButton />
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-xl font-semibold">품목 목록</h1>
         <Link
