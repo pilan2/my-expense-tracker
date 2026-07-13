@@ -35,11 +35,13 @@ export default async function ItemsPage() {
                   </p>
                   <p className="text-sm text-neutral-500">
                     수량 {item.quantity} · {Number(item.price).toLocaleString("ko-KR")}원
-                    {item.isPhysical
-                      ? " · 현물"
-                      : item.expectedShipDate
-                        ? ` · 발송예정 ${item.expectedShipDate.toLocaleDateString("ko-KR")}`
-                        : ""}
+                    {item.quantity === 0
+                      ? " · 판매 완료"
+                      : item.isPhysical
+                        ? " · 현물"
+                        : item.expectedShipDate
+                          ? ` · 발송예정 ${item.expectedShipDate.toLocaleDateString("ko-KR")}`
+                          : ""}
                   </p>
                 </div>
               </Link>

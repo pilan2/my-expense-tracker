@@ -1,8 +1,11 @@
 import { notFound } from "next/navigation";
 import { getItem, getFieldSuggestions } from "@/lib/items";
+import { getSalesForItem } from "@/lib/sales";
 import { updateItem, deleteItem } from "@/lib/actions/items";
+import { createSale, deleteSale } from "@/lib/actions/sales";
 import { ItemForm, type ItemFormDefaults } from "@/components/item-form";
 import { BackButton } from "@/components/back-button";
+import { wonToManwon } from "@/lib/money";
 
 export default async function ItemDetailPage({
   params,
@@ -10,7 +13,11 @@ export default async function ItemDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [item, suggestions] = await Promise.all([getItem(id), getFieldSuggestions()]);
+  const [item, suggestions, sales] = await Promise.all([
+    getItem(id),
+    getFieldSuggestions(),
+    getSalesForItem(id),
+  ]);
 
   if (!item) notFound();
 
@@ -21,7 +28,7 @@ export default async function ItemDetailPage({
     itemType: item.itemType,
     detail: item.detail,
     quantity: item.quantity,
-    price: (Number(item.price) / 10000).toString(),
+    price: wonToManwon(item.price.toString()),
     hasOverseasShipping: item.hasOverseasShipping,
     maker: item.maker ?? "",
     organizer: item.organizer ?? "",
@@ -30,6 +37,8 @@ export default async function ItemDetailPage({
       ? item.expectedShipDate.toISOString().slice(0, 10)
       : "",
   };
+
+  const today = new Date().toISOString().slice(0, 10);
 
   return (
     <div className="mx-auto max-w-xl p-6">
@@ -46,6 +55,77 @@ export default async function ItemDetailPage({
           이 품목 삭제
         </button>
       </form>
+
+      <div className="mt-8 border-t pt-6 dark:border-neutral-800">
+        <h2 className="mb-4 text-lg font-semibold">판매 관리</h2>
+        <p className="mb-4 text-sm text-neutral-500">
+          잔여 수량: <span className="font-medium text-neutral-900 dark:text-neutral-100">{item.quantity}</span>
+        </p>
+
+        {item.quantity > 0 ? (
+          <form action={createSale.bind(null, item.id)} className="mb-6 flex flex-col gap-3">
+            <label className="flex flex-col gap-1 text-sm">
+              <span className="font-medium">판매 수량</span>
+              <input
+                name="quantitySold"
+                type="number"
+                min={1}
+                max={item.quantity}
+                defaultValue={1}
+                required
+                className="rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+              />
+            </label>
+            <label className="flex flex-col gap-1 text-sm">
+              <span className="font-medium">판매 금액 (만원 단위, 이 건 전체 총액)</span>
+              <input
+                name="saleAmount"
+                type="number"
+                min={0}
+                step={0.01}
+                required
+                className="rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+              />
+            </label>
+            <label className="flex flex-col gap-1 text-sm">
+              <span className="font-medium">판매일</span>
+              <input
+                name="saleDate"
+                type="date"
+                defaultValue={today}
+                required
+                className="rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+              />
+            </label>
+            <button
+              type="submit"
+              className="mt-1 rounded-md bg-neutral-900 px-4 py-2 text-sm text-white hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900"
+            >
+              판매 등록
+            </button>
+          </form>
+        ) : (
+          <p className="mb-6 text-sm text-neutral-500">모두 판매되었습니다.</p>
+        )}
+
+        {sales.length > 0 && (
+          <ul className="divide-y divide-neutral-200 text-sm dark:divide-neutral-800">
+            {sales.map((sale) => (
+              <li key={sale.id} className="flex items-center justify-between py-2">
+                <span>
+                  {sale.saleDate.toLocaleDateString("ko-KR")} · {sale.quantitySold}개 ·{" "}
+                  {Number(sale.saleAmount).toLocaleString("ko-KR")}원
+                </span>
+                <form action={deleteSale.bind(null, sale.id)}>
+                  <button type="submit" className="text-red-600 hover:underline">
+                    삭제
+                  </button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }
