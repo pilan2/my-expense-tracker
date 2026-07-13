@@ -1,0 +1,46 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Item {
+  id        String   @id @default(cuid())
+  genre     String // 장르
+  character String // 캐릭터
+  itemType  String // 물품 종류
+
+  quantity Int
+  price    Decimal @db.Decimal(12, 2)
+
+  hasOverseasShipping Boolean @default(false) // 이후 해외배송비 존재 여부
+  maker               String? // 제작한 사람 (선택)
+  organizer           String? // 공구 개최한 사람 (선택)
+
+  isPhysical       Boolean   @default(false) // 현물 여부
+  expectedShipDate DateTime? // 예상 발송일 (현물이 아닐 때만 사용)
+
+  sales Sale[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Sale {
+  id String @id @default(cuid())
+
+  item   Item   @relation(fields: [itemId], references: [id])
+  itemId String
+
+  quantitySold Int
+  saleAmount   Decimal  @db.Decimal(12, 2)
+  saleDate     DateTime @default(now())
+
+  createdAt DateTime @default(now())
+}
