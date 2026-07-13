@@ -1,8 +1,17 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
+import { calcRemainingQuantity } from "@/lib/sales";
 
-export function getItems() {
-  return prisma.item.findMany({ orderBy: { createdAt: "desc" } });
+export async function getItems() {
+  const items = await prisma.item.findMany({
+    orderBy: { createdAt: "desc" },
+    include: { sales: { select: { quantitySold: true } } },
+  });
+
+  return items.map((item) => ({
+    ...item,
+    remainingQuantity: calcRemainingQuantity(item.quantity, item.sales),
+  }));
 }
 
 export function getItem(id: string) {

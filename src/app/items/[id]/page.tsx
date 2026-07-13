@@ -1,10 +1,11 @@
 import { notFound } from "next/navigation";
 import { getItem, getFieldSuggestions } from "@/lib/items";
-import { getSalesForItem } from "@/lib/sales";
+import { getSalesForItem, calcRemainingQuantity, calcProfit } from "@/lib/sales";
 import { updateItem, deleteItem } from "@/lib/actions/items";
 import { createSale, deleteSale } from "@/lib/actions/sales";
 import { ItemForm, type ItemFormDefaults } from "@/components/item-form";
 import { BackButton } from "@/components/back-button";
+import { NumberInput } from "@/components/number-input";
 import { wonToManwon } from "@/lib/money";
 
 export default async function ItemDetailPage({
@@ -29,6 +30,7 @@ export default async function ItemDetailPage({
     detail: item.detail,
     quantity: item.quantity,
     price: wonToManwon(item.price.toString()),
+    shippingFee: wonToManwon(item.shippingFee.toString()),
     hasOverseasShipping: item.hasOverseasShipping,
     maker: item.maker ?? "",
     organizer: item.organizer ?? "",
@@ -39,6 +41,9 @@ export default async function ItemDetailPage({
   };
 
   const today = new Date().toISOString().slice(0, 10);
+  const salesForCalc = sales.map((s) => ({ quantitySold: s.quantitySold, saleAmount: Number(s.saleAmount) }));
+  const remaining = calcRemainingQuantity(item.quantity, salesForCalc);
+  const profit = calcProfit(Number(item.price), Number(item.shippingFee), item.quantity, salesForCalc);
 
   return (
     <div className="mx-auto max-w-xl p-6">
@@ -58,19 +63,30 @@ export default async function ItemDetailPage({
 
       <div className="mt-8 border-t pt-6 dark:border-neutral-800">
         <h2 className="mb-4 text-lg font-semibold">판매 관리</h2>
-        <p className="mb-4 text-sm text-neutral-500">
-          잔여 수량: <span className="font-medium text-neutral-900 dark:text-neutral-100">{item.quantity}</span>
-        </p>
+        <div className="mb-4 text-sm text-neutral-500">
+          <p>
+            구매 수량 {item.quantity} · 잔여 수량{" "}
+            <span className="font-medium text-neutral-900 dark:text-neutral-100">{remaining}</span>
+          </p>
+          {sales.length > 0 && (
+            <p>
+              판매 손익:{" "}
+              <span className={`font-medium ${profit >= 0 ? "text-blue-600" : "text-red-600"}`}>
+                {profit >= 0 ? "+" : ""}
+                {profit.toLocaleString("ko-KR")}원
+              </span>
+            </p>
+          )}
+        </div>
 
-        {item.quantity > 0 ? (
+        {remaining > 0 ? (
           <form action={createSale.bind(null, item.id)} className="mb-6 flex flex-col gap-3">
             <label className="flex flex-col gap-1 text-sm">
               <span className="font-medium">판매 수량</span>
-              <input
+              <NumberInput
                 name="quantitySold"
-                type="number"
                 min={1}
-                max={item.quantity}
+                max={remaining}
                 defaultValue={1}
                 required
                 className="rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
@@ -78,9 +94,8 @@ export default async function ItemDetailPage({
             </label>
             <label className="flex flex-col gap-1 text-sm">
               <span className="font-medium">판매 금액 (만원 단위, 이 건 전체 총액)</span>
-              <input
+              <NumberInput
                 name="saleAmount"
-                type="number"
                 min={0}
                 step={0.01}
                 required

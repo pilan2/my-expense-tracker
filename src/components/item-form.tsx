@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { NumberInput } from "@/components/number-input";
 
 type Suggestions = {
   genres: string[];
@@ -17,6 +18,7 @@ export type ItemFormDefaults = {
   detail: string;
   quantity: number;
   price: string;
+  shippingFee: string;
   hasOverseasShipping: boolean;
   maker: string;
   organizer: string;
@@ -119,9 +121,8 @@ export function ItemForm({
           >
             −
           </button>
-          <input
+          <NumberInput
             name="quantity"
-            type="number"
             min={1}
             value={quantity}
             onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
@@ -138,9 +139,8 @@ export function ItemForm({
       </div>
 
       <Field label="가격 (만원 단위, 예: 1.5 = 15,000원)">
-        <input
+        <NumberInput
           name="price"
-          type="number"
           min={0}
           step={0.01}
           defaultValue={defaultValues?.price}
@@ -165,6 +165,16 @@ export function ItemForm({
         />
         이후 해외배송비 존재
       </label>
+
+      <Field label="배송비 (만원 단위, 확정된 경우만 - 목록에서 여러 품목에 자동 분배도 가능)">
+        <NumberInput
+          name="shippingFee"
+          min={0}
+          step={0.01}
+          defaultValue={defaultValues?.shippingFee ?? "0"}
+          className={inputClass}
+        />
+      </Field>
 
       <label className="flex items-center gap-2 text-sm">
         <input

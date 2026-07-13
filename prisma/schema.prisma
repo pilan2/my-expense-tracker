@@ -22,6 +22,7 @@ model Item {
   price    Decimal @db.Decimal(12, 2) // 원 단위 저장 (입력 폼에서는 만원 단위 입력 후 환산)
 
   hasOverseasShipping Boolean @default(false) // 이후 해외배송비 존재 여부
+  shippingFee         Decimal @default(0) @db.Decimal(12, 2) // 배송비: 라인 전체 고정값(수량과 무관). 여러 품목을 한 배송으로 받으면 총 배송비를 품목 수로 나눠 배분
   maker               String? // 제작한 사람 (선택)
   organizer           String? // 공구 개최한 사람 (선택)
 

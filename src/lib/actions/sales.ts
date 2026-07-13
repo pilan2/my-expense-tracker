@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { manwonToWon } from "@/lib/money";
+import { calcRemainingQuantity } from "@/lib/sales";
 
 async function requireAuth() {
   const session = await auth();
@@ -18,19 +19,17 @@ export async function createSale(itemId: string, formData: FormData) {
   const saleDateRaw = formData.get("saleDate");
   const saleDate = saleDateRaw ? new Date(String(saleDateRaw)) : new Date();
 
-  await prisma.$transaction(async (tx) => {
-    const item = await tx.item.findUniqueOrThrow({ where: { id: itemId } });
-
-    if (quantitySold < 1 || quantitySold > item.quantity) {
-      throw new Error("판매 수량은 1개 이상, 보유 수량 이하여야 합니다.");
-    }
-
-    await tx.sale.create({ data: { itemId, quantitySold, saleAmount, saleDate } });
-    await tx.item.update({
-      where: { id: itemId },
-      data: { quantity: item.quantity - quantitySold },
-    });
+  const item = await prisma.item.findUniqueOrThrow({
+    where: { id: itemId },
+    include: { sales: { select: { quantitySold: true } } },
   });
+  const remaining = calcRemainingQuantity(item.quantity, item.sales);
+
+  if (quantitySold < 1 || quantitySold > remaining) {
+    throw new Error("판매 수량은 1개 이상, 잔여 수량 이하여야 합니다.");
+  }
+
+  await prisma.sale.create({ data: { itemId, quantitySold, saleAmount, saleDate } });
 
   revalidatePath("/items");
   revalidatePath(`/items/${itemId}`);
@@ -40,17 +39,9 @@ export async function createSale(itemId: string, formData: FormData) {
 export async function deleteSale(saleId: string) {
   await requireAuth();
 
-  const itemId = await prisma.$transaction(async (tx) => {
-    const sale = await tx.sale.findUniqueOrThrow({ where: { id: saleId } });
-    await tx.item.update({
-      where: { id: sale.itemId },
-      data: { quantity: { increment: sale.quantitySold } },
-    });
-    await tx.sale.delete({ where: { id: saleId } });
-    return sale.itemId;
-  });
+  const sale = await prisma.sale.delete({ where: { id: saleId } });
 
   revalidatePath("/items");
-  revalidatePath(`/items/${itemId}`);
+  revalidatePath(`/items/${sale.itemId}`);
   revalidatePath("/");
 }

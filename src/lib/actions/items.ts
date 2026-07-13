@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { manwonToWon } from "@/lib/money";
+import { calcRemainingQuantity } from "@/lib/sales";
 
 async function requireAuth() {
   const session = await auth();
@@ -30,6 +31,7 @@ function parseItemForm(formData: FormData) {
     detail: String(formData.get("detail") ?? "").trim(),
     quantity: Number(formData.get("quantity")),
     price: manwonToWon(String(formData.get("price") ?? "0")),
+    shippingFee: manwonToWon(String(formData.get("shippingFee") ?? "0")),
     hasOverseasShipping: formData.get("hasOverseasShipping") === "on",
     maker: maker || null,
     organizer: organizer || null,
@@ -50,6 +52,13 @@ export async function createItem(formData: FormData) {
 export async function updateItem(id: string, formData: FormData) {
   await requireAuth();
   const data = parseItemForm(formData);
+
+  const sales = await prisma.sale.findMany({ where: { itemId: id }, select: { quantitySold: true } });
+  const soldQuantity = sales.reduce((sum, s) => sum + s.quantitySold, 0);
+  if (calcRemainingQuantity(data.quantity, sales) < 0) {
+    throw new Error(`이미 ${soldQuantity}개가 판매되어, 구매 수량을 그보다 적게 수정할 수 없습니다.`);
+  }
+
   await prisma.item.update({ where: { id }, data });
   revalidatePath("/items");
   revalidatePath(`/items/${id}`);

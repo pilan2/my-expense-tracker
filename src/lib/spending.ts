@@ -17,10 +17,21 @@ function groupTotals(entries: { category: string; amount: number }[]): CategoryT
 
 export async function getSpendingSummary() {
   const items = await prisma.item.findMany({
-    select: { genre: true, character: true, itemType: true, price: true, quantity: true },
+    select: {
+      genre: true,
+      character: true,
+      itemType: true,
+      price: true,
+      quantity: true,
+      shippingFee: true,
+    },
   });
 
-  const amounts = items.map((item) => ({ item, amount: Number(item.price) * item.quantity }));
+  // 배송비는 라인 전체에 대한 고정값이라 수량과 곱하지 않고 그대로 더한다.
+  const amounts = items.map((item) => ({
+    item,
+    amount: Number(item.price) * item.quantity + Number(item.shippingFee),
+  }));
   const total = amounts.reduce((sum, a) => sum + a.amount, 0);
 
   return {
