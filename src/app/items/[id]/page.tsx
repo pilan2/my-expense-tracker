@@ -16,9 +16,11 @@ export default async function ItemDetailPage({
   const defaultValues: ItemFormDefaults = {
     genre: item.genre,
     character: item.character,
+    series: item.series ?? "",
     itemType: item.itemType,
+    detail: item.detail,
     quantity: item.quantity,
-    price: item.price.toString(),
+    price: (Number(item.price) / 10000).toString(),
     hasOverseasShipping: item.hasOverseasShipping,
     maker: item.maker ?? "",
     organizer: item.organizer ?? "",

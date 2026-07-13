@@ -5,13 +5,16 @@ import { useState } from "react";
 type Suggestions = {
   genres: string[];
   characters: string[];
+  series: string[];
   itemTypes: string[];
 };
 
 export type ItemFormDefaults = {
   genre: string;
   character: string;
+  series: string;
   itemType: string;
+  detail: string;
   quantity: number;
   price: string;
   hasOverseasShipping: boolean;
@@ -68,7 +71,21 @@ export function ItemForm({
         </datalist>
       </Field>
 
-      <Field label="물품 종류">
+      <Field label="시리즈 (선택, 예: 오리지널/리부트)">
+        <input
+          name="series"
+          list="series-list"
+          defaultValue={defaultValues?.series}
+          className={inputClass}
+        />
+        <datalist id="series-list">
+          {suggestions.series.map((s) => (
+            <option key={s} value={s} />
+          ))}
+        </datalist>
+      </Field>
+
+      <Field label="물품 종류 (대분류)">
         <input
           name="itemType"
           list="itemType-list"
@@ -81,6 +98,15 @@ export function ItemForm({
             <option key={t} value={t} />
           ))}
         </datalist>
+      </Field>
+
+      <Field label="물품 세부사항">
+        <input
+          name="detail"
+          defaultValue={defaultValues?.detail}
+          required
+          className={inputClass}
+        />
       </Field>
 
       <div className="flex flex-col gap-1 text-sm">
@@ -111,12 +137,12 @@ export function ItemForm({
         </div>
       </div>
 
-      <Field label="가격 (원)">
+      <Field label="가격 (만원 단위, 예: 1.5 = 15,000원)">
         <input
           name="price"
           type="number"
           min={0}
-          step={1}
+          step={0.01}
           defaultValue={defaultValues?.price}
           required
           className={inputClass}

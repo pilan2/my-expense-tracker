@@ -28,7 +28,8 @@ export default async function ItemsPage() {
               >
                 <div>
                   <p className="font-medium">
-                    {item.genre} · {item.character} · {item.itemType}
+                    {item.genre} · {item.character}
+                    {item.series ? ` (${item.series})` : ""} · {item.itemType} · {item.detail}
                   </p>
                   <p className="text-sm text-neutral-500">
                     수량 {item.quantity} · {Number(item.price).toLocaleString("ko-KR")}원
