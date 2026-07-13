@@ -14,16 +14,30 @@ export async function getItems() {
   }));
 }
 
+// /browse/[genre]/[character] 드릴다운 마지막 단계에서 쓰는, 해당 장르+캐릭터의 품목만.
+export async function getItemsByCategory(genre: string, character: string) {
+  const items = await prisma.item.findMany({
+    where: { genre, character },
+    orderBy: { createdAt: "desc" },
+    include: { sales: { select: { quantitySold: true } } },
+  });
+
+  return items.map((item) => ({
+    ...item,
+    remainingQuantity: calcRemainingQuantity(item.quantity, item.sales),
+  }));
+}
+
 export function getItem(id: string) {
   return prisma.item.findUnique({ where: { id } });
 }
 
-// 대시보드에 띄울, 아직 현물이 아닌(=발송 대기 중인) 품목을 발송예정일이 가까운 순으로.
-export function getUpcomingShipments() {
+// 아직 현물이 아닌(=발송 대기 중인) 품목을 발송예정일이 가까운 순으로. limit 없으면 전부.
+export function getUpcomingShipments(limit?: number) {
   return prisma.item.findMany({
     where: { isPhysical: false, expectedShipDate: { not: null } },
     orderBy: { expectedShipDate: "asc" },
-    take: 10,
+    ...(limit ? { take: limit } : {}),
   });
 }
 

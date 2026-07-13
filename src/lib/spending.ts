@@ -1,66 +1,94 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
+import { calcProfit } from "@/lib/sales";
 
-export type CategoryTotal = { name: string; total: number };
+export type CharacterSummary = {
+  name: string;
+  purchaseTotal: number;
+  saleTotal: number;
+  profit: number;
+};
 
-function groupTotals(entries: { category: string; amount: number }[]): CategoryTotal[] {
-  const totals = new Map<string, number>();
+export type GenreSummary = {
+  name: string;
+  purchaseTotal: number;
+  saleTotal: number;
+  profit: number;
+  characters: CharacterSummary[];
+};
 
-  for (const { category, amount } of entries) {
-    totals.set(category, (totals.get(category) ?? 0) + amount);
-  }
+export type CategorySummary = {
+  totalPurchase: number;
+  totalSale: number;
+  totalProfit: number;
+  genres: GenreSummary[];
+};
 
-  return [...totals.entries()]
-    .map(([name, total]) => ({ name, total }))
-    .sort((a, b) => b.total - a.total);
+function addInto(target: { purchaseTotal: number; saleTotal: number; profit: number }, item: {
+  purchaseTotal: number;
+  saleTotal: number;
+  profit: number;
+}) {
+  target.purchaseTotal += item.purchaseTotal;
+  target.saleTotal += item.saleTotal;
+  target.profit += item.profit;
 }
 
-export async function getSpendingSummary() {
+// 품목을 장르 > 캐릭터로 묶어서, 각 단위마다 구매액/판매액/손익을 함께 계산한다.
+// 판매되지 않은 품목은 saleTotal=0, profit은 판매된 만큼만 반영(배송비도 판매 비율만큼만).
+export async function getCategorySummary(): Promise<CategorySummary> {
   const items = await prisma.item.findMany({
     select: {
       genre: true,
       character: true,
-      itemType: true,
       price: true,
       quantity: true,
       shippingFee: true,
+      sales: { select: { quantitySold: true, saleAmount: true } },
     },
   });
 
-  // 배송비는 라인 전체에 대한 고정값이라 수량과 곱하지 않고 그대로 더한다.
-  const amounts = items.map((item) => ({
-    item,
-    amount: Number(item.price) * item.quantity + Number(item.shippingFee),
-  }));
-  const total = amounts.reduce((sum, a) => sum + a.amount, 0);
+  const genreMap = new Map<string, Map<string, CharacterSummary>>();
+
+  for (const item of items) {
+    const sales = item.sales.map((s) => ({ quantitySold: s.quantitySold, saleAmount: Number(s.saleAmount) }));
+    const purchaseTotal = Number(item.price) * item.quantity + Number(item.shippingFee);
+    const saleTotal = sales.reduce((sum, s) => sum + s.saleAmount, 0);
+    const profit = calcProfit(Number(item.price), Number(item.shippingFee), item.quantity, sales);
+
+    if (!genreMap.has(item.genre)) genreMap.set(item.genre, new Map());
+    const characterMap = genreMap.get(item.genre)!;
+
+    const existing = characterMap.get(item.character) ?? {
+      name: item.character,
+      purchaseTotal: 0,
+      saleTotal: 0,
+      profit: 0,
+    };
+    addInto(existing, { purchaseTotal, saleTotal, profit });
+    characterMap.set(item.character, existing);
+  }
+
+  const genres: GenreSummary[] = [...genreMap.entries()]
+    .map(([genre, characterMap]) => {
+      const characters = [...characterMap.values()].sort((a, b) => b.purchaseTotal - a.purchaseTotal);
+      const totals = characters.reduce(
+        (acc, c) => (addInto(acc, c), acc),
+        { purchaseTotal: 0, saleTotal: 0, profit: 0 },
+      );
+      return { name: genre, ...totals, characters };
+    })
+    .sort((a, b) => b.purchaseTotal - a.purchaseTotal);
+
+  const totals = genres.reduce(
+    (acc, g) => (addInto(acc, g), acc),
+    { purchaseTotal: 0, saleTotal: 0, profit: 0 },
+  );
 
   return {
-    total,
-    byGenre: groupTotals(amounts.map((a) => ({ category: a.item.genre, amount: a.amount }))),
-    byCharacter: groupTotals(amounts.map((a) => ({ category: a.item.character, amount: a.amount }))),
-    byItemType: groupTotals(amounts.map((a) => ({ category: a.item.itemType, amount: a.amount }))),
-  };
-}
-
-export async function getSalesSummary() {
-  const sales = await prisma.sale.findMany({
-    select: {
-      saleAmount: true,
-      item: { select: { genre: true, character: true, itemType: true } },
-    },
-  });
-
-  const amounts = sales.map((sale) => ({ sale, amount: Number(sale.saleAmount) }));
-  const total = amounts.reduce((sum, a) => sum + a.amount, 0);
-
-  return {
-    total,
-    byGenre: groupTotals(amounts.map((a) => ({ category: a.sale.item.genre, amount: a.amount }))),
-    byCharacter: groupTotals(
-      amounts.map((a) => ({ category: a.sale.item.character, amount: a.amount })),
-    ),
-    byItemType: groupTotals(
-      amounts.map((a) => ({ category: a.sale.item.itemType, amount: a.amount })),
-    ),
+    totalPurchase: totals.purchaseTotal,
+    totalSale: totals.saleTotal,
+    totalProfit: totals.profit,
+    genres,
   };
 }

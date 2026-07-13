@@ -3,7 +3,7 @@ import { getItems } from "@/lib/items";
 import { assignShippingFee } from "@/lib/actions/shipping";
 import { BackButton } from "@/components/back-button";
 import { NumberInput } from "@/components/number-input";
-import { formatDDay, isOverdue } from "@/lib/dday";
+import { ItemCardContent } from "@/components/item-card";
 
 export default async function ItemsPage() {
   const items = await getItems();
@@ -11,8 +11,8 @@ export default async function ItemsPage() {
   return (
     <div className="mx-auto max-w-3xl p-6">
       <BackButton />
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-xl font-semibold">품목 목록</h1>
+      <div className="mb-2 flex items-center justify-between">
+        <h1 className="text-xl font-semibold">전체 품목</h1>
         <Link
           href="/items/new"
           className="rounded-md bg-neutral-900 px-4 py-2 text-sm text-white hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900"
@@ -20,6 +20,9 @@ export default async function ItemsPage() {
           + 품목 등록
         </Link>
       </div>
+      <Link href="/browse" className="mb-6 inline-block text-sm underline">
+        카테고리별로 보기 →
+      </Link>
 
       {items.length === 0 ? (
         <p className="py-10 text-center text-neutral-500">등록된 품목이 없습니다.</p>
@@ -46,48 +49,15 @@ export default async function ItemsPage() {
             </button>
           </div>
 
-          <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
+          <ul className="flex flex-col gap-2">
             {items.map((item) => (
-              <li key={item.id} className="flex items-center gap-3 py-3">
-                <input type="checkbox" name="itemIds" value={item.id} className="h-4 w-4" />
-                <Link
-                  href={`/items/${item.id}`}
-                  className="flex flex-1 items-center justify-between hover:opacity-70"
-                >
-                  <div>
-                    <p className="font-medium">
-                      {item.genre} · {item.character}
-                      {item.series ? ` (${item.series})` : ""} · {item.itemType} · {item.detail}
-                    </p>
-                    <p className="text-sm text-neutral-500">
-                      수량 {item.quantity}
-                      {item.remainingQuantity !== item.quantity
-                        ? ` (잔여 ${item.remainingQuantity})`
-                        : ""}{" "}
-                      · {Number(item.price).toLocaleString("ko-KR")}원
-                      {Number(item.shippingFee) > 0
-                        ? ` (+배송비 ${Number(item.shippingFee).toLocaleString("ko-KR")}원)`
-                        : ""}
-                      {item.remainingQuantity === 0
-                        ? " · 판매 완료"
-                        : item.isPhysical
-                          ? " · 현물"
-                          : item.expectedShipDate
-                            ? ` · 발송예정 ${item.expectedShipDate.toLocaleDateString("ko-KR")} `
-                            : ""}
-                      {!item.isPhysical && item.expectedShipDate && (
-                        <span
-                          className={
-                            isOverdue(item.expectedShipDate)
-                              ? "font-medium text-red-600"
-                              : "font-medium text-blue-600"
-                          }
-                        >
-                          {formatDDay(item.expectedShipDate)}
-                        </span>
-                      )}
-                    </p>
-                  </div>
+              <li
+                key={item.id}
+                className="flex items-start gap-3 rounded-md border border-neutral-200 p-3 dark:border-neutral-800"
+              >
+                <input type="checkbox" name="itemIds" value={item.id} className="mt-1 h-4 w-4" />
+                <Link href={`/items/${item.id}`} className="flex-1 hover:opacity-70">
+                  <ItemCardContent {...item} />
                 </Link>
               </li>
             ))}
