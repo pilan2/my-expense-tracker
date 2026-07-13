@@ -25,6 +25,10 @@ function parseItemForm(formData: FormData) {
   const organizer = String(formData.get("organizer") ?? "").trim();
   const series = String(formData.get("series") ?? "").trim();
 
+  if (!isPhysical && !expectedShipDateRaw) {
+    throw new Error("현물로 보유 중이 아니면 예상 발송일을 입력해야 합니다.");
+  }
+
   return {
     genre: String(formData.get("genre") ?? "").trim(),
     character: String(formData.get("character") ?? "").trim(),

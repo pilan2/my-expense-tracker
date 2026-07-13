@@ -182,6 +182,7 @@ export function ItemForm({
             name="expectedShipDate"
             type="date"
             defaultValue={defaultValues?.expectedShipDate}
+            required
             className={inputClass}
           />
         </Field>
