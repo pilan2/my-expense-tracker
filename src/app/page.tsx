@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getCategorySummary } from "@/lib/spending";
 import { getUpcomingShipments, getRecentPurchases } from "@/lib/items";
 import { getRecentSales } from "@/lib/sales";
-import { ItemCardContent } from "@/components/item-card";
+import { formatDDay, isOverdue } from "@/lib/dday";
 
 export default async function Home() {
   const [summary, upcomingShipments, recentPurchases, recentSales] = await Promise.all([
@@ -45,9 +45,14 @@ export default async function Home() {
               <li key={item.id}>
                 <Link
                   href={`/items/${item.id}`}
-                  className="block rounded-md border border-neutral-200 p-3 hover:opacity-70 dark:border-neutral-800"
+                  className="flex items-center justify-between rounded-md border border-neutral-200 px-3 py-2 text-sm hover:opacity-70 dark:border-neutral-800"
                 >
-                  <ItemCardContent {...item} />
+                  <span>
+                    {item.character} · {item.detail}
+                  </span>
+                  <span className={`font-medium ${isOverdue(item.expectedShipDate!) ? "text-red-600" : "text-blue-600"}`}>
+                    {formatDDay(item.expectedShipDate!)}
+                  </span>
                 </Link>
               </li>
             ))}

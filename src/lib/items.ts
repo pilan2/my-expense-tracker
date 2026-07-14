@@ -74,6 +74,24 @@ export function getShipmentsInMonth(year: number, month: number) {
   });
 }
 
+// /shipments 달력에서 하루를 클릭했을 때, 그날 발송예정인 품목 전체.
+export async function getShipmentsOnDate(dateStr: string) {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const start = new Date(year, month - 1, day);
+  const end = new Date(year, month - 1, day + 1);
+
+  const items = await prisma.item.findMany({
+    where: { isPhysical: false, expectedShipDate: { gte: start, lt: end } },
+    orderBy: { character: "asc" },
+    include: { sales: SALES_FOR_CARD },
+  });
+
+  return items.map((item) => ({
+    ...item,
+    remainingQuantity: calcRemainingQuantity(item.quantity, item.sales),
+  }));
+}
+
 // 대시보드 "최근 구매" 미리보기.
 export function getRecentPurchases(limit: number) {
   return prisma.item.findMany({

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getShipmentsInMonth, getUpcomingShipments } from "@/lib/items";
+import { getShipmentsInMonth, getUpcomingShipments, getShipmentsOnDate } from "@/lib/items";
 import { getMonthGrid, shiftMonth } from "@/lib/calendar";
 import { BackButton } from "@/components/back-button";
 import { ItemCardContent } from "@/components/item-card";
@@ -16,44 +16,57 @@ function parseMonthParam(monthParam?: string): { year: number; month: number } {
   return { year: now.getFullYear(), month: now.getMonth() + 1 };
 }
 
+function monthParamString(year: number, month: number) {
+  return `${year}-${String(month).padStart(2, "0")}`;
+}
+
 function monthHref(year: number, month: number) {
-  return `/shipments?view=calendar&month=${year}-${String(month).padStart(2, "0")}`;
+  return `/shipments?view=calendar&month=${monthParamString(year, month)}`;
+}
+
+function dayHref(dateStr: string, monthParam: string) {
+  return `/shipments?view=day&date=${dateStr}&month=${monthParam}`;
 }
 
 export default async function ShipmentsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ view?: string; month?: string }>;
+  searchParams: Promise<{ view?: string; month?: string; date?: string }>;
 }) {
-  const { view: viewParam, month: monthParam } = await searchParams;
-  const view = viewParam === "list" ? "list" : "calendar";
+  const { view: viewParam, month: monthParam, date: dateParam } = await searchParams;
+  const view = viewParam === "list" ? "list" : viewParam === "day" ? "day" : "calendar";
+  const { year: backYear, month: backMonth } = parseMonthParam(monthParam);
 
   return (
     <div className="mx-auto max-w-3xl p-6">
       <BackButton />
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-xl font-semibold">발송 예정</h1>
-        <div className="flex gap-1 rounded-md border border-neutral-200 p-1 text-sm dark:border-neutral-800">
-          <Link
-            href="/shipments?view=calendar"
-            className={`rounded px-3 py-1 ${view === "calendar" ? "bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900" : ""}`}
-          >
-            달력
+        {view === "day" ? (
+          <Link href={monthHref(backYear, backMonth)} className="text-sm underline">
+            ← 달력으로
           </Link>
-          <Link
-            href="/shipments?view=list"
-            className={`rounded px-3 py-1 ${view === "list" ? "bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900" : ""}`}
-          >
-            목록
-          </Link>
-        </div>
+        ) : (
+          <div className="flex gap-1 rounded-md border border-neutral-200 p-1 text-sm dark:border-neutral-800">
+            <Link
+              href="/shipments?view=calendar"
+              className={`rounded px-3 py-1 ${view === "calendar" ? "bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900" : ""}`}
+            >
+              달력
+            </Link>
+            <Link
+              href="/shipments?view=list"
+              className={`rounded px-3 py-1 ${view === "list" ? "bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900" : ""}`}
+            >
+              목록
+            </Link>
+          </div>
+        )}
       </div>
 
-      {view === "calendar" ? (
-        <CalendarView monthParam={monthParam} />
-      ) : (
-        <ListView />
-      )}
+      {view === "calendar" && <CalendarView monthParam={monthParam} />}
+      {view === "list" && <ListView />}
+      {view === "day" && dateParam && <DayView dateStr={dateParam} />}
     </div>
   );
 }
@@ -61,6 +74,7 @@ export default async function ShipmentsPage({
 async function CalendarView({ monthParam }: { monthParam?: string }) {
   const { year, month } = parseMonthParam(monthParam);
   const items = await getShipmentsInMonth(year, month);
+  const currentMonthParam = monthParamString(year, month);
 
   const itemsByDay = new Map<number, typeof items>();
   for (const item of items) {
@@ -102,6 +116,9 @@ async function CalendarView({ monthParam }: { monthParam?: string }) {
             {week.map((day, j) => {
               const dayItems = day ? (itemsByDay.get(day) ?? []) : [];
               const isToday = isCurrentMonth && day === today.getDate();
+              const dateStr = day
+                ? `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`
+                : null;
 
               return (
                 <div
@@ -112,7 +129,13 @@ async function CalendarView({ monthParam }: { monthParam?: string }) {
                 >
                   {day && (
                     <>
-                      <p className="mb-1 text-neutral-500">{day}</p>
+                      {dayItems.length > 0 ? (
+                        <Link href={dayHref(dateStr!, currentMonthParam)} className="mb-1 block text-neutral-500 underline">
+                          {day}
+                        </Link>
+                      ) : (
+                        <p className="mb-1 text-neutral-500">{day}</p>
+                      )}
                       <div className="flex flex-col gap-0.5">
                         {dayItems.slice(0, 3).map((item) => (
                           <Link
@@ -128,7 +151,9 @@ async function CalendarView({ monthParam }: { monthParam?: string }) {
                           </Link>
                         ))}
                         {dayItems.length > 3 && (
-                          <span className="text-neutral-500">+{dayItems.length - 3}개</span>
+                          <Link href={dayHref(dateStr!, currentMonthParam)} className="text-neutral-500 underline">
+                            +{dayItems.length - 3}개
+                          </Link>
                         )}
                       </div>
                     </>
@@ -163,5 +188,31 @@ async function ListView() {
         </li>
       ))}
     </ul>
+  );
+}
+
+async function DayView({ dateStr }: { dateStr: string }) {
+  const items = await getShipmentsOnDate(dateStr);
+
+  return (
+    <>
+      <p className="mb-4 font-medium">{dateStr}</p>
+      {items.length === 0 ? (
+        <p className="py-10 text-center text-neutral-500">이 날짜에 발송 예정인 품목이 없습니다.</p>
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {items.map((item) => (
+            <li key={item.id}>
+              <Link
+                href={`/items/${item.id}`}
+                className="block rounded-md border border-neutral-200 p-3 hover:opacity-70 dark:border-neutral-800"
+              >
+                <ItemCardContent {...item} />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
   );
 }
