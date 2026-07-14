@@ -53,9 +53,9 @@ export default async function Home() {
               <li key={dateStr}>
                 <Link
                   href={`/shipments?view=day&date=${dateStr}`}
-                  className="flex items-center justify-between rounded-md border border-neutral-200 px-3 py-2 text-sm hover:opacity-70 dark:border-neutral-800"
+                  className="flex items-center justify-between gap-2 rounded-md border border-neutral-200 px-3 py-2 text-sm hover:opacity-70 dark:border-neutral-800"
                 >
-                  <span className="truncate">
+                  <span className="min-w-0 truncate">
                     {items
                       .slice(0, 3)
                       .map((item) => item.character)
@@ -63,7 +63,7 @@ export default async function Home() {
                     {items.length > 3 ? ` 외 ${items.length - 3}개` : ""}
                   </span>
                   <span
-                    className={`ml-2 shrink-0 font-medium ${isOverdue(items[0].expectedShipDate!) ? "text-red-600" : "text-blue-600"}`}
+                    className={`shrink-0 font-medium ${isOverdue(items[0].expectedShipDate!) ? "text-red-600" : "text-blue-600"}`}
                   >
                     {formatDDay(items[0].expectedShipDate!)}
                   </span>
@@ -90,7 +90,7 @@ export default async function Home() {
                 <li key={item.id}>
                   <Link
                     href={`/items/${item.id}`}
-                    className="flex items-center justify-between rounded-md border border-neutral-200 px-3 py-2 text-sm hover:opacity-70 dark:border-neutral-800"
+                    className="flex flex-col gap-1 rounded-md border border-neutral-200 px-3 py-2 text-sm hover:opacity-70 sm:flex-row sm:items-center sm:justify-between dark:border-neutral-800"
                   >
                     <span>
                       {item.character} · {item.detail}
@@ -131,7 +131,7 @@ export default async function Home() {
                   <li key={sale.id}>
                     <Link
                       href={`/items/${sale.itemId}`}
-                      className="flex items-center justify-between rounded-md border border-neutral-200 px-3 py-2 text-sm hover:opacity-70 dark:border-neutral-800"
+                      className="flex flex-col gap-1 rounded-md border border-neutral-200 px-3 py-2 text-sm hover:opacity-70 sm:flex-row sm:items-center sm:justify-between dark:border-neutral-800"
                     >
                       <span>
                         {sale.item.character} · {sale.item.detail}
@@ -156,7 +156,7 @@ export default async function Home() {
             <li key={genre.name}>
               <Link
                 href={`/browse/${encodeURIComponent(genre.name)}`}
-                className="flex items-center justify-between rounded-md border border-neutral-200 px-4 py-2 text-sm hover:opacity-70 dark:border-neutral-800"
+                className="flex flex-col gap-1 rounded-md border border-neutral-200 px-4 py-2 text-sm hover:opacity-70 sm:flex-row sm:items-center sm:justify-between dark:border-neutral-800"
               >
                 <span className="font-medium">{genre.name}</span>
                 <span className="text-neutral-500">

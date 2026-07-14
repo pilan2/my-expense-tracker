@@ -10,9 +10,9 @@ export function CategoryStatRow({
   profit: number;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3">
+    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
       <span className="font-medium">{label}</span>
-      <div className="text-right text-sm text-neutral-500">
+      <div className="text-sm text-neutral-500 sm:text-right">
         <p>
           구매 {purchaseTotal.toLocaleString("ko-KR")}원 · 판매 {saleTotal.toLocaleString("ko-KR")}원
         </p>

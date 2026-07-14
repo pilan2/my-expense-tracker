@@ -29,7 +29,7 @@ export default async function SalesPage() {
               <li key={sale.id}>
                 <Link
                   href={`/items/${sale.itemId}`}
-                  className="flex items-center justify-between rounded-md border border-neutral-200 p-3 hover:opacity-70 dark:border-neutral-800"
+                  className="flex flex-col gap-1 rounded-md border border-neutral-200 p-3 hover:opacity-70 sm:flex-row sm:items-center sm:justify-between dark:border-neutral-800"
                 >
                   <div>
                     <p className="font-medium">

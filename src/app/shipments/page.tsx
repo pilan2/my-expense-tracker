@@ -123,7 +123,7 @@ async function CalendarView({ monthParam }: { monthParam?: string }) {
               return (
                 <div
                   key={j}
-                  className={`min-h-16 rounded-md border p-1 text-xs ${
+                  className={`min-h-16 min-w-0 rounded-md border p-1 text-xs ${
                     day ? "border-neutral-200 dark:border-neutral-800" : "border-transparent"
                   } ${isToday ? "ring-2 ring-blue-500" : ""}`}
                 >
