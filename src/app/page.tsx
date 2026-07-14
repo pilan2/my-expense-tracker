@@ -21,7 +21,7 @@ export default async function Home() {
   const shipmentDateGroups = [...shipmentsByDate.entries()].slice(0, 5);
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-8 p-6">
+    <div className="mx-auto max-w-3xl space-y-8 p-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
           <p className="text-sm text-neutral-500">총 소비 금액</p>
@@ -178,12 +178,14 @@ export default async function Home() {
         </ul>
       </div>
 
-      <Link
-        href="/items"
-        className="self-end rounded-md bg-neutral-900 px-4 py-2 text-sm text-white dark:bg-neutral-100 dark:text-neutral-900"
-      >
-        전체 품목 보기
-      </Link>
+      <div className="text-right">
+        <Link
+          href="/items"
+          className="inline-block rounded-md bg-neutral-900 px-4 py-2 text-sm text-white dark:bg-neutral-100 dark:text-neutral-900"
+        >
+          전체 품목 보기
+        </Link>
+      </div>
     </div>
   );
 }
