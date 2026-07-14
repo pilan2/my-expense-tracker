@@ -17,6 +17,11 @@
     --background: #0a0a0a;
     --foreground: #ededed;
   }
+
+  /* 날짜 입력의 달력 아이콘이 다크 모드에서도 잘 보이도록 반전. */
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+  }
 }
 
 html,
