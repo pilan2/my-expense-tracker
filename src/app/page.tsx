@@ -53,14 +53,14 @@ export default async function Home() {
               <li key={dateStr}>
                 <Link
                   href={`/shipments?view=day&date=${dateStr}`}
-                  className="flex items-center justify-between gap-2 rounded-md border border-neutral-200 px-3 py-2 text-sm hover:opacity-70 dark:border-neutral-800"
+                  className="flex items-start justify-between gap-2 rounded-md border border-neutral-200 px-3 py-2 text-sm hover:opacity-70 dark:border-neutral-800"
                 >
-                  <span className="min-w-0 truncate">
+                  <span>
                     {items
-                      .slice(0, 3)
-                      .map((item) => item.character)
+                      .slice(0, 2)
+                      .map((item) => `${item.character} · ${item.detail}`)
                       .join(", ")}
-                    {items.length > 3 ? ` 외 ${items.length - 3}개` : ""}
+                    {items.length > 2 ? ` 외 ${items.length - 2}개` : ""}
                   </span>
                   <span
                     className={`shrink-0 font-medium ${isOverdue(items[0].expectedShipDate!) ? "text-red-600" : "text-blue-600"}`}
