@@ -4,6 +4,7 @@ import { getMonthGrid, shiftMonth } from "@/lib/calendar";
 import { BackButton } from "@/components/back-button";
 import { ItemCardContent } from "@/components/item-card";
 import { isOverdue } from "@/lib/dday";
+import { itemHref } from "@/lib/nav";
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
@@ -140,7 +141,7 @@ async function CalendarView({ monthParam }: { monthParam?: string }) {
                         {dayItems.slice(0, 3).map((item) => (
                           <Link
                             key={item.id}
-                            href={`/items/${item.id}`}
+                            href={itemHref(item.id, monthHref(year, month))}
                             className={`truncate rounded px-1 py-0.5 ${
                               isOverdue(item.expectedShipDate!)
                                 ? "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300"
@@ -180,7 +181,7 @@ async function ListView() {
       {items.map((item) => (
         <li key={item.id}>
           <Link
-            href={`/items/${item.id}`}
+            href={itemHref(item.id, "/shipments?view=list")}
             className="block rounded-md border border-neutral-200 p-3 hover:opacity-70 dark:border-neutral-800"
           >
             <ItemCardContent {...item} />
@@ -193,6 +194,7 @@ async function ListView() {
 
 async function DayView({ dateStr }: { dateStr: string }) {
   const items = await getShipmentsOnDate(dateStr);
+  const from = `/shipments?view=day&date=${dateStr}`;
 
   return (
     <>
@@ -204,7 +206,7 @@ async function DayView({ dateStr }: { dateStr: string }) {
           {items.map((item) => (
             <li key={item.id}>
               <Link
-                href={`/items/${item.id}`}
+                href={itemHref(item.id, from)}
                 className="block rounded-md border border-neutral-200 p-3 hover:opacity-70 dark:border-neutral-800"
               >
                 <ItemCardContent {...item} />

@@ -3,6 +3,7 @@ import { getCategorySummary } from "@/lib/spending";
 import { getUpcomingShipments, getRecentPurchases } from "@/lib/items";
 import { getRecentSales, calcSaleProfit } from "@/lib/sales";
 import { formatDDay, isOverdue } from "@/lib/dday";
+import { itemHref } from "@/lib/nav";
 
 export default async function Home() {
   const [summary, upcomingShipments, recentPurchases, recentSales] = await Promise.all([
@@ -89,7 +90,7 @@ export default async function Home() {
               {recentPurchases.map((item) => (
                 <li key={item.id}>
                   <Link
-                    href={`/items/${item.id}`}
+                    href={itemHref(item.id, "/")}
                     className="flex flex-col gap-1 rounded-md border border-neutral-200 px-3 py-2 text-sm hover:opacity-70 sm:flex-row sm:items-center sm:justify-between dark:border-neutral-800"
                   >
                     <span>
@@ -130,7 +131,7 @@ export default async function Home() {
                 return (
                   <li key={sale.id}>
                     <Link
-                      href={`/items/${sale.itemId}`}
+                      href={itemHref(sale.itemId, "/")}
                       className="flex flex-col gap-1 rounded-md border border-neutral-200 px-3 py-2 text-sm hover:opacity-70 sm:flex-row sm:items-center sm:justify-between dark:border-neutral-800"
                     >
                       <span>

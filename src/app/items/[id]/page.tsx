@@ -9,13 +9,18 @@ import { NumberInput } from "@/components/number-input";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 import { wonToManwon } from "@/lib/money";
 import { formatDDay, isOverdue } from "@/lib/dday";
+import { safeRedirectTarget } from "@/lib/nav";
 
 export default async function ItemDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ from?: string }>;
 }) {
   const { id } = await params;
+  const { from: fromParam } = await searchParams;
+  const from = safeRedirectTarget(fromParam ? decodeURIComponent(fromParam) : "/items");
   const [item, suggestions, sales] = await Promise.all([
     getItem(id),
     getFieldSuggestions(),
@@ -62,12 +67,12 @@ export default async function ItemDetailPage({
         </p>
       )}
       <ItemForm
-        action={updateItem.bind(null, item.id)}
+        action={updateItem.bind(null, item.id, from)}
         suggestions={suggestions}
         defaultValues={defaultValues}
       />
 
-      <form action={deleteItem.bind(null, item.id)} className="mt-8 border-t pt-6 dark:border-neutral-800">
+      <form action={deleteItem.bind(null, item.id, from)} className="mt-8 border-t pt-6 dark:border-neutral-800">
         <ConfirmSubmitButton
           confirmMessage="이 품목을 삭제하시겠습니까? 연결된 판매 이력도 함께 삭제됩니다."
           className="text-sm text-red-600 hover:underline"

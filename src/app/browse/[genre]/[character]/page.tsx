@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getItemsByCategory } from "@/lib/items";
 import { BackButton } from "@/components/back-button";
 import { ItemCardContent } from "@/components/item-card";
+import { itemHref } from "@/lib/nav";
 
 export default async function BrowseItemsPage({
   params,
@@ -13,6 +14,7 @@ export default async function BrowseItemsPage({
   const character = decodeURIComponent(characterParam);
 
   const items = await getItemsByCategory(genre, character);
+  const from = `/browse/${encodeURIComponent(genre)}/${encodeURIComponent(character)}`;
 
   const groups = new Map<string, typeof items>();
   for (const item of items) {
@@ -42,7 +44,7 @@ export default async function BrowseItemsPage({
                 {groupItems.map((item) => (
                   <li key={item.id}>
                     <Link
-                      href={`/items/${item.id}`}
+                      href={itemHref(item.id, from)}
                       className="block rounded-md border border-neutral-200 p-3 hover:opacity-70 dark:border-neutral-800"
                     >
                       <ItemCardContent {...item} showGenreCharacter={false} showItemType={false} />

@@ -4,6 +4,7 @@ import { assignShippingFee } from "@/lib/actions/shipping";
 import { BackButton } from "@/components/back-button";
 import { NumberInput } from "@/components/number-input";
 import { ItemCardContent } from "@/components/item-card";
+import { itemHref } from "@/lib/nav";
 
 export default async function ItemsPage({
   searchParams,
@@ -80,7 +81,10 @@ export default async function ItemsPage({
                 className="flex items-start gap-3 rounded-md border border-neutral-200 p-3 dark:border-neutral-800"
               >
                 <input type="checkbox" name="itemIds" value={item.id} className="mt-1 h-4 w-4" />
-                <Link href={`/items/${item.id}`} className="flex-1 hover:opacity-70">
+                <Link
+                  href={itemHref(item.id, pendingOnly ? "/items?pending=1" : "/items")}
+                  className="flex-1 hover:opacity-70"
+                >
                   <ItemCardContent {...item} />
                 </Link>
               </li>

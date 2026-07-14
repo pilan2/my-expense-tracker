@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getRecentSales, calcSaleProfit } from "@/lib/sales";
 import { BackButton } from "@/components/back-button";
+import { itemHref } from "@/lib/nav";
 
 export default async function SalesPage() {
   const sales = await getRecentSales();
@@ -28,7 +29,7 @@ export default async function SalesPage() {
             return (
               <li key={sale.id}>
                 <Link
-                  href={`/items/${sale.itemId}`}
+                  href={itemHref(sale.itemId, "/sales")}
                   className="flex flex-col gap-1 rounded-md border border-neutral-200 p-3 hover:opacity-70 sm:flex-row sm:items-center sm:justify-between dark:border-neutral-800"
                 >
                   <div>
