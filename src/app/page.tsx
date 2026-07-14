@@ -1,16 +1,24 @@
 import Link from "next/link";
 import { getCategorySummary } from "@/lib/spending";
 import { getUpcomingShipments, getRecentPurchases } from "@/lib/items";
-import { getRecentSales } from "@/lib/sales";
+import { getRecentSales, calcSaleProfit } from "@/lib/sales";
 import { formatDDay, isOverdue } from "@/lib/dday";
 
 export default async function Home() {
   const [summary, upcomingShipments, recentPurchases, recentSales] = await Promise.all([
     getCategorySummary(),
-    getUpcomingShipments(5),
+    getUpcomingShipments(),
     getRecentPurchases(5),
     getRecentSales(5),
   ]);
+
+  const shipmentsByDate = new Map<string, typeof upcomingShipments>();
+  for (const item of upcomingShipments) {
+    const dateStr = item.expectedShipDate!.toISOString().slice(0, 10);
+    if (!shipmentsByDate.has(dateStr)) shipmentsByDate.set(dateStr, []);
+    shipmentsByDate.get(dateStr)!.push(item);
+  }
+  const shipmentDateGroups = [...shipmentsByDate.entries()].slice(0, 5);
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-8 p-6">
@@ -41,17 +49,23 @@ export default async function Home() {
             </Link>
           </div>
           <ul className="flex flex-col gap-2">
-            {upcomingShipments.map((item) => (
-              <li key={item.id}>
+            {shipmentDateGroups.map(([dateStr, items]) => (
+              <li key={dateStr}>
                 <Link
-                  href={`/items/${item.id}`}
+                  href={`/shipments?view=day&date=${dateStr}`}
                   className="flex items-center justify-between rounded-md border border-neutral-200 px-3 py-2 text-sm hover:opacity-70 dark:border-neutral-800"
                 >
-                  <span>
-                    {item.character} · {item.detail}
+                  <span className="truncate">
+                    {items
+                      .slice(0, 3)
+                      .map((item) => item.character)
+                      .join(", ")}
+                    {items.length > 3 ? ` 외 ${items.length - 3}개` : ""}
                   </span>
-                  <span className={`font-medium ${isOverdue(item.expectedShipDate!) ? "text-red-600" : "text-blue-600"}`}>
-                    {formatDDay(item.expectedShipDate!)}
+                  <span
+                    className={`ml-2 shrink-0 font-medium ${isOverdue(items[0].expectedShipDate!) ? "text-red-600" : "text-blue-600"}`}
+                  >
+                    {formatDDay(items[0].expectedShipDate!)}
                   </span>
                 </Link>
               </li>
@@ -102,19 +116,34 @@ export default async function Home() {
             <p className="text-sm text-neutral-500">판매 기록이 없습니다.</p>
           ) : (
             <ul className="flex flex-col gap-2">
-              {recentSales.map((sale) => (
-                <li key={sale.id}>
-                  <Link
-                    href={`/items/${sale.itemId}`}
-                    className="flex items-center justify-between rounded-md border border-neutral-200 px-3 py-2 text-sm hover:opacity-70 dark:border-neutral-800"
-                  >
-                    <span>
-                      {sale.item.character} · {sale.item.detail}
-                    </span>
-                    <span className="text-neutral-500">{sale.saleDate.toLocaleDateString("ko-KR")}</span>
-                  </Link>
-                </li>
-              ))}
+              {recentSales.map((sale) => {
+                const profit = calcSaleProfit({
+                  quantitySold: sale.quantitySold,
+                  saleAmount: Number(sale.saleAmount),
+                  item: {
+                    price: Number(sale.item.price),
+                    shippingFee: Number(sale.item.shippingFee),
+                    quantity: sale.item.quantity,
+                  },
+                });
+
+                return (
+                  <li key={sale.id}>
+                    <Link
+                      href={`/items/${sale.itemId}`}
+                      className="flex items-center justify-between rounded-md border border-neutral-200 px-3 py-2 text-sm hover:opacity-70 dark:border-neutral-800"
+                    >
+                      <span>
+                        {sale.item.character} · {sale.item.detail}
+                      </span>
+                      <span className={`font-medium ${profit >= 0 ? "text-blue-600" : "text-red-600"}`}>
+                        {profit >= 0 ? "+" : ""}
+                        {profit.toLocaleString("ko-KR")}원
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>
@@ -145,7 +174,7 @@ export default async function Home() {
 
       <Link
         href="/items"
-        className="self-start rounded-md bg-neutral-900 px-4 py-2 text-sm text-white dark:bg-neutral-100 dark:text-neutral-900"
+        className="self-end rounded-md bg-neutral-900 px-4 py-2 text-sm text-white dark:bg-neutral-100 dark:text-neutral-900"
       >
         전체 품목 보기
       </Link>

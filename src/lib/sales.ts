@@ -6,12 +6,28 @@ export function getSalesForItem(itemId: string) {
 }
 
 // 대시보드 "최근 판매" 미리보기 및 /sales 전체 목록. limit 없으면 전부.
+// item의 price/shippingFee/quantity는 이 판매 건 자체의 손익 계산용.
 export function getRecentSales(limit?: number) {
   return prisma.sale.findMany({
     orderBy: { saleDate: "desc" },
     ...(limit ? { take: limit } : {}),
-    include: { item: { select: { genre: true, character: true, detail: true } } },
+    include: {
+      item: {
+        select: { genre: true, character: true, detail: true, price: true, shippingFee: true, quantity: true },
+      },
+    },
   });
+}
+
+// 판매 건 하나(quantitySold, saleAmount)만의 손익. calcProfit을 원소 1개짜리 배열로 호출해 재사용.
+export function calcSaleProfit(sale: {
+  quantitySold: number;
+  saleAmount: number;
+  item: { price: number; shippingFee: number; quantity: number };
+}): number {
+  return calcProfit(sale.item.price, sale.item.shippingFee, sale.item.quantity, [
+    { quantitySold: sale.quantitySold, saleAmount: sale.saleAmount },
+  ]);
 }
 
 // quantity는 구매 당시 원래 수량으로 고정하고, 잔여 수량은 판매 이력에서 그때그때 계산한다.
