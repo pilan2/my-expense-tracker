@@ -62,7 +62,12 @@ export default async function Home() {
 
       <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
         <div>
-          <h2 className="mb-4 text-lg font-semibold">최근 구매</h2>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-semibold">최근 구매</h2>
+            <Link href="/purchases" className="text-sm underline">
+              전체보기 →
+            </Link>
+          </div>
           {recentPurchases.length === 0 ? (
             <p className="text-sm text-neutral-500">구매 기록이 없습니다.</p>
           ) : (
@@ -87,7 +92,12 @@ export default async function Home() {
         </div>
 
         <div>
-          <h2 className="mb-4 text-lg font-semibold">최근 판매</h2>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-semibold">최근 판매</h2>
+            <Link href="/sales" className="text-sm underline">
+              전체보기 →
+            </Link>
+          </div>
           {recentSales.length === 0 ? (
             <p className="text-sm text-neutral-500">판매 기록이 없습니다.</p>
           ) : (

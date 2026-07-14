@@ -92,12 +92,18 @@ export async function getShipmentsOnDate(dateStr: string) {
   }));
 }
 
-// 대시보드 "최근 구매" 미리보기.
-export function getRecentPurchases(limit: number) {
-  return prisma.item.findMany({
+// 대시보드 "최근 구매" 미리보기 및 /purchases 전체 목록. limit 없으면 전부.
+export async function getRecentPurchases(limit?: number) {
+  const items = await prisma.item.findMany({
     orderBy: { purchasedAt: "desc" },
-    take: limit,
+    include: { sales: SALES_FOR_CARD },
+    ...(limit ? { take: limit } : {}),
   });
+
+  return items.map((item) => ({
+    ...item,
+    remainingQuantity: calcRemainingQuantity(item.quantity, item.sales),
+  }));
 }
 
 export async function getFieldSuggestions() {

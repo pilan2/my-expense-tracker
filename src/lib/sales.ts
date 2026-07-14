@@ -5,11 +5,11 @@ export function getSalesForItem(itemId: string) {
   return prisma.sale.findMany({ where: { itemId }, orderBy: { saleDate: "desc" } });
 }
 
-// 대시보드 "최근 판매" 미리보기.
-export function getRecentSales(limit: number) {
+// 대시보드 "최근 판매" 미리보기 및 /sales 전체 목록. limit 없으면 전부.
+export function getRecentSales(limit?: number) {
   return prisma.sale.findMany({
     orderBy: { saleDate: "desc" },
-    take: limit,
+    ...(limit ? { take: limit } : {}),
     include: { item: { select: { genre: true, character: true, detail: true } } },
   });
 }
