@@ -38,7 +38,7 @@ export default async function ShipmentsPage({
   const { year: backYear, month: backMonth } = parseMonthParam(monthParam);
 
   return (
-    <div className="mx-auto max-w-3xl p-6">
+    <div className="box-border mx-auto w-full max-w-3xl overflow-x-hidden p-6">
       <BackButton />
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-xl font-semibold">발송 예정</h1>

@@ -49,7 +49,7 @@ export default async function ItemDetailPage({
   const profit = calcProfit(Number(item.price), Number(item.shippingFee), item.quantity, salesForCalc);
 
   return (
-    <div className="mx-auto max-w-xl p-6">
+    <div className="box-border mx-auto w-full max-w-xl overflow-x-hidden p-6">
       <BackButton />
       <h1 className="mb-2 text-xl font-semibold">품목 수정</h1>
       {!item.isPhysical && item.expectedShipDate && (

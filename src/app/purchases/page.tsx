@@ -7,7 +7,7 @@ export default async function PurchasesPage() {
   const items = await getRecentPurchases();
 
   return (
-    <div className="mx-auto max-w-3xl p-6">
+    <div className="box-border mx-auto w-full max-w-3xl overflow-x-hidden p-6">
       <BackButton />
       <h1 className="mb-6 text-xl font-semibold">구매 내역 (최신순)</h1>
 

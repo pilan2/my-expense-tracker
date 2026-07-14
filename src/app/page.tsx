@@ -21,7 +21,7 @@ export default async function Home() {
   const shipmentDateGroups = [...shipmentsByDate.entries()].slice(0, 5);
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8 p-6">
+    <div className="box-border mx-auto w-full max-w-3xl space-y-8 overflow-x-hidden p-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
           <p className="text-sm text-neutral-500">총 소비 금액</p>

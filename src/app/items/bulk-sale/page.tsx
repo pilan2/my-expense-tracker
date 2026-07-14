@@ -19,7 +19,7 @@ export default async function BulkSalePage({
 
   if (sellable.length < 2) {
     return (
-      <div className="mx-auto max-w-xl p-6">
+      <div className="box-border mx-auto w-full max-w-xl overflow-x-hidden p-6">
         <BackButton />
         <h1 className="mb-4 text-xl font-semibold">묶음 판매</h1>
         <p className="text-neutral-500">
@@ -32,7 +32,7 @@ export default async function BulkSalePage({
   const today = new Date().toISOString().slice(0, 10);
 
   return (
-    <div className="mx-auto max-w-xl p-6">
+    <div className="box-border mx-auto w-full max-w-xl overflow-x-hidden p-6">
       <BackButton />
       <h1 className="mb-6 text-xl font-semibold">묶음 판매</h1>
       <form action={createBulkSale} className="flex flex-col gap-4">

@@ -7,7 +7,7 @@ export default async function BrowseGenresPage() {
   const summary = await getCategorySummary();
 
   return (
-    <div className="mx-auto max-w-3xl p-6">
+    <div className="box-border mx-auto w-full max-w-3xl overflow-x-hidden p-6">
       <BackButton />
       <h1 className="mb-6 text-xl font-semibold">장르별로 보기</h1>
 
