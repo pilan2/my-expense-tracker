@@ -55,7 +55,11 @@ export function ItemCardContent({
   return (
     <div className="flex flex-col gap-1">
       <p className="font-medium">
-        {showGenreCharacter ? `${genre} · ${character}${series ? ` (${series})` : ""} · ` : ""}
+        {showGenreCharacter
+          ? genre === character
+            ? `${genre}${series ? ` (${series})` : ""} · `
+            : `${genre} · ${character}${series ? ` (${series})` : ""} · `
+          : ""}
         {showItemType ? `${itemType} · ` : ""}
         {detail}
       </p>

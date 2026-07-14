@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getCategorySummary } from "@/lib/spending";
 import { BackButton } from "@/components/back-button";
 import { CategoryStatRow } from "@/components/category-stat-row";
@@ -11,6 +11,11 @@ export default async function BrowseCharactersPage({
 }) {
   const { genre: genreParam } = await params;
   const genre = decodeURIComponent(genreParam);
+
+  // "기타" 장르는 캐릭터도 항상 "기타"라, 캐릭터 선택 단계 없이 바로 품목 목록으로.
+  if (genre === "기타") {
+    redirect(`/browse/${encodeURIComponent(genre)}/${encodeURIComponent(genre)}`);
+  }
 
   const summary = await getCategorySummary();
   const genreSummary = summary.genres.find((g) => g.name === genre);

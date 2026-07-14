@@ -29,9 +29,7 @@ export default async function BrowseItemsPage({
   return (
     <div className="mx-auto max-w-3xl p-6">
       <BackButton />
-      <h1 className="mb-6 text-xl font-semibold">
-        {genre} · {character}
-      </h1>
+      <h1 className="mb-6 text-xl font-semibold">{genre === character ? genre : `${genre} · ${character}`}</h1>
 
       {items.length === 0 ? (
         <p className="py-10 text-center text-neutral-500">해당하는 품목이 없습니다.</p>
