@@ -153,7 +153,7 @@ export function ItemForm({
         <NumberInput
           name="price"
           min={0}
-          step={0.01}
+          step={0.0001}
           defaultValue={defaultValues?.price}
           required
           className={inputClass}
@@ -181,7 +181,8 @@ export function ItemForm({
         <NumberInput
           name="shippingFee"
           min={0}
-          step={0.01}
+          // 자동 분배는 원 단위까지 정확하게 나누므로(1원 = 0.0001만원), 수기 입력도 같은 정밀도를 허용한다.
+          step={0.0001}
           defaultValue={defaultValues?.shippingFee ?? "0"}
           className={inputClass}
         />
