@@ -18,6 +18,7 @@ export type ItemFormDefaults = {
   detail: string;
   quantity: number;
   price: string;
+  purchasedAt: string;
   shippingFee: string;
   hasOverseasShipping: boolean;
   maker: string;
@@ -106,6 +107,16 @@ export function ItemForm({
         <input
           name="detail"
           defaultValue={defaultValues?.detail}
+          required
+          className={inputClass}
+        />
+      </Field>
+
+      <Field label="구매일">
+        <input
+          name="purchasedAt"
+          type="date"
+          defaultValue={defaultValues?.purchasedAt ?? new Date().toISOString().slice(0, 10)}
           required
           className={inputClass}
         />

@@ -6,6 +6,7 @@ import { createSale, deleteSale } from "@/lib/actions/sales";
 import { ItemForm, type ItemFormDefaults } from "@/components/item-form";
 import { BackButton } from "@/components/back-button";
 import { NumberInput } from "@/components/number-input";
+import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 import { wonToManwon } from "@/lib/money";
 import { formatDDay, isOverdue } from "@/lib/dday";
 
@@ -31,6 +32,7 @@ export default async function ItemDetailPage({
     detail: item.detail,
     quantity: item.quantity,
     price: wonToManwon(item.price.toString()),
+    purchasedAt: item.purchasedAt.toISOString().slice(0, 10),
     shippingFee: wonToManwon(item.shippingFee.toString()),
     hasOverseasShipping: item.hasOverseasShipping,
     maker: item.maker ?? "",
@@ -66,9 +68,12 @@ export default async function ItemDetailPage({
       />
 
       <form action={deleteItem.bind(null, item.id)} className="mt-8 border-t pt-6 dark:border-neutral-800">
-        <button type="submit" className="text-sm text-red-600 hover:underline">
+        <ConfirmSubmitButton
+          confirmMessage="이 품목을 삭제하시겠습니까? 연결된 판매 이력도 함께 삭제됩니다."
+          className="text-sm text-red-600 hover:underline"
+        >
           이 품목 삭제
-        </button>
+        </ConfirmSubmitButton>
       </form>
 
       <div className="mt-8 border-t pt-6 dark:border-neutral-800">
@@ -142,9 +147,12 @@ export default async function ItemDetailPage({
                   {Number(sale.saleAmount).toLocaleString("ko-KR")}원
                 </span>
                 <form action={deleteSale.bind(null, sale.id)}>
-                  <button type="submit" className="text-red-600 hover:underline">
+                  <ConfirmSubmitButton
+                    confirmMessage="이 판매 기록을 삭제하시겠습니까?"
+                    className="text-red-600 hover:underline"
+                  >
                     삭제
-                  </button>
+                  </ConfirmSubmitButton>
                 </form>
               </li>
             ))}

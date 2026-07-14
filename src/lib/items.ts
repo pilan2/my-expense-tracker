@@ -2,10 +2,13 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import { calcRemainingQuantity } from "@/lib/sales";
 
-export async function getItems() {
+const SALES_FOR_CARD = { select: { quantitySold: true, saleAmount: true } } as const;
+
+export async function getItems(options?: { pendingShippingOnly?: boolean }) {
   const items = await prisma.item.findMany({
+    where: options?.pendingShippingOnly ? { hasOverseasShipping: true } : undefined,
     orderBy: { createdAt: "desc" },
-    include: { sales: { select: { quantitySold: true } } },
+    include: { sales: SALES_FOR_CARD },
   });
 
   return items.map((item) => ({
@@ -19,7 +22,20 @@ export async function getItemsByCategory(genre: string, character: string) {
   const items = await prisma.item.findMany({
     where: { genre, character },
     orderBy: { createdAt: "desc" },
-    include: { sales: { select: { quantitySold: true } } },
+    include: { sales: SALES_FOR_CARD },
+  });
+
+  return items.map((item) => ({
+    ...item,
+    remainingQuantity: calcRemainingQuantity(item.quantity, item.sales),
+  }));
+}
+
+// 묶음 판매 화면에서, 체크박스로 선택된 품목 id들만.
+export async function getItemsByIds(ids: string[]) {
+  const items = await prisma.item.findMany({
+    where: { id: { in: ids } },
+    include: { sales: SALES_FOR_CARD },
   });
 
   return items.map((item) => ({
@@ -37,7 +53,7 @@ export async function getUpcomingShipments(limit?: number) {
   const items = await prisma.item.findMany({
     where: { isPhysical: false, expectedShipDate: { not: null } },
     orderBy: { expectedShipDate: "asc" },
-    include: { sales: { select: { quantitySold: true } } },
+    include: { sales: SALES_FOR_CARD },
     ...(limit ? { take: limit } : {}),
   });
 
@@ -55,6 +71,14 @@ export function getShipmentsInMonth(year: number, month: number) {
   return prisma.item.findMany({
     where: { isPhysical: false, expectedShipDate: { gte: start, lt: end } },
     orderBy: { expectedShipDate: "asc" },
+  });
+}
+
+// 대시보드 "최근 구매" 미리보기.
+export function getRecentPurchases(limit: number) {
+  return prisma.item.findMany({
+    orderBy: { purchasedAt: "desc" },
+    take: limit,
   });
 }
 

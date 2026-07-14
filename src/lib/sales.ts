@@ -5,6 +5,15 @@ export function getSalesForItem(itemId: string) {
   return prisma.sale.findMany({ where: { itemId }, orderBy: { saleDate: "desc" } });
 }
 
+// 대시보드 "최근 판매" 미리보기.
+export function getRecentSales(limit: number) {
+  return prisma.sale.findMany({
+    orderBy: { saleDate: "desc" },
+    take: limit,
+    include: { item: { select: { genre: true, character: true, detail: true } } },
+  });
+}
+
 // quantity는 구매 당시 원래 수량으로 고정하고, 잔여 수량은 판매 이력에서 그때그때 계산한다.
 // 이렇게 해야 판매가 되어도 소비 금액(price * quantity) 집계가 변하지 않는다.
 export function calcRemainingQuantity(

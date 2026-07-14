@@ -1,12 +1,15 @@
 import Link from "next/link";
 import { getCategorySummary } from "@/lib/spending";
-import { getUpcomingShipments } from "@/lib/items";
-import { formatDDay, isOverdue } from "@/lib/dday";
+import { getUpcomingShipments, getRecentPurchases } from "@/lib/items";
+import { getRecentSales } from "@/lib/sales";
+import { ItemCardContent } from "@/components/item-card";
 
 export default async function Home() {
-  const [summary, upcomingShipments] = await Promise.all([
+  const [summary, upcomingShipments, recentPurchases, recentSales] = await Promise.all([
     getCategorySummary(),
     getUpcomingShipments(5),
+    getRecentPurchases(5),
+    getRecentSales(5),
   ]);
 
   return (
@@ -37,24 +40,70 @@ export default async function Home() {
               전체보기 →
             </Link>
           </div>
-          <ul className="divide-y divide-neutral-200 rounded-lg border border-neutral-200 dark:divide-neutral-800 dark:border-neutral-800">
+          <ul className="flex flex-col gap-2">
             {upcomingShipments.map((item) => (
-              <li key={item.id} className="flex items-center justify-between px-4 py-2 text-sm">
-                <Link href={`/items/${item.id}`} className="hover:opacity-70">
-                  {item.genre} · {item.character} · {item.detail}
-                </Link>
-                <span
-                  className={`font-medium ${
-                    isOverdue(item.expectedShipDate!) ? "text-red-600" : "text-blue-600"
-                  }`}
+              <li key={item.id}>
+                <Link
+                  href={`/items/${item.id}`}
+                  className="block rounded-md border border-neutral-200 p-3 hover:opacity-70 dark:border-neutral-800"
                 >
-                  {formatDDay(item.expectedShipDate!)}
-                </span>
+                  <ItemCardContent {...item} />
+                </Link>
               </li>
             ))}
           </ul>
         </div>
       )}
+
+      <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
+        <div>
+          <h2 className="mb-4 text-lg font-semibold">최근 구매</h2>
+          {recentPurchases.length === 0 ? (
+            <p className="text-sm text-neutral-500">구매 기록이 없습니다.</p>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {recentPurchases.map((item) => (
+                <li key={item.id}>
+                  <Link
+                    href={`/items/${item.id}`}
+                    className="flex items-center justify-between rounded-md border border-neutral-200 px-3 py-2 text-sm hover:opacity-70 dark:border-neutral-800"
+                  >
+                    <span>
+                      {item.character} · {item.detail}
+                    </span>
+                    <span className="text-neutral-500">
+                      {item.purchasedAt.toLocaleDateString("ko-KR")}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div>
+          <h2 className="mb-4 text-lg font-semibold">최근 판매</h2>
+          {recentSales.length === 0 ? (
+            <p className="text-sm text-neutral-500">판매 기록이 없습니다.</p>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {recentSales.map((sale) => (
+                <li key={sale.id}>
+                  <Link
+                    href={`/items/${sale.itemId}`}
+                    className="flex items-center justify-between rounded-md border border-neutral-200 px-3 py-2 text-sm hover:opacity-70 dark:border-neutral-800"
+                  >
+                    <span>
+                      {sale.item.character} · {sale.item.detail}
+                    </span>
+                    <span className="text-neutral-500">{sale.saleDate.toLocaleDateString("ko-KR")}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
 
       <div>
         <div className="mb-4 flex items-center justify-between">

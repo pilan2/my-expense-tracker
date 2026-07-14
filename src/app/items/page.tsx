@@ -5,14 +5,21 @@ import { BackButton } from "@/components/back-button";
 import { NumberInput } from "@/components/number-input";
 import { ItemCardContent } from "@/components/item-card";
 
-export default async function ItemsPage() {
-  const items = await getItems();
+export default async function ItemsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ pending?: string }>;
+}) {
+  const { pending } = await searchParams;
+  const pendingOnly = pending === "1";
+
+  const items = await getItems({ pendingShippingOnly: pendingOnly });
 
   return (
     <div className="mx-auto max-w-3xl p-6">
       <BackButton />
       <div className="mb-2 flex items-center justify-between">
-        <h1 className="text-xl font-semibold">전체 품목</h1>
+        <h1 className="text-xl font-semibold">{pendingOnly ? "배송비 미정 품목" : "전체 품목"}</h1>
         <Link
           href="/items/new"
           className="rounded-md bg-neutral-900 px-4 py-2 text-sm text-white hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900"
@@ -20,12 +27,19 @@ export default async function ItemsPage() {
           + 품목 등록
         </Link>
       </div>
-      <Link href="/browse" className="mb-6 inline-block text-sm underline">
-        카테고리별로 보기 →
-      </Link>
+      <div className="mb-6 flex gap-4 text-sm">
+        <Link href="/browse" className="underline">
+          카테고리별로 보기 →
+        </Link>
+        <Link href={pendingOnly ? "/items" : "/items?pending=1"} className="underline">
+          {pendingOnly ? "전체보기" : "배송비 미정만 보기"} →
+        </Link>
+      </div>
 
       {items.length === 0 ? (
-        <p className="py-10 text-center text-neutral-500">등록된 품목이 없습니다.</p>
+        <p className="py-10 text-center text-neutral-500">
+          {pendingOnly ? "배송비 미정인 품목이 없습니다." : "등록된 품목이 없습니다."}
+        </p>
       ) : (
         <form action={assignShippingFee}>
           <div className="mb-4 flex flex-col gap-3 rounded-md border border-neutral-200 p-4 text-sm sm:flex-row sm:items-end dark:border-neutral-800">
@@ -41,12 +55,22 @@ export default async function ItemsPage() {
                 className="rounded-md border border-neutral-300 px-3 py-2 dark:border-neutral-700 dark:bg-neutral-900"
               />
             </label>
-            <button
-              type="submit"
-              className="rounded-md bg-neutral-900 px-4 py-2 text-white hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900"
-            >
-              배송비 나누기
-            </button>
+            <div className="flex gap-2">
+              <button
+                type="submit"
+                className="rounded-md bg-neutral-900 px-4 py-2 text-white hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900"
+              >
+                배송비 나누기
+              </button>
+              <button
+                type="submit"
+                formMethod="get"
+                formAction="/items/bulk-sale"
+                className="rounded-md border border-neutral-300 px-4 py-2 hover:opacity-70 dark:border-neutral-700"
+              >
+                묶음 판매
+              </button>
+            </div>
           </div>
 
           <ul className="flex flex-col gap-2">

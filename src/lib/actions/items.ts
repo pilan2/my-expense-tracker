@@ -23,6 +23,9 @@ function parseItemForm(formData: FormData) {
     throw new Error("현물로 보유 중이 아니면 예상 발송일을 입력해야 합니다.");
   }
 
+  const shippingFee = manwonToWon(String(formData.get("shippingFee") ?? "0"));
+  const purchasedAtRaw = formData.get("purchasedAt");
+
   return {
     genre: String(formData.get("genre") ?? "").trim(),
     character: String(formData.get("character") ?? "").trim(),
@@ -31,8 +34,10 @@ function parseItemForm(formData: FormData) {
     detail: String(formData.get("detail") ?? "").trim(),
     quantity: Number(formData.get("quantity")),
     price: manwonToWon(String(formData.get("price") ?? "0")),
-    shippingFee: manwonToWon(String(formData.get("shippingFee") ?? "0")),
-    hasOverseasShipping: formData.get("hasOverseasShipping") === "on",
+    purchasedAt: purchasedAtRaw ? new Date(String(purchasedAtRaw)) : new Date(),
+    shippingFee,
+    // 배송비가 확정되어 입력됐다면, "이후 해외배송비 존재" 체크는 더 이상 의미가 없으니 자동 해제.
+    hasOverseasShipping: Number(shippingFee) > 0 ? false : formData.get("hasOverseasShipping") === "on",
     maker: maker || null,
     organizer: organizer || null,
     isPhysical,
