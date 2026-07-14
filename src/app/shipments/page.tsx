@@ -40,7 +40,7 @@ export default async function ShipmentsPage({
 
   return (
     <div className="box-border mx-auto w-full max-w-3xl overflow-x-hidden p-6">
-      <BackButton />
+      <BackButton href="/" />
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-xl font-semibold">발송 예정</h1>
         {view === "day" ? (

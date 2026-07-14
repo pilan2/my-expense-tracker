@@ -20,7 +20,7 @@ export default async function BulkSalePage({
   if (sellable.length < 2) {
     return (
       <div className="box-border mx-auto w-full max-w-xl overflow-x-hidden p-6">
-        <BackButton />
+        <BackButton href="/items" />
         <h1 className="mb-4 text-xl font-semibold">묶음 판매</h1>
         <p className="text-neutral-500">
           판매 가능한(잔여 수량이 있는) 품목이 2개 이상 선택되어야 묶음 판매를 등록할 수 있습니다.
@@ -33,7 +33,7 @@ export default async function BulkSalePage({
 
   return (
     <div className="box-border mx-auto w-full max-w-xl overflow-x-hidden p-6">
-      <BackButton />
+      <BackButton href="/items" />
       <h1 className="mb-6 text-xl font-semibold">묶음 판매</h1>
       <form action={createBulkSale} className="flex flex-col gap-4">
         <div className="flex flex-col gap-3 rounded-md border border-neutral-200 p-4 dark:border-neutral-800">

@@ -20,7 +20,7 @@ export default async function ItemDetailPage({
 }) {
   const { id } = await params;
   const { from: fromParam } = await searchParams;
-  const from = safeRedirectTarget(fromParam ? decodeURIComponent(fromParam) : "/items");
+  const from = safeRedirectTarget(fromParam ?? "/items");
   const [item, suggestions, sales] = await Promise.all([
     getItem(id),
     getFieldSuggestions(),
@@ -55,7 +55,7 @@ export default async function ItemDetailPage({
 
   return (
     <div className="box-border mx-auto w-full max-w-xl overflow-x-hidden p-6">
-      <BackButton />
+      <BackButton href={from} />
       <h1 className="mb-2 text-xl font-semibold">품목 수정</h1>
       {!item.isPhysical && item.expectedShipDate && (
         <p className="mb-6 text-sm">

@@ -8,7 +8,7 @@ export default async function SalesPage() {
 
   return (
     <div className="box-border mx-auto w-full max-w-3xl overflow-x-hidden p-6">
-      <BackButton />
+      <BackButton href="/" />
       <h1 className="mb-6 text-xl font-semibold">판매 내역 (최신순)</h1>
 
       {sales.length === 0 ? (

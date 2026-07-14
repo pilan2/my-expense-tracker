@@ -5,7 +5,7 @@ import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 export default function BackupPage() {
   return (
     <div className="box-border mx-auto w-full max-w-xl overflow-x-hidden p-6">
-      <BackButton />
+      <BackButton href="/" />
       <h1 className="mb-6 text-xl font-semibold">백업</h1>
 
       <div className="mb-8 rounded-md border border-neutral-200 p-4 dark:border-neutral-800">

@@ -15,6 +15,8 @@ export default async function BrowseItemsPage({
 
   const items = await getItemsByCategory(genre, character);
   const from = `/browse/${encodeURIComponent(genre)}/${encodeURIComponent(character)}`;
+  // "기타"는 캐릭터 선택 단계를 건너뛰므로, 뒤로가기의 상위 화면도 /browse/기타가 아니라 /browse로.
+  const parentHref = genre === character ? "/browse" : `/browse/${encodeURIComponent(genre)}`;
 
   const groups = new Map<string, typeof items>();
   for (const item of items) {
@@ -30,7 +32,7 @@ export default async function BrowseItemsPage({
 
   return (
     <div className="box-border mx-auto w-full max-w-3xl overflow-x-hidden p-6">
-      <BackButton />
+      <BackButton href={parentHref} />
       <h1 className="mb-6 text-xl font-semibold">{genre === character ? genre : `${genre} · ${character}`}</h1>
 
       {items.length === 0 ? (
