@@ -150,23 +150,29 @@ export default async function Home() {
       </div>
 
       <div>
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">장르별 요약</h2>
-          <Link href="/browse" className="text-sm underline">
-            카테고리별 자세히 보기 →
-          </Link>
-        </div>
+        <h2 className="mb-4 text-lg font-semibold">장르별 요약</h2>
         <ul className="flex flex-col gap-2">
-          {summary.genres.slice(0, 5).map((genre) => (
-            <li
-              key={genre.name}
-              className="flex items-center justify-between rounded-md border border-neutral-200 px-4 py-2 text-sm dark:border-neutral-800"
-            >
-              <span className="font-medium">{genre.name}</span>
-              <span className="text-neutral-500">
-                구매 {genre.purchaseTotal.toLocaleString("ko-KR")}원 · 판매{" "}
-                {genre.saleTotal.toLocaleString("ko-KR")}원
-              </span>
+          {summary.genres.map((genre) => (
+            <li key={genre.name}>
+              <Link
+                href={`/browse/${encodeURIComponent(genre.name)}`}
+                className="flex items-center justify-between rounded-md border border-neutral-200 px-4 py-2 text-sm hover:opacity-70 dark:border-neutral-800"
+              >
+                <span className="font-medium">{genre.name}</span>
+                <span className="text-neutral-500">
+                  구매 {genre.purchaseTotal.toLocaleString("ko-KR")}원 · 판매{" "}
+                  {genre.saleTotal.toLocaleString("ko-KR")}원
+                  {genre.saleTotal > 0 && (
+                    <>
+                      {" · 손익 "}
+                      <span className={`font-medium ${genre.profit >= 0 ? "text-blue-600" : "text-red-600"}`}>
+                        {genre.profit >= 0 ? "+" : ""}
+                        {genre.profit.toLocaleString("ko-KR")}원
+                      </span>
+                    </>
+                  )}
+                </span>
+              </Link>
             </li>
           ))}
         </ul>
