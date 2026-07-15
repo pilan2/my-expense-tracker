@@ -2,15 +2,17 @@ import Link from "next/link";
 import { getCategorySummary } from "@/lib/spending";
 import { getUpcomingShipments, getRecentPurchases } from "@/lib/items";
 import { getRecentSales, calcSaleProfit } from "@/lib/sales";
+import { getCurrentMonthTotals } from "@/lib/trends";
 import { formatDDay, isOverdue } from "@/lib/dday";
 import { itemHref } from "@/lib/nav";
 
 export default async function Home() {
-  const [summary, upcomingShipments, recentPurchases, recentSales] = await Promise.all([
+  const [summary, upcomingShipments, recentPurchases, recentSales, currentMonth] = await Promise.all([
     getCategorySummary(),
     getUpcomingShipments(),
     getRecentPurchases(5),
     getRecentSales(5),
+    getCurrentMonthTotals(),
   ]);
 
   const shipmentsByDate = new Map<string, typeof upcomingShipments>();
@@ -23,22 +25,47 @@ export default async function Home() {
 
   return (
     <div className="box-border mx-auto w-full max-w-3xl space-y-8 overflow-x-hidden p-6">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+        <div className="rounded-lg border border-neutral-200 p-4 sm:p-6 dark:border-neutral-800">
           <p className="text-sm text-neutral-500">총 소비 금액</p>
-          <p className="text-2xl font-semibold">{summary.totalPurchase.toLocaleString("ko-KR")}원</p>
+          <p className="text-xl font-semibold text-blue-600 dark:text-blue-400 sm:text-2xl">
+            {summary.totalPurchase.toLocaleString("ko-KR")}원
+          </p>
         </div>
-        <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
+        <div className="rounded-lg border border-neutral-200 p-4 sm:p-6 dark:border-neutral-800">
           <p className="text-sm text-neutral-500">총 판매 금액</p>
-          <p className="text-2xl font-semibold">{summary.totalSale.toLocaleString("ko-KR")}원</p>
+          <p className="text-xl font-semibold text-green-600 dark:text-green-400 sm:text-2xl">
+            {summary.totalSale.toLocaleString("ko-KR")}원
+          </p>
         </div>
-        <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
+        <div className="col-span-2 rounded-lg border border-neutral-200 p-4 sm:col-span-1 sm:p-6 dark:border-neutral-800">
           <p className="text-sm text-neutral-500">총 손익</p>
-          <p className={`text-2xl font-semibold ${summary.totalProfit >= 0 ? "text-blue-600" : "text-red-600"}`}>
+          <p className={`text-xl font-semibold sm:text-2xl ${summary.totalProfit >= 0 ? "text-blue-600" : "text-red-600"}`}>
             {summary.totalProfit >= 0 ? "+" : ""}
             {summary.totalProfit.toLocaleString("ko-KR")}원
           </p>
         </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 sm:gap-4">
+        <div className="rounded-lg border border-neutral-200 p-4 sm:p-6 dark:border-neutral-800">
+          <p className="text-sm text-neutral-500">이번 달 소비 금액</p>
+          <p className="text-xl font-semibold text-blue-600 dark:text-blue-400 sm:text-2xl">
+            {currentMonth.purchaseTotal.toLocaleString("ko-KR")}원
+          </p>
+        </div>
+        <div className="rounded-lg border border-neutral-200 p-4 sm:p-6 dark:border-neutral-800">
+          <p className="text-sm text-neutral-500">이번 달 판매 금액</p>
+          <p className="text-xl font-semibold text-green-600 dark:text-green-400 sm:text-2xl">
+            {currentMonth.saleTotal.toLocaleString("ko-KR")}원
+          </p>
+        </div>
+      </div>
+
+      <div className="text-right text-sm">
+        <Link href="/stats" className="underline">
+          통계 자세히 보기 →
+        </Link>
       </div>
 
       {upcomingShipments.length > 0 && (
