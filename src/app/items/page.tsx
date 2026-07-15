@@ -44,25 +44,29 @@ export default async function ItemsPage({
       ) : (
         <form action={assignShippingFee}>
           <div className="mb-4 flex flex-col gap-3 rounded-md border border-neutral-200 p-4 text-sm sm:flex-row sm:items-end dark:border-neutral-800">
-            <label className="flex flex-1 flex-col gap-1">
-              <span className="font-medium">
-                아래에서 같이 배송받은 품목을 체크하고, 총 배송비(만원 단위)를 입력하면 각
-                품목의 수량 비율대로 나눠서 배정됩니다.
-              </span>
-              <NumberInput
-                name="totalShippingFee"
-                min={0}
-                step={0.01}
-                className="rounded-md border border-neutral-300 px-3 py-2 dark:border-neutral-700 dark:bg-neutral-900"
-              />
-            </label>
+            {pendingOnly && (
+              <label className="flex flex-1 flex-col gap-1">
+                <span className="font-medium">
+                  아래에서 같이 배송받은 품목을 체크하고, 총 배송비(만원 단위)를 입력하면 각
+                  품목의 수량 비율대로 나눠서 배정됩니다.
+                </span>
+                <NumberInput
+                  name="totalShippingFee"
+                  min={0}
+                  step={0.01}
+                  className="rounded-md border border-neutral-300 px-3 py-2 dark:border-neutral-700 dark:bg-neutral-900"
+                />
+              </label>
+            )}
             <div className="flex gap-2">
-              <button
-                type="submit"
-                className="rounded-md bg-neutral-900 px-4 py-2 text-white hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900"
-              >
-                배송비 나누기
-              </button>
+              {pendingOnly && (
+                <button
+                  type="submit"
+                  className="rounded-md bg-neutral-900 px-4 py-2 text-white hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900"
+                >
+                  배송비 나누기
+                </button>
+              )}
               <button
                 type="submit"
                 formMethod="get"
