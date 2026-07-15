@@ -129,35 +129,30 @@ async function CalendarView({ monthParam }: { monthParam?: string }) {
                   } ${isToday ? "ring-2 ring-blue-500" : ""}`}
                 >
                   {day && (
-                    <>
-                      {dayItems.length > 0 ? (
-                        <Link href={dayHref(dateStr!, currentMonthParam)} className="mb-1 block text-neutral-500 underline">
-                          {day}
-                        </Link>
-                      ) : (
-                        <p className="mb-1 text-neutral-500">{day}</p>
-                      )}
-                      <div className="flex flex-col gap-0.5">
-                        {dayItems.slice(0, 3).map((item) => (
-                          <Link
-                            key={item.id}
-                            href={itemHref(item.id, monthHref(year, month))}
-                            className={`truncate rounded px-1 py-0.5 ${
-                              isOverdue(item.expectedShipDate!)
-                                ? "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300"
-                                : "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
-                            }`}
-                          >
-                            {item.character}
-                          </Link>
-                        ))}
-                        {dayItems.length > 3 && (
-                          <Link href={dayHref(dateStr!, currentMonthParam)} className="text-neutral-500 underline">
-                            +{dayItems.length - 3}개
-                          </Link>
-                        )}
-                      </div>
-                    </>
+                    dayItems.length > 0 ? (
+                      <Link href={dayHref(dateStr!, currentMonthParam)} className="block h-full">
+                        <p className="mb-1 text-neutral-500 underline">{day}</p>
+                        <div className="flex flex-col gap-0.5">
+                          {dayItems.slice(0, 3).map((item) => (
+                            <span
+                              key={item.id}
+                              className={`truncate rounded px-1 py-0.5 ${
+                                isOverdue(item.expectedShipDate!)
+                                  ? "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300"
+                                  : "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
+                              }`}
+                            >
+                              {item.character}
+                            </span>
+                          ))}
+                          {dayItems.length > 3 && (
+                            <span className="text-neutral-500">+{dayItems.length - 3}개</span>
+                          )}
+                        </div>
+                      </Link>
+                    ) : (
+                      <p className="mb-1 text-neutral-500">{day}</p>
+                    )
                   )}
                 </div>
               );
