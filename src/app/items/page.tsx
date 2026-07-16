@@ -13,6 +13,22 @@ function compareWithEtcLast(a: string, b: string) {
   return a.localeCompare(b, "ko");
 }
 
+// 시리즈가 있는 품목만 시리즈별로 묶고, 없는 품목은 그대로 남긴다.
+function groupBySeries<T extends { series: string | null }>(items: T[]) {
+  const withoutSeries = items.filter((item) => !item.series);
+  const seriesMap = new Map<string, T[]>();
+  for (const item of items) {
+    if (!item.series) continue;
+    if (!seriesMap.has(item.series)) seriesMap.set(item.series, []);
+    seriesMap.get(item.series)!.push(item);
+  }
+  const bySeries = [...seriesMap.entries()]
+    .map(([series, seriesItems]) => ({ series, items: seriesItems }))
+    .sort((a, b) => a.series.localeCompare(b.series, "ko"));
+
+  return { withoutSeries, bySeries };
+}
+
 export default async function ItemsPage({
   searchParams,
 }: {
@@ -36,7 +52,7 @@ export default async function ItemsPage({
     .map(([genre, characterMap]) => ({
       genre,
       characters: [...characterMap.entries()]
-        .map(([character, characterItems]) => ({ character, items: characterItems }))
+        .map(([character, characterItems]) => ({ character, ...groupBySeries(characterItems) }))
         .sort((a, b) => compareWithEtcLast(a.character, b.character)),
     }))
     .sort((a, b) => compareWithEtcLast(a.genre, b.genre));
@@ -111,22 +127,47 @@ export default async function ItemsPage({
                   {genreGroup.characters.map((characterGroup) => (
                     <div key={characterGroup.character}>
                       <h3 className="mb-2 text-sm font-medium text-neutral-500">{characterGroup.character}</h3>
-                      <ul className="flex flex-col gap-2">
-                        {characterGroup.items.map((item) => (
-                          <li
-                            key={item.id}
-                            className="flex items-start gap-3 rounded-md border border-neutral-200 p-3 dark:border-neutral-800"
-                          >
-                            <input type="checkbox" name="itemIds" value={item.id} className="mt-1 h-4 w-4" />
-                            <Link
-                              href={itemHref(item.id, pendingOnly ? "/items?pending=1" : "/items")}
-                              className="flex-1 hover:opacity-70"
+
+                      {characterGroup.withoutSeries.length > 0 && (
+                        <ul className="mb-3 flex flex-col gap-2">
+                          {characterGroup.withoutSeries.map((item) => (
+                            <li
+                              key={item.id}
+                              className="flex items-start gap-3 rounded-md border border-neutral-200 p-3 dark:border-neutral-800"
                             >
-                              <ItemCardContent {...item} showGenreCharacter={false} />
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
+                              <input type="checkbox" name="itemIds" value={item.id} className="mt-1 h-4 w-4" />
+                              <Link
+                                href={itemHref(item.id, pendingOnly ? "/items?pending=1" : "/items")}
+                                className="flex-1 hover:opacity-70"
+                              >
+                                <ItemCardContent {...item} showGenreCharacter={false} />
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+
+                      {characterGroup.bySeries.map((seriesGroup) => (
+                        <div key={seriesGroup.series} className="mb-3">
+                          <h4 className="mb-2 text-xs font-medium text-neutral-500">{seriesGroup.series}</h4>
+                          <ul className="flex flex-col gap-2">
+                            {seriesGroup.items.map((item) => (
+                              <li
+                                key={item.id}
+                                className="flex items-start gap-3 rounded-md border border-neutral-200 p-3 dark:border-neutral-800"
+                              >
+                                <input type="checkbox" name="itemIds" value={item.id} className="mt-1 h-4 w-4" />
+                                <Link
+                                  href={itemHref(item.id, pendingOnly ? "/items?pending=1" : "/items")}
+                                  className="flex-1 hover:opacity-70"
+                                >
+                                  <ItemCardContent {...item} showGenreCharacter={false} />
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
                     </div>
                   ))}
                 </div>

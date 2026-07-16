@@ -34,7 +34,11 @@ export default async function SalesPage() {
                 >
                   <div>
                     <p className="font-medium">
-                      {sale.item.genre} · {sale.item.character} · {sale.item.detail}
+                      {sale.item.genre === sale.item.character
+                        ? sale.item.genre
+                        : `${sale.item.genre} · ${sale.item.character}`}
+                      {sale.item.series ? ` (${sale.item.series})` : ""} · {sale.item.itemType} ·{" "}
+                      {sale.item.detail}
                     </p>
                     <p className="text-sm text-neutral-500">
                       {sale.quantitySold}개 · {Number(sale.saleAmount).toLocaleString("ko-KR")}원 · 손익{" "}

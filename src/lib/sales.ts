@@ -15,7 +15,16 @@ export function getRecentSales(limit?: number) {
     ...(limit ? { take: limit } : {}),
     include: {
       item: {
-        select: { genre: true, character: true, detail: true, price: true, shippingFee: true, quantity: true },
+        select: {
+          genre: true,
+          character: true,
+          series: true,
+          itemType: true,
+          detail: true,
+          price: true,
+          shippingFee: true,
+          quantity: true,
+        },
       },
     },
   });
