@@ -63,6 +63,23 @@ export async function getUpcomingShipments(limit?: number) {
   }));
 }
 
+// /stats 월별 목록에서, 해당 달에 구매한 품목만. genre를 주면 그 장르로만 좁힌다.
+export async function getPurchasesInMonth(year: number, month: number, genre?: string) {
+  const start = new Date(year, month - 1, 1);
+  const end = new Date(year, month, 1);
+
+  const items = await prisma.item.findMany({
+    where: { purchasedAt: { gte: start, lt: end }, ...(genre ? { genre } : {}) },
+    orderBy: { purchasedAt: "desc" },
+    include: { sales: SALES_FOR_CARD },
+  });
+
+  return items.map((item) => ({
+    ...item,
+    remainingQuantity: calcRemainingQuantity(item.quantity, item.sales),
+  }));
+}
+
 // /shipments 달력에서 특정 달(month: 1~12)에 발송예정일이 있는 품목만.
 export function getShipmentsInMonth(year: number, month: number) {
   const start = new Date(year, month - 1, 1);

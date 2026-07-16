@@ -1,25 +1,13 @@
 import Link from "next/link";
 import { getShipmentsInMonth, getUpcomingShipments, getShipmentsOnDate } from "@/lib/items";
 import { getMonthGrid, shiftMonth } from "@/lib/calendar";
+import { parseMonthParam, monthParamString } from "@/lib/month";
 import { BackButton } from "@/components/back-button";
 import { ItemCardContent } from "@/components/item-card";
 import { isOverdue } from "@/lib/dday";
 import { itemHref } from "@/lib/nav";
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
-
-function parseMonthParam(monthParam?: string): { year: number; month: number } {
-  if (monthParam && /^\d{4}-\d{2}$/.test(monthParam)) {
-    const [year, month] = monthParam.split("-").map(Number);
-    return { year, month };
-  }
-  const now = new Date();
-  return { year: now.getFullYear(), month: now.getMonth() + 1 };
-}
-
-function monthParamString(year: number, month: number) {
-  return `${year}-${String(month).padStart(2, "0")}`;
-}
 
 function monthHref(year: number, month: number) {
   return `/shipments?view=calendar&month=${monthParamString(year, month)}`;

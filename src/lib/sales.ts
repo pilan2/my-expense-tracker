@@ -19,6 +19,22 @@ export function getRecentSales(limit?: number) {
   });
 }
 
+// /stats 월별 목록에서, 해당 달에 판매된 내역만. genre를 주면 그 장르로만 좁힌다.
+export function getSalesInMonth(year: number, month: number, genre?: string) {
+  const start = new Date(year, month - 1, 1);
+  const end = new Date(year, month, 1);
+
+  return prisma.sale.findMany({
+    where: { saleDate: { gte: start, lt: end }, ...(genre ? { item: { genre } } : {}) },
+    orderBy: { saleDate: "desc" },
+    include: {
+      item: {
+        select: { genre: true, character: true, detail: true, price: true, shippingFee: true, quantity: true },
+      },
+    },
+  });
+}
+
 // 판매 건 하나(quantitySold, saleAmount)만의 손익. calcProfit을 원소 1개짜리 배열로 호출해 재사용.
 export function calcSaleProfit(sale: {
   quantitySold: number;
