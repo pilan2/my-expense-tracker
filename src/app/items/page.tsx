@@ -13,20 +13,34 @@ function compareWithEtcLast(a: string, b: string) {
   return a.localeCompare(b, "ko");
 }
 
-// 시리즈가 있는 품목만 시리즈별로 묶고, 없는 품목은 그대로 남긴다.
-function groupBySeries<T extends { series: string | null }>(items: T[]) {
-  const withoutSeries = items.filter((item) => !item.series);
-  const seriesMap = new Map<string, T[]>();
+// 캐릭터 안에서 시리즈가 있는 품목은 "캐릭터 (시리즈)"로, 없는 품목은 "캐릭터"만으로
+// 한 줄 제목을 만든다. 같은 캐릭터라도 시리즈가 여러 개면 그만큼 제목이 나뉘어 반복된다.
+function groupByCharacterAndSeries<T extends { character: string; series: string | null }>(items: T[]) {
+  const characterMap = new Map<string, T[]>();
   for (const item of items) {
-    if (!item.series) continue;
-    if (!seriesMap.has(item.series)) seriesMap.set(item.series, []);
-    seriesMap.get(item.series)!.push(item);
+    if (!characterMap.has(item.character)) characterMap.set(item.character, []);
+    characterMap.get(item.character)!.push(item);
   }
-  const bySeries = [...seriesMap.entries()]
-    .map(([series, seriesItems]) => ({ series, items: seriesItems }))
-    .sort((a, b) => a.series.localeCompare(b.series, "ko"));
 
-  return { withoutSeries, bySeries };
+  const groups: { label: string; items: T[] }[] = [];
+  for (const [character, characterItems] of [...characterMap.entries()].sort((a, b) =>
+    compareWithEtcLast(a[0], b[0]),
+  )) {
+    const withoutSeries = characterItems.filter((item) => !item.series);
+    if (withoutSeries.length > 0) groups.push({ label: character, items: withoutSeries });
+
+    const seriesMap = new Map<string, T[]>();
+    for (const item of characterItems) {
+      if (!item.series) continue;
+      if (!seriesMap.has(item.series)) seriesMap.set(item.series, []);
+      seriesMap.get(item.series)!.push(item);
+    }
+    for (const [series, seriesItems] of [...seriesMap.entries()].sort((a, b) => a[0].localeCompare(b[0], "ko"))) {
+      groups.push({ label: `${character} (${series})`, items: seriesItems });
+    }
+  }
+
+  return groups;
 }
 
 export default async function ItemsPage({
@@ -39,22 +53,15 @@ export default async function ItemsPage({
 
   const items = await getItems({ pendingShippingOnly: pendingOnly });
 
-  // 한 화면 안에서도 장르 > 캐릭터로 눈에 띄게 묶어서 보여주되(순서는 기존 최신순 유지),
+  // 한 화면 안에서도 장르 > "캐릭터 (시리즈)"로 눈에 띄게 묶어서 보여주되(순서는 기존 최신순 유지),
   // 체크박스는 전부 같은 폼 안에 있어야 배송비 나누기/묶음 판매가 여러 그룹에 걸쳐 동작한다.
-  const genreMap = new Map<string, Map<string, typeof items>>();
+  const genreMap = new Map<string, typeof items>();
   for (const item of items) {
-    if (!genreMap.has(item.genre)) genreMap.set(item.genre, new Map());
-    const characterMap = genreMap.get(item.genre)!;
-    if (!characterMap.has(item.character)) characterMap.set(item.character, []);
-    characterMap.get(item.character)!.push(item);
+    if (!genreMap.has(item.genre)) genreMap.set(item.genre, []);
+    genreMap.get(item.genre)!.push(item);
   }
   const groups = [...genreMap.entries()]
-    .map(([genre, characterMap]) => ({
-      genre,
-      characters: [...characterMap.entries()]
-        .map(([character, characterItems]) => ({ character, ...groupBySeries(characterItems) }))
-        .sort((a, b) => compareWithEtcLast(a.character, b.character)),
-    }))
+    .map(([genre, genreItems]) => ({ genre, subgroups: groupByCharacterAndSeries(genreItems) }))
     .sort((a, b) => compareWithEtcLast(a.genre, b.genre));
 
   return (
@@ -122,52 +129,27 @@ export default async function ItemsPage({
           <div className="flex flex-col gap-6">
             {groups.map((genreGroup) => (
               <div key={genreGroup.genre}>
-                <h2 className="mb-2 font-semibold">{genreGroup.genre}</h2>
+                <h2 className="mb-2 text-xl font-semibold">{genreGroup.genre}</h2>
                 <div className="flex flex-col gap-4">
-                  {genreGroup.characters.map((characterGroup) => (
-                    <div key={characterGroup.character}>
-                      <h3 className="mb-2 text-sm font-medium text-neutral-500">{characterGroup.character}</h3>
-
-                      {characterGroup.withoutSeries.length > 0 && (
-                        <ul className="mb-3 flex flex-col gap-2">
-                          {characterGroup.withoutSeries.map((item) => (
-                            <li
-                              key={item.id}
-                              className="flex items-start gap-3 rounded-md border border-neutral-200 p-3 dark:border-neutral-800"
+                  {genreGroup.subgroups.map((subgroup) => (
+                    <div key={subgroup.label}>
+                      <h3 className="mb-2 text-base font-medium">{subgroup.label}</h3>
+                      <ul className="flex flex-col gap-2">
+                        {subgroup.items.map((item) => (
+                          <li
+                            key={item.id}
+                            className="flex items-start gap-3 rounded-md border border-neutral-200 p-3 dark:border-neutral-800"
+                          >
+                            <input type="checkbox" name="itemIds" value={item.id} className="mt-1 h-4 w-4" />
+                            <Link
+                              href={itemHref(item.id, pendingOnly ? "/items?pending=1" : "/items")}
+                              className="flex-1 hover:opacity-70"
                             >
-                              <input type="checkbox" name="itemIds" value={item.id} className="mt-1 h-4 w-4" />
-                              <Link
-                                href={itemHref(item.id, pendingOnly ? "/items?pending=1" : "/items")}
-                                className="flex-1 hover:opacity-70"
-                              >
-                                <ItemCardContent {...item} showGenreCharacter={false} />
-                              </Link>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-
-                      {characterGroup.bySeries.map((seriesGroup) => (
-                        <div key={seriesGroup.series} className="mb-3">
-                          <h4 className="mb-2 text-xs font-medium text-neutral-500">{seriesGroup.series}</h4>
-                          <ul className="flex flex-col gap-2">
-                            {seriesGroup.items.map((item) => (
-                              <li
-                                key={item.id}
-                                className="flex items-start gap-3 rounded-md border border-neutral-200 p-3 dark:border-neutral-800"
-                              >
-                                <input type="checkbox" name="itemIds" value={item.id} className="mt-1 h-4 w-4" />
-                                <Link
-                                  href={itemHref(item.id, pendingOnly ? "/items?pending=1" : "/items")}
-                                  className="flex-1 hover:opacity-70"
-                                >
-                                  <ItemCardContent {...item} showGenreCharacter={false} />
-                                </Link>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
+                              <ItemCardContent {...item} showGenreCharacter={false} />
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   ))}
                 </div>

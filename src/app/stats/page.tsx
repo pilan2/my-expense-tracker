@@ -166,12 +166,12 @@ export default async function StatsPage({
                         key={genreGroup.genre}
                         className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-800"
                       >
-                        <h3 className="mb-3 font-semibold">{genreGroup.genre}</h3>
+                        <h3 className="mb-3 text-lg font-semibold">{genreGroup.genre}</h3>
 
                         <div className="flex flex-col gap-3">
                           {genreGroup.characters.map((characterGroup) => (
                             <div key={characterGroup.character}>
-                              <h4 className="mb-2 text-sm font-medium text-neutral-500">
+                              <h4 className="mb-2 text-base font-medium">
                                 {characterGroup.character}
                               </h4>
 

@@ -65,7 +65,7 @@ export default async function BrowseItemsPage({
         <div className="flex flex-col gap-6">
           {withoutSeriesItemTypeGroups.map((itemTypeGroup) => (
             <div key={itemTypeGroup.itemType}>
-              <h2 className="mb-2 text-sm font-medium text-neutral-500">{itemTypeGroup.itemType}</h2>
+              <h2 className="mb-2 text-base font-medium">{itemTypeGroup.itemType}</h2>
               <ul className="flex flex-col gap-2">
                 {itemTypeGroup.items.map((item) => (
                   <li key={item.id}>
@@ -83,11 +83,11 @@ export default async function BrowseItemsPage({
 
           {bySeries.map((seriesGroup) => (
             <div key={seriesGroup.series}>
-              <h2 className="mb-3 font-semibold">{seriesGroup.series}</h2>
+              <h2 className="mb-3 text-lg font-semibold">{seriesGroup.series}</h2>
               <div className="flex flex-col gap-4">
                 {seriesGroup.itemTypeGroups.map((itemTypeGroup) => (
                   <div key={itemTypeGroup.itemType}>
-                    <h3 className="mb-2 text-sm font-medium text-neutral-500">{itemTypeGroup.itemType}</h3>
+                    <h3 className="mb-2 text-base font-medium">{itemTypeGroup.itemType}</h3>
                     <ul className="flex flex-col gap-2">
                       {itemTypeGroup.items.map((item) => (
                         <li key={item.id}>
