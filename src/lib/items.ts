@@ -107,9 +107,14 @@ export async function getRecentPurchases(limit?: number) {
 }
 
 export async function getFieldSuggestions() {
-  const [genres, characters, series, itemTypes] = await Promise.all([
+  const [genres, characters, genreCharacterPairs, series, itemTypes] = await Promise.all([
     prisma.item.findMany({ distinct: ["genre"], select: { genre: true }, orderBy: { genre: "asc" } }),
     prisma.item.findMany({ distinct: ["character"], select: { character: true }, orderBy: { character: "asc" } }),
+    prisma.item.findMany({
+      distinct: ["genre", "character"],
+      select: { genre: true, character: true },
+      orderBy: { character: "asc" },
+    }),
     prisma.item.findMany({
       distinct: ["series"],
       select: { series: true },
@@ -119,9 +124,16 @@ export async function getFieldSuggestions() {
     prisma.item.findMany({ distinct: ["itemType"], select: { itemType: true }, orderBy: { itemType: "asc" } }),
   ]);
 
+  // 품목 등록/수정 폼에서 장르를 고르면 그 장르에서 쓰인 캐릭터만 자동완성에 보이도록.
+  const charactersByGenre: Record<string, string[]> = {};
+  for (const { genre, character } of genreCharacterPairs) {
+    (charactersByGenre[genre] ??= []).push(character);
+  }
+
   return {
     genres: genres.map((g) => g.genre),
     characters: characters.map((c) => c.character),
+    charactersByGenre,
     series: series.map((s) => s.series as string),
     itemTypes: itemTypes.map((t) => t.itemType),
   };

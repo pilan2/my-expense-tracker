@@ -6,6 +6,7 @@ import { NumberInput } from "@/components/number-input";
 type Suggestions = {
   genres: string[];
   characters: string[];
+  charactersByGenre: Record<string, string[]>;
   series: string[];
   itemTypes: string[];
 };
@@ -41,6 +42,10 @@ export function ItemForm({
 }) {
   const [quantity, setQuantity] = useState(defaultValues?.quantity ?? 1);
   const [isPhysical, setIsPhysical] = useState(defaultValues?.isPhysical ?? false);
+  const [genre, setGenre] = useState(defaultValues?.genre ?? "");
+
+  // 선택한 장르에서 쓰인 캐릭터만 자동완성에 보이고, 아직 없는(새) 장르라면 전체 목록을 보여준다.
+  const characterOptions = suggestions.charactersByGenre[genre] ?? suggestions.characters;
 
   return (
     <form action={action} className="flex flex-col gap-4">
@@ -49,6 +54,7 @@ export function ItemForm({
           name="genre"
           list="genre-list"
           defaultValue={defaultValues?.genre}
+          onChange={(e) => setGenre(e.target.value)}
           required
           className={inputClass}
         />
@@ -68,7 +74,7 @@ export function ItemForm({
           className={inputClass}
         />
         <datalist id="character-list">
-          {suggestions.characters.map((c) => (
+          {characterOptions.map((c) => (
             <option key={c} value={c} />
           ))}
         </datalist>

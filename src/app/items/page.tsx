@@ -53,7 +53,7 @@ export default async function ItemsPage({
                 <NumberInput
                   name="totalShippingFee"
                   min={0}
-                  step={0.01}
+                  step={0.0001}
                   className="rounded-md border border-neutral-300 px-3 py-2 dark:border-neutral-700 dark:bg-neutral-900"
                 />
               </label>

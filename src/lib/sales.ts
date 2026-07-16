@@ -49,7 +49,8 @@ export function calcProfit(
 ): number {
   const soldQuantity = sales.reduce((sum, s) => sum + s.quantitySold, 0);
   const saleTotal = sales.reduce((sum, s) => sum + s.saleAmount, 0);
+  // 배송비를 판매 수량 비율로 나누면 1원 미만 단수가 남을 수 있어, 원 단위로 반올림한다.
   const shippingShare = purchasedQuantity > 0 ? (shippingFee * soldQuantity) / purchasedQuantity : 0;
   const cost = purchasePrice * soldQuantity + shippingShare;
-  return saleTotal - cost;
+  return Math.round(saleTotal - cost);
 }
