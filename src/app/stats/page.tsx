@@ -24,46 +24,68 @@ function compareWithEtcLast(a: string, b: string) {
 type MonthPurchase = Awaited<ReturnType<typeof getPurchasesInMonth>>[number];
 type MonthSale = Awaited<ReturnType<typeof getSalesInMonth>>[number];
 
-function groupByGenreAndCharacter(purchases: MonthPurchase[], sales: MonthSale[]) {
+// 전체 품목 목록과 같은 방식으로, 캐릭터 안에서 시리즈가 있는 건 "캐릭터 (시리즈)"로 묶고
+// 없는 건 "캐릭터"만으로 묶는다.
+function groupByGenreCharacterSeries(purchases: MonthPurchase[], sales: MonthSale[]) {
+  const NO_SERIES = "";
   const genreMap = new Map<
     string,
     {
       purchaseTotal: number;
       saleTotal: number;
-      characters: Map<string, { purchases: MonthPurchase[]; sales: MonthSale[] }>;
+      characterMap: Map<string, Map<string, { purchases: MonthPurchase[]; sales: MonthSale[] }>>;
     }
   >();
 
   function getGenre(genre: string) {
-    if (!genreMap.has(genre)) genreMap.set(genre, { purchaseTotal: 0, saleTotal: 0, characters: new Map() });
+    if (!genreMap.has(genre)) genreMap.set(genre, { purchaseTotal: 0, saleTotal: 0, characterMap: new Map() });
     return genreMap.get(genre)!;
   }
-  function getCharacter(genre: string, character: string) {
+  function getBucket(genre: string, character: string, series: string | null) {
     const genreEntry = getGenre(genre);
-    if (!genreEntry.characters.has(character)) genreEntry.characters.set(character, { purchases: [], sales: [] });
-    return genreEntry.characters.get(character)!;
+    if (!genreEntry.characterMap.has(character)) genreEntry.characterMap.set(character, new Map());
+    const seriesMap = genreEntry.characterMap.get(character)!;
+    const seriesKey = series ?? NO_SERIES;
+    if (!seriesMap.has(seriesKey)) seriesMap.set(seriesKey, { purchases: [], sales: [] });
+    return seriesMap.get(seriesKey)!;
   }
 
   for (const item of purchases) {
     const genreEntry = getGenre(item.genre);
     genreEntry.purchaseTotal += Number(item.price) * item.quantity + Number(item.shippingFee);
-    getCharacter(item.genre, item.character).purchases.push(item);
+    getBucket(item.genre, item.character, item.series).purchases.push(item);
   }
   for (const sale of sales) {
     const genreEntry = getGenre(sale.item.genre);
     genreEntry.saleTotal += Number(sale.saleAmount);
-    getCharacter(sale.item.genre, sale.item.character).sales.push(sale);
+    getBucket(sale.item.genre, sale.item.character, sale.item.series).sales.push(sale);
   }
 
   return [...genreMap.entries()]
-    .map(([genre, entry]) => ({
-      genre,
-      purchaseTotal: entry.purchaseTotal,
-      saleTotal: entry.saleTotal,
-      characters: [...entry.characters.entries()]
-        .map(([character, group]) => ({ character, ...group }))
-        .sort((a, b) => compareWithEtcLast(a.character, b.character)),
-    }))
+    .map(([genre, entry]) => {
+      const subgroups: {
+        character: string;
+        series: string | null;
+        purchases: MonthPurchase[];
+        sales: MonthSale[];
+      }[] = [];
+
+      for (const [character, seriesMap] of [...entry.characterMap.entries()].sort((a, b) =>
+        compareWithEtcLast(a[0], b[0]),
+      )) {
+        const noSeriesBucket = seriesMap.get(NO_SERIES);
+        if (noSeriesBucket) subgroups.push({ character, series: null, ...noSeriesBucket });
+
+        const seriesEntries = [...seriesMap.entries()]
+          .filter(([key]) => key !== NO_SERIES)
+          .sort((a, b) => a[0].localeCompare(b[0], "ko"));
+        for (const [series, bucket] of seriesEntries) {
+          subgroups.push({ character, series, ...bucket });
+        }
+      }
+
+      return { genre, purchaseTotal: entry.purchaseTotal, saleTotal: entry.saleTotal, subgroups };
+    })
     .sort((a, b) => compareWithEtcLast(a.genre, b.genre));
 }
 
@@ -94,7 +116,7 @@ export default async function StatsPage({
   const prev = shiftMonth(year, month, -1);
   const next = shiftMonth(year, month, 1);
   const isNextMonthInFuture = next.year * 12 + next.month > nowKey;
-  const monthGroups = groupByGenreAndCharacter(monthPurchases, monthSales);
+  const monthGroups = groupByGenreCharacterSeries(monthPurchases, monthSales);
   const monthTotals = monthGroups.reduce(
     (acc, g) => ({ purchaseTotal: acc.purchaseTotal + g.purchaseTotal, saleTotal: acc.saleTotal + g.saleTotal }),
     { purchaseTotal: 0, saleTotal: 0 },
@@ -169,15 +191,16 @@ export default async function StatsPage({
                         <h3 className="mb-3 text-lg font-semibold">{genreGroup.genre}</h3>
 
                         <div className="flex flex-col gap-3">
-                          {genreGroup.characters.map((characterGroup) => (
-                            <div key={characterGroup.character}>
+                          {genreGroup.subgroups.map((subgroup) => (
+                            <div key={`${subgroup.character}-${subgroup.series ?? ""}`}>
                               <h4 className="mb-2 text-base font-medium">
-                                {characterGroup.character}
+                                {subgroup.character}
+                                {subgroup.series ? ` (${subgroup.series})` : ""}
                               </h4>
 
-                              {characterGroup.purchases.length > 0 && (
+                              {subgroup.purchases.length > 0 && (
                                 <ul className="mb-2 flex flex-col gap-2">
-                                  {characterGroup.purchases.map((item) => (
+                                  {subgroup.purchases.map((item) => (
                                     <li key={item.id}>
                                       <Link
                                         href={itemHref(item.id, from)}
@@ -190,9 +213,9 @@ export default async function StatsPage({
                                 </ul>
                               )}
 
-                              {characterGroup.sales.length > 0 && (
+                              {subgroup.sales.length > 0 && (
                                 <ul className="flex flex-col gap-2">
-                                  {characterGroup.sales.map((sale) => {
+                                  {subgroup.sales.map((sale) => {
                                     const profit = calcSaleProfit({
                                       quantitySold: sale.quantitySold,
                                       saleAmount: Number(sale.saleAmount),

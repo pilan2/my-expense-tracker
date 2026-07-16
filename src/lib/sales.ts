@@ -40,7 +40,15 @@ export function getSalesInMonth(year: number, month: number, genre?: string) {
     orderBy: { saleDate: "desc" },
     include: {
       item: {
-        select: { genre: true, character: true, detail: true, price: true, shippingFee: true, quantity: true },
+        select: {
+          genre: true,
+          character: true,
+          series: true,
+          detail: true,
+          price: true,
+          shippingFee: true,
+          quantity: true,
+        },
       },
     },
   });

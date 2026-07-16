@@ -134,9 +134,9 @@ export default async function ItemsPage({
                 <div className="flex flex-col gap-4">
                   {genreGroup.subgroups.map((subgroup) => (
                     <div key={`${subgroup.character}-${subgroup.series ?? ""}`}>
-                      <h3 className="mb-2 font-medium">
-                        <span className="text-lg">{subgroup.character}</span>
-                        {subgroup.series && <span className="text-base"> ({subgroup.series})</span>}
+                      <h3 className="mb-2 text-base font-medium">
+                        {subgroup.character}
+                        {subgroup.series ? ` (${subgroup.series})` : ""}
                       </h3>
                       <ul className="flex flex-col gap-2">
                         {subgroup.items.map((item) => (
