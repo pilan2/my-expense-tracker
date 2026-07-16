@@ -117,7 +117,7 @@ export default async function ItemDetailPage({
               />
             </label>
             <label className="flex flex-col gap-1 text-sm">
-              <span className="font-medium">판매 금액 (만원 단위, 이 건 전체 총액)</span>
+              <span className="font-medium">판매 금액 (만원 단위, 전체 총액)</span>
               <NumberInput
                 name="saleAmount"
                 min={0}
@@ -127,7 +127,7 @@ export default async function ItemDetailPage({
               />
             </label>
             <label className="flex flex-col gap-1 text-sm">
-              <span className="font-medium">판매일 (모르면 비워두세요)</span>
+              <span className="font-medium">판매일 (날짜 기반 통계에 사용 가능)</span>
               <ClearableDateInput
                 name="saleDate"
                 defaultValue={today}

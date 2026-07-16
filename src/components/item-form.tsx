@@ -175,7 +175,7 @@ export function ItemForm({
         />
       </Field>
 
-      <Field label="구매일 (모르면 비워두세요 - 날짜 기반 통계에서만 제외되고 금액 합계에는 포함됩니다)">
+      <Field label="구매일 (날짜 기반 통계에 사용 가능)">
         <ClearableDateInput
           name="purchasedAt"
           defaultValue={defaultValues?.purchasedAt ?? new Date().toISOString().slice(0, 10)}
@@ -243,10 +243,10 @@ export function ItemForm({
           name="hasOverseasShipping"
           defaultChecked={defaultValues?.hasOverseasShipping}
         />
-        이후 해외배송비 존재
+        이후 배송비 계산 필요
       </label>
 
-      <Field label="배송비 (만원 단위, 확정된 경우만 - 목록에서 여러 품목에 자동 분배도 가능)">
+      <Field label="배송비 (만원 단위, 목록에서 여러 품목에 분배도 가능)">
         <NumberInput
           name="shippingFee"
           min={0}

@@ -68,7 +68,7 @@ export default async function BulkSalePage({
         </label>
 
         <label className="flex flex-col gap-1 text-sm">
-          <span className="font-medium">판매일 (모르면 비워두세요)</span>
+          <span className="font-medium">판매일 (날짜 기반 통계에 사용 가능)</span>
           <ClearableDateInput
             name="saleDate"
             defaultValue={today}
