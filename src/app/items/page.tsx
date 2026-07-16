@@ -29,9 +29,6 @@ export default async function ItemsPage({
         </Link>
       </div>
       <div className="mb-6 flex gap-4 text-sm">
-        <Link href="/browse" className="underline">
-          카테고리별로 보기 →
-        </Link>
         <Link href={pendingOnly ? "/items" : "/items?pending=1"} className="underline">
           {pendingOnly ? "전체보기" : "배송비 미정만 보기"} →
         </Link>

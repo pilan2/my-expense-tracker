@@ -178,7 +178,7 @@ export default async function Home() {
       </div>
 
       <div>
-        <h2 className="mb-4 text-lg font-semibold">장르별 요약</h2>
+        <h2 className="mb-4 text-lg font-semibold">장르별로 보기</h2>
         <ul className="flex flex-col gap-2">
           {summary.genres.map((genre) => (
             <li key={genre.name}>

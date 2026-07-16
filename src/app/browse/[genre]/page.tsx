@@ -24,7 +24,7 @@ export default async function BrowseCharactersPage({
 
   return (
     <div className="box-border mx-auto w-full max-w-3xl overflow-x-hidden p-6">
-      <BackButton href="/browse" />
+      <BackButton href="/" />
       <h1 className="mb-6 text-xl font-semibold">{genre}</h1>
 
       <ul className="flex flex-col gap-2">
