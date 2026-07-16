@@ -33,18 +33,21 @@ const pickerButtonClass = (selected: boolean) =>
   }`;
 
 // 카탈로그에 있는 값은 버튼으로 고르고, 없는 값이면(또는 "+ 직접 입력"을 누르면) 텍스트로 새로 입력한다.
+// 필수가 아닌 필드는(required=false) 이미 선택된 버튼을 다시 누르면 선택이 해제된다.
 function PickerField({
   label,
   name,
   options,
   value,
   onChange,
+  required = true,
 }: {
   label: string;
   name: string;
   options: string[];
   value: string;
   onChange: (value: string) => void;
+  required?: boolean;
 }) {
   const [customMode, setCustomMode] = useState(Boolean(value) && !options.includes(value));
 
@@ -57,6 +60,10 @@ function PickerField({
             key={option}
             type="button"
             onClick={() => {
+              if (!required && !customMode && value === option) {
+                onChange("");
+                return;
+              }
               setCustomMode(false);
               onChange(option);
             }}
@@ -157,6 +164,7 @@ export function ItemForm({
         options={seriesOptions}
         value={series}
         onChange={setSeries}
+        required={false}
       />
       <PickerField
         label="물품 종류 (대분류)"
@@ -227,6 +235,7 @@ export function ItemForm({
         options={makerOptions}
         value={maker}
         onChange={setMaker}
+        required={false}
       />
 
       <PickerField
@@ -235,6 +244,7 @@ export function ItemForm({
         options={organizerOptions}
         value={organizer}
         onChange={setOrganizer}
+        required={false}
       />
 
       <label className="flex items-center gap-2 text-sm">

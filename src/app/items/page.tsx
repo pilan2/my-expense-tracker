@@ -116,14 +116,16 @@ export default async function ItemsPage({
                   배송비 나누기
                 </button>
               )}
-              <button
-                type="submit"
-                formMethod="get"
-                formAction="/items/bulk-sale"
-                className="rounded-md border border-neutral-300 px-4 py-2 hover:opacity-70 dark:border-neutral-700"
-              >
-                묶음 판매
-              </button>
+              {!pendingOnly && (
+                <button
+                  type="submit"
+                  formMethod="get"
+                  formAction="/items/bulk-sale"
+                  className="rounded-md border border-neutral-300 px-4 py-2 hover:opacity-70 dark:border-neutral-700"
+                >
+                  묶음 판매
+                </button>
+              )}
             </div>
           </div>
 
