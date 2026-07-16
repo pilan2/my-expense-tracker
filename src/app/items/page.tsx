@@ -59,7 +59,7 @@ export default async function ItemsPage({
 
   return (
     <div className="box-border mx-auto w-full max-w-3xl overflow-x-hidden p-6">
-      <BackButton href="/" />
+      <BackButton href={pendingOnly ? "/items" : "/"} />
       <div className="mb-2 flex items-center justify-between">
         <h1 className="text-xl font-semibold">{pendingOnly ? "배송비 미정 품목" : "전체 품목"}</h1>
         <Link
