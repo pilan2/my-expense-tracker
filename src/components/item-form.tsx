@@ -2,12 +2,7 @@
 
 import { useState } from "react";
 import { NumberInput } from "@/components/number-input";
-import type { GenreCatalogEntry } from "@/lib/catalog";
-
-type Suggestions = {
-  series: string[];
-  itemTypes: string[];
-};
+import type { GenreCatalogEntry, ItemTypeCatalogEntry } from "@/lib/catalog";
 
 export type ItemFormDefaults = {
   genre: string;
@@ -36,8 +31,7 @@ const pickerButtonClass = (selected: boolean) =>
       : "border-neutral-300 dark:border-neutral-700"
   }`;
 
-// 장르/캐릭터를 버튼으로 고르되, 카탈로그에 없는 값이면(또는 "+ 직접 입력"을 누르면)
-// 텍스트로 새로 입력할 수 있게 한다.
+// 카탈로그에 있는 값은 버튼으로 고르고, 없는 값이면(또는 "+ 직접 입력"을 누르면) 텍스트로 새로 입력한다.
 function PickerField({
   label,
   name,
@@ -99,63 +93,77 @@ function PickerField({
 
 export function ItemForm({
   action,
-  suggestions,
   genreCatalog,
+  itemTypeCatalog,
   defaultValues,
 }: {
   action: (formData: FormData) => void;
-  suggestions: Suggestions;
   genreCatalog: GenreCatalogEntry[];
+  itemTypeCatalog: ItemTypeCatalogEntry[];
   defaultValues?: Partial<ItemFormDefaults>;
 }) {
   const [quantity, setQuantity] = useState(defaultValues?.quantity ?? 1);
   const [isPhysical, setIsPhysical] = useState(defaultValues?.isPhysical ?? false);
   const [genre, setGenre] = useState(defaultValues?.genre ?? "");
   const [character, setCharacter] = useState(defaultValues?.character ?? "");
+  const [series, setSeries] = useState(defaultValues?.series ?? "");
+  const [itemType, setItemType] = useState(defaultValues?.itemType ?? "");
+  const [maker, setMaker] = useState(defaultValues?.maker ?? "");
+  const [organizer, setOrganizer] = useState(defaultValues?.organizer ?? "");
 
+  const selectedGenre = genreCatalog.find((g) => g.name === genre);
   const genreOptions = genreCatalog.map((g) => g.name);
-  const characterOptions = genreCatalog.find((g) => g.name === genre)?.characters.map((c) => c.name) ?? [];
+  const characterOptions = selectedGenre?.characters.map((c) => c.name) ?? [];
+  const seriesOptions = selectedGenre?.characters.find((c) => c.name === character)?.series.map((s) => s.name) ?? [];
+  const itemTypeOptions = itemTypeCatalog.map((t) => t.name);
+  const makerOptions = selectedGenre?.makers.map((m) => m.name) ?? [];
+  const organizerOptions = selectedGenre?.organizers.map((o) => o.name) ?? [];
+
+  // 장르가 바뀌면 그 장르에 속하지 않는 캐릭터/시리즈/제작자/공구자 선택은 의미가 없어지므로 초기화한다.
+  function handleGenreChange(next: string) {
+    setGenre(next);
+    setCharacter("");
+    setSeries("");
+    setMaker("");
+    setOrganizer("");
+  }
+  // 캐릭터가 바뀌면 그 캐릭터에 속하지 않는 시리즈 선택도 초기화한다.
+  function handleCharacterChange(next: string) {
+    setCharacter(next);
+    setSeries("");
+  }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    if (!genre.trim() || !character.trim()) {
+    if (!genre.trim() || !character.trim() || !itemType.trim()) {
       e.preventDefault();
-      window.alert("장르와 캐릭터를 입력해주세요.");
+      window.alert("장르, 캐릭터, 물품 종류를 입력해주세요.");
     }
   }
 
   return (
     <form action={action} onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <PickerField label="장르" name="genre" options={genreOptions} value={genre} onChange={setGenre} />
-      <PickerField label="캐릭터" name="character" options={characterOptions} value={character} onChange={setCharacter} />
-
-      <Field label="시리즈 (선택, 예: 오리지널/리부트)">
-        <input
-          name="series"
-          list="series-list"
-          defaultValue={defaultValues?.series}
-          className={inputClass}
-        />
-        <datalist id="series-list">
-          {suggestions.series.map((s) => (
-            <option key={s} value={s} />
-          ))}
-        </datalist>
-      </Field>
-
-      <Field label="물품 종류 (대분류)">
-        <input
-          name="itemType"
-          list="itemType-list"
-          defaultValue={defaultValues?.itemType}
-          required
-          className={inputClass}
-        />
-        <datalist id="itemType-list">
-          {suggestions.itemTypes.map((t) => (
-            <option key={t} value={t} />
-          ))}
-        </datalist>
-      </Field>
+      <PickerField label="장르" name="genre" options={genreOptions} value={genre} onChange={handleGenreChange} />
+      <PickerField
+        label="캐릭터"
+        name="character"
+        options={characterOptions}
+        value={character}
+        onChange={handleCharacterChange}
+      />
+      <PickerField
+        label="시리즈 (선택, 예: 오리지널/리부트)"
+        name="series"
+        options={seriesOptions}
+        value={series}
+        onChange={setSeries}
+      />
+      <PickerField
+        label="물품 종류 (대분류)"
+        name="itemType"
+        options={itemTypeOptions}
+        value={itemType}
+        onChange={setItemType}
+      />
 
       <Field label="물품 세부사항">
         <input
@@ -214,13 +222,21 @@ export function ItemForm({
         />
       </Field>
 
-      <Field label="제작한 사람 (선택)">
-        <input name="maker" defaultValue={defaultValues?.maker} className={inputClass} />
-      </Field>
+      <PickerField
+        label="제작한 사람 (선택)"
+        name="maker"
+        options={makerOptions}
+        value={maker}
+        onChange={setMaker}
+      />
 
-      <Field label="공구 개최한 사람 (선택)">
-        <input name="organizer" defaultValue={defaultValues?.organizer} className={inputClass} />
-      </Field>
+      <PickerField
+        label="공구 개최한 사람 (선택)"
+        name="organizer"
+        options={organizerOptions}
+        value={organizer}
+        onChange={setOrganizer}
+      />
 
       <label className="flex items-center gap-2 text-sm">
         <input

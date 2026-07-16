@@ -49,16 +49,64 @@ model Sale {
   createdAt DateTime @default(now())
 }
 
-// 품목 등록 폼에서 버튼으로 고를 수 있는 장르/캐릭터 목록. Item.genre/character는 여전히
-// 문자열이라 이 목록에서 지워도 이미 등록된 품목은 그대로 남고, 앞으로 선택지에서만 빠진다.
+// 품목 등록 폼에서 버튼으로 고를 수 있는 장르/캐릭터/시리즈/제작자/공구자 목록. Item의 해당
+// 필드들은 여전히 문자열이라 이 목록에서 지워도 이미 등록된 품목은 그대로 남고, 앞으로
+// 선택지에서만 빠진다.
 model Genre {
   id         String      @id @default(cuid())
   name       String      @unique
   characters Character[]
+  makers     Maker[]
+  organizers Organizer[]
   createdAt  DateTime    @default(now())
 }
 
 model Character {
+  id      String @id @default(cuid())
+  name    String
+  genre   Genre  @relation(fields: [genreId], references: [id], onDelete: Cascade)
+  genreId String
+
+  series Series[]
+
+  createdAt DateTime @default(now())
+
+  @@unique([genreId, name])
+}
+
+// 시리즈는 캐릭터에 종속(장르 > 캐릭터 > 시리즈).
+model Series {
+  id          String    @id @default(cuid())
+  name        String
+  character   Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  characterId String
+
+  createdAt DateTime @default(now())
+
+  @@unique([characterId, name])
+}
+
+// 물품 종류(대분류)는 장르/캐릭터와 무관하게 전역으로 하나의 목록만 쓴다.
+model ItemType {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+}
+
+// 제작한 사람은 장르에만 종속.
+model Maker {
+  id      String @id @default(cuid())
+  name    String
+  genre   Genre  @relation(fields: [genreId], references: [id], onDelete: Cascade)
+  genreId String
+
+  createdAt DateTime @default(now())
+
+  @@unique([genreId, name])
+}
+
+// 공구 개최한 사람도 장르에만 종속.
+model Organizer {
   id      String @id @default(cuid())
   name    String
   genre   Genre  @relation(fields: [genreId], references: [id], onDelete: Cascade)

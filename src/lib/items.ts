@@ -122,20 +122,3 @@ export async function getRecentPurchases(limit?: number) {
     remainingQuantity: calcRemainingQuantity(item.quantity, item.sales),
   }));
 }
-
-export async function getFieldSuggestions() {
-  const [series, itemTypes] = await Promise.all([
-    prisma.item.findMany({
-      distinct: ["series"],
-      select: { series: true },
-      where: { series: { not: null } },
-      orderBy: { series: "asc" },
-    }),
-    prisma.item.findMany({ distinct: ["itemType"], select: { itemType: true }, orderBy: { itemType: "asc" } }),
-  ]);
-
-  return {
-    series: series.map((s) => s.series as string),
-    itemTypes: itemTypes.map((t) => t.itemType),
-  };
-}

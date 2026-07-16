@@ -52,7 +52,14 @@ export async function createItem(formData: FormData) {
   await requireAuth();
   const data = parseItemForm(formData);
   await prisma.item.create({ data });
-  await ensureInCatalog(data.genre, data.character);
+  await ensureInCatalog({
+    genre: data.genre,
+    character: data.character,
+    series: data.series,
+    itemType: data.itemType,
+    maker: data.maker,
+    organizer: data.organizer,
+  });
   revalidatePath("/items");
   redirect("/items");
 }
@@ -68,7 +75,14 @@ export async function updateItem(id: string, from: string, formData: FormData) {
   }
 
   await prisma.item.update({ where: { id }, data });
-  await ensureInCatalog(data.genre, data.character);
+  await ensureInCatalog({
+    genre: data.genre,
+    character: data.character,
+    series: data.series,
+    itemType: data.itemType,
+    maker: data.maker,
+    organizer: data.organizer,
+  });
   revalidatePath("/items");
   revalidatePath(`/items/${id}`);
   redirect(safeRedirectTarget(from));
