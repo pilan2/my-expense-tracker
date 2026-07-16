@@ -15,6 +15,7 @@ function compareWithEtcLast(a: string, b: string) {
 
 // 캐릭터 안에서 시리즈가 있는 품목은 "캐릭터 (시리즈)"로, 없는 품목은 "캐릭터"만으로
 // 한 줄 제목을 만든다. 같은 캐릭터라도 시리즈가 여러 개면 그만큼 제목이 나뉘어 반복된다.
+// character/series를 따로 두는 건 렌더링에서 글자 크기를 다르게 주기 위해서다.
 function groupByCharacterAndSeries<T extends { character: string; series: string | null }>(items: T[]) {
   const characterMap = new Map<string, T[]>();
   for (const item of items) {
@@ -22,12 +23,12 @@ function groupByCharacterAndSeries<T extends { character: string; series: string
     characterMap.get(item.character)!.push(item);
   }
 
-  const groups: { label: string; items: T[] }[] = [];
+  const groups: { character: string; series: string | null; items: T[] }[] = [];
   for (const [character, characterItems] of [...characterMap.entries()].sort((a, b) =>
     compareWithEtcLast(a[0], b[0]),
   )) {
     const withoutSeries = characterItems.filter((item) => !item.series);
-    if (withoutSeries.length > 0) groups.push({ label: character, items: withoutSeries });
+    if (withoutSeries.length > 0) groups.push({ character, series: null, items: withoutSeries });
 
     const seriesMap = new Map<string, T[]>();
     for (const item of characterItems) {
@@ -36,7 +37,7 @@ function groupByCharacterAndSeries<T extends { character: string; series: string
       seriesMap.get(item.series)!.push(item);
     }
     for (const [series, seriesItems] of [...seriesMap.entries()].sort((a, b) => a[0].localeCompare(b[0], "ko"))) {
-      groups.push({ label: `${character} (${series})`, items: seriesItems });
+      groups.push({ character, series, items: seriesItems });
     }
   }
 
@@ -132,8 +133,11 @@ export default async function ItemsPage({
                 <h2 className="mb-2 text-xl font-semibold">{genreGroup.genre}</h2>
                 <div className="flex flex-col gap-4">
                   {genreGroup.subgroups.map((subgroup) => (
-                    <div key={subgroup.label}>
-                      <h3 className="mb-2 text-base font-medium">{subgroup.label}</h3>
+                    <div key={`${subgroup.character}-${subgroup.series ?? ""}`}>
+                      <h3 className="mb-2 font-medium">
+                        <span className="text-lg">{subgroup.character}</span>
+                        {subgroup.series && <span className="text-base"> ({subgroup.series})</span>}
+                      </h3>
                       <ul className="flex flex-col gap-2">
                         {subgroup.items.map((item) => (
                           <li
