@@ -25,6 +25,21 @@ export default async function Home() {
 
   return (
     <div className="box-border mx-auto w-full max-w-3xl space-y-8 overflow-x-hidden p-6">
+      <div className="flex justify-end gap-2">
+        <Link
+          href="/items"
+          className="inline-block rounded-md bg-neutral-900 px-4 py-2 text-sm text-white dark:bg-neutral-100 dark:text-neutral-900"
+        >
+          전체 품목 보기
+        </Link>
+        <Link
+          href="/items/new"
+          className="inline-block rounded-md border border-neutral-300 px-4 py-2 text-sm hover:opacity-70 dark:border-neutral-700"
+        >
+          + 품목 등록
+        </Link>
+      </div>
+
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
         <div className="rounded-lg border border-neutral-200 p-4 sm:p-6 dark:border-neutral-800">
           <p className="text-sm text-neutral-500">총 소비 금액</p>
@@ -204,15 +219,6 @@ export default async function Home() {
             </li>
           ))}
         </ul>
-      </div>
-
-      <div className="text-right">
-        <Link
-          href="/items"
-          className="inline-block rounded-md bg-neutral-900 px-4 py-2 text-sm text-white dark:bg-neutral-100 dark:text-neutral-900"
-        >
-          전체 품목 보기
-        </Link>
       </div>
     </div>
   );

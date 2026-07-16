@@ -61,7 +61,15 @@ export default async function ShipmentsPage({
 }
 
 async function CalendarView({ monthParam }: { monthParam?: string }) {
-  const { year, month } = parseMonthParam(monthParam);
+  const parsed = parseMonthParam(monthParam);
+  const now = new Date();
+  const nowKey = now.getFullYear() * 12 + (now.getMonth() + 1);
+  // 이미 발송된(과거) 달은 볼 필요가 없으니, URL을 직접 조작해 넘어와도 이번 달로 고정한다.
+  const isRequestedMonthInPast = parsed.year * 12 + parsed.month < nowKey;
+  const { year, month } = isRequestedMonthInPast
+    ? { year: now.getFullYear(), month: now.getMonth() + 1 }
+    : parsed;
+
   const items = await getShipmentsInMonth(year, month);
   const currentMonthParam = monthParamString(year, month);
 
@@ -75,16 +83,20 @@ async function CalendarView({ monthParam }: { monthParam?: string }) {
   const weeks = getMonthGrid(year, month);
   const prev = shiftMonth(year, month, -1);
   const next = shiftMonth(year, month, 1);
+  const isPrevMonthInPast = prev.year * 12 + prev.month < nowKey;
 
-  const today = new Date();
-  const isCurrentMonth = today.getFullYear() === year && today.getMonth() + 1 === month;
+  const isCurrentMonth = now.getFullYear() === year && now.getMonth() + 1 === month;
 
   return (
     <>
       <div className="mb-4 flex items-center justify-between">
-        <Link href={monthHref(prev.year, prev.month)} className="text-sm underline">
-          ← 이전달
-        </Link>
+        {isPrevMonthInPast ? (
+          <span className="text-sm text-neutral-300 dark:text-neutral-700">← 이전달</span>
+        ) : (
+          <Link href={monthHref(prev.year, prev.month)} className="text-sm underline">
+            ← 이전달
+          </Link>
+        )}
         <p className="font-medium">
           {year}년 {month}월
         </p>
@@ -104,7 +116,7 @@ async function CalendarView({ monthParam }: { monthParam?: string }) {
           <div key={i} className="grid grid-cols-7 gap-1">
             {week.map((day, j) => {
               const dayItems = day ? (itemsByDay.get(day) ?? []) : [];
-              const isToday = isCurrentMonth && day === today.getDate();
+              const isToday = isCurrentMonth && day === now.getDate();
               const dateStr = day
                 ? `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`
                 : null;

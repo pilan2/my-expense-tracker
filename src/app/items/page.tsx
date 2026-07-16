@@ -6,6 +6,13 @@ import { NumberInput } from "@/components/number-input";
 import { ItemCardContent } from "@/components/item-card";
 import { itemHref } from "@/lib/nav";
 
+// "기타"는 분류상 항상 맨 아래로.
+function compareWithEtcLast(a: string, b: string) {
+  if (a === "기타") return 1;
+  if (b === "기타") return -1;
+  return a.localeCompare(b, "ko");
+}
+
 export default async function ItemsPage({
   searchParams,
 }: {
@@ -15,6 +22,24 @@ export default async function ItemsPage({
   const pendingOnly = pending === "1";
 
   const items = await getItems({ pendingShippingOnly: pendingOnly });
+
+  // 한 화면 안에서도 장르 > 캐릭터로 눈에 띄게 묶어서 보여주되(순서는 기존 최신순 유지),
+  // 체크박스는 전부 같은 폼 안에 있어야 배송비 나누기/묶음 판매가 여러 그룹에 걸쳐 동작한다.
+  const genreMap = new Map<string, Map<string, typeof items>>();
+  for (const item of items) {
+    if (!genreMap.has(item.genre)) genreMap.set(item.genre, new Map());
+    const characterMap = genreMap.get(item.genre)!;
+    if (!characterMap.has(item.character)) characterMap.set(item.character, []);
+    characterMap.get(item.character)!.push(item);
+  }
+  const groups = [...genreMap.entries()]
+    .map(([genre, characterMap]) => ({
+      genre,
+      characters: [...characterMap.entries()]
+        .map(([character, characterItems]) => ({ character, items: characterItems }))
+        .sort((a, b) => compareWithEtcLast(a.character, b.character)),
+    }))
+    .sort((a, b) => compareWithEtcLast(a.genre, b.genre));
 
   return (
     <div className="box-border mx-auto w-full max-w-3xl overflow-x-hidden p-6">
@@ -78,22 +103,36 @@ export default async function ItemsPage({
             </div>
           </div>
 
-          <ul className="flex flex-col gap-2">
-            {items.map((item) => (
-              <li
-                key={item.id}
-                className="flex items-start gap-3 rounded-md border border-neutral-200 p-3 dark:border-neutral-800"
-              >
-                <input type="checkbox" name="itemIds" value={item.id} className="mt-1 h-4 w-4" />
-                <Link
-                  href={itemHref(item.id, pendingOnly ? "/items?pending=1" : "/items")}
-                  className="flex-1 hover:opacity-70"
-                >
-                  <ItemCardContent {...item} />
-                </Link>
-              </li>
+          <div className="flex flex-col gap-6">
+            {groups.map((genreGroup) => (
+              <div key={genreGroup.genre}>
+                <h2 className="mb-2 font-semibold">{genreGroup.genre}</h2>
+                <div className="flex flex-col gap-4">
+                  {genreGroup.characters.map((characterGroup) => (
+                    <div key={characterGroup.character}>
+                      <h3 className="mb-2 text-sm font-medium text-neutral-500">{characterGroup.character}</h3>
+                      <ul className="flex flex-col gap-2">
+                        {characterGroup.items.map((item) => (
+                          <li
+                            key={item.id}
+                            className="flex items-start gap-3 rounded-md border border-neutral-200 p-3 dark:border-neutral-800"
+                          >
+                            <input type="checkbox" name="itemIds" value={item.id} className="mt-1 h-4 w-4" />
+                            <Link
+                              href={itemHref(item.id, pendingOnly ? "/items?pending=1" : "/items")}
+                              className="flex-1 hover:opacity-70"
+                            >
+                              <ItemCardContent {...item} showGenreCharacter={false} />
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </div>
             ))}
-          </ul>
+          </div>
         </form>
       )}
     </div>
