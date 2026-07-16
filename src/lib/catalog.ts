@@ -11,9 +11,17 @@ export type GenreCatalogEntry = {
 
 export type ItemTypeCatalogEntry = { id: string; name: string };
 
+// "기타"는 분류상 항상 맨 뒤로. 선택 버튼 목록 등에서 알파벳/가나다순으로 두면
+// "기타"가 앞쪽에 오는 경우가 종종 있어서, 이 정렬을 항상 마지막에 다시 적용한다.
+function compareWithEtcLast<T extends { name: string }>(a: T, b: T) {
+  if (a.name === "기타") return 1;
+  if (b.name === "기타") return -1;
+  return a.name.localeCompare(b.name, "ko");
+}
+
 // 품목 등록 폼의 버튼 선택지 + /catalog 관리 화면에서 함께 쓰는 장르/캐릭터/시리즈/제작자/공구자 목록.
 export async function getGenreCatalog(): Promise<GenreCatalogEntry[]> {
-  return prisma.genre.findMany({
+  const genres = await prisma.genre.findMany({
     orderBy: { name: "asc" },
     include: {
       characters: {
@@ -24,11 +32,23 @@ export async function getGenreCatalog(): Promise<GenreCatalogEntry[]> {
       organizers: { orderBy: { name: "asc" }, select: { id: true, name: true } },
     },
   });
+
+  return genres
+    .map((genre) => ({
+      ...genre,
+      characters: genre.characters
+        .map((character) => ({ ...character, series: [...character.series].sort(compareWithEtcLast) }))
+        .sort(compareWithEtcLast),
+      makers: [...genre.makers].sort(compareWithEtcLast),
+      organizers: [...genre.organizers].sort(compareWithEtcLast),
+    }))
+    .sort(compareWithEtcLast);
 }
 
 // 장르/캐릭터와 무관한 전역 물품 종류(대분류) 목록.
-export function getItemTypeCatalog(): Promise<ItemTypeCatalogEntry[]> {
-  return prisma.itemType.findMany({ orderBy: { name: "asc" } });
+export async function getItemTypeCatalog(): Promise<ItemTypeCatalogEntry[]> {
+  const itemTypes = await prisma.itemType.findMany({ orderBy: { name: "asc" } });
+  return [...itemTypes].sort(compareWithEtcLast);
 }
 
 // 품목 저장 시 새로 쓰인 값들을, 다음부터 버튼으로 고를 수 있도록 카탈로그에 채워 넣는다.
