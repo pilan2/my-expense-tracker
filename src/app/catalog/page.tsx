@@ -2,19 +2,26 @@ import { getGenreCatalog, getItemTypeCatalog } from "@/lib/catalog";
 import {
   addGenre,
   deleteGenre,
+  renameGenre,
   addCharacter,
   deleteCharacter,
+  renameCharacter,
   addSeries,
   deleteSeries,
+  renameSeries,
   addItemType,
   deleteItemType,
+  renameItemType,
   addMaker,
   deleteMaker,
+  renameMaker,
   addOrganizer,
   deleteOrganizer,
+  renameOrganizer,
 } from "@/lib/actions/catalog";
 import { BackButton } from "@/components/back-button";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
+import { EditableName } from "@/components/editable-name";
 
 export default async function CatalogPage() {
   const [genres, itemTypes] = await Promise.all([getGenreCatalog(), getItemTypeCatalog()]);
@@ -25,7 +32,8 @@ export default async function CatalogPage() {
       <h1 className="mb-2 text-xl font-semibold">장르/캐릭터 관리</h1>
       <p className="mb-6 text-sm text-neutral-500">
         여기서 추가/삭제한 목록은 품목 등록 화면의 버튼 선택지에 반영돼요. 삭제해도 이미 등록된
-        품목의 값은 그대로 남아있고, 앞으로 선택지에서만 빠집니다.
+        품목의 값은 그대로 남아있고, 앞으로 선택지에서만 빠집니다. 이름 옆의 ✎을 누르면 이름을
+        바꿀 수 있고, 이때는 그 이름을 쓰던 품목들에도 한 번에 반영됩니다.
       </p>
 
       <form action={addGenre} className="mb-8 flex gap-2">
@@ -50,7 +58,9 @@ export default async function CatalogPage() {
           {genres.map((genre) => (
             <div key={genre.id} className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-800">
               <div className="mb-4 flex items-center justify-between">
-                <h2 className="font-semibold">{genre.name}</h2>
+                <h2 className="font-semibold">
+                  <EditableName name={genre.name} action={renameGenre.bind(null, genre.id)} />
+                </h2>
                 <form action={deleteGenre.bind(null, genre.id)}>
                   <ConfirmSubmitButton
                     confirmMessage={`"${genre.name}" 장르를 삭제하시겠습니까? 이 장르에 속한 캐릭터/시리즈/제작자/공구자 목록도 함께 삭제됩니다.`}
@@ -67,7 +77,9 @@ export default async function CatalogPage() {
                   {genre.characters.map((character) => (
                     <div key={character.id} className="rounded-md border border-neutral-200 p-3 dark:border-neutral-800">
                       <div className="mb-2 flex items-center justify-between">
-                        <span className="text-sm font-medium">{character.name}</span>
+                        <span className="text-sm font-medium">
+                          <EditableName name={character.name} action={renameCharacter.bind(null, character.id)} />
+                        </span>
                         <form action={deleteCharacter.bind(null, character.id)}>
                           <ConfirmSubmitButton
                             confirmMessage={`"${character.name}" 캐릭터를 삭제하시겠습니까? 이 캐릭터의 시리즈 목록도 함께 삭제됩니다.`}
@@ -84,7 +96,7 @@ export default async function CatalogPage() {
                             key={series.id}
                             className="flex items-center gap-1 rounded-full border border-neutral-200 py-0.5 pr-1 pl-2 text-xs dark:border-neutral-800"
                           >
-                            {series.name}
+                            <EditableName name={series.name} action={renameSeries.bind(null, series.id)} />
                             <form action={deleteSeries.bind(null, series.id)}>
                               <ConfirmSubmitButton
                                 confirmMessage={`"${series.name}" 시리즈를 삭제하시겠습니까?`}
@@ -145,7 +157,7 @@ export default async function CatalogPage() {
                       key={maker.id}
                       className="flex items-center gap-1.5 rounded-full border border-neutral-200 py-1 pr-1 pl-3 text-sm dark:border-neutral-800"
                     >
-                      {maker.name}
+                      <EditableName name={maker.name} action={renameMaker.bind(null, maker.id)} />
                       <form action={deleteMaker.bind(null, maker.id)}>
                         <ConfirmSubmitButton
                           confirmMessage={`"${maker.name}"을(를) 삭제하시겠습니까?`}
@@ -182,7 +194,7 @@ export default async function CatalogPage() {
                       key={organizer.id}
                       className="flex items-center gap-1.5 rounded-full border border-neutral-200 py-1 pr-1 pl-3 text-sm dark:border-neutral-800"
                     >
-                      {organizer.name}
+                      <EditableName name={organizer.name} action={renameOrganizer.bind(null, organizer.id)} />
                       <form action={deleteOrganizer.bind(null, organizer.id)}>
                         <ConfirmSubmitButton
                           confirmMessage={`"${organizer.name}"을(를) 삭제하시겠습니까?`}
@@ -224,7 +236,7 @@ export default async function CatalogPage() {
               key={itemType.id}
               className="flex items-center gap-1.5 rounded-full border border-neutral-200 py-1 pr-1 pl-3 text-sm dark:border-neutral-800"
             >
-              {itemType.name}
+              <EditableName name={itemType.name} action={renameItemType.bind(null, itemType.id)} />
               <form action={deleteItemType.bind(null, itemType.id)}>
                 <ConfirmSubmitButton
                   confirmMessage={`"${itemType.name}"을(를) 삭제하시겠습니까?`}
