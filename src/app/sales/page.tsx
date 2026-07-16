@@ -45,7 +45,7 @@ export default async function SalesPage() {
                     </p>
                   </div>
                   <span className="text-sm text-neutral-500">
-                    {sale.saleDate.toLocaleDateString("ko-KR")}
+                    {sale.saleDate ? sale.saleDate.toLocaleDateString("ko-KR") : "날짜 모름"}
                   </span>
                 </Link>
               </li>

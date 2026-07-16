@@ -23,7 +23,7 @@ export default async function PurchasesPage() {
                 className="block rounded-md border border-neutral-200 p-3 hover:opacity-70 dark:border-neutral-800"
               >
                 <p className="mb-1 text-xs text-neutral-500">
-                  구매일 {item.purchasedAt.toLocaleDateString("ko-KR")}
+                  구매일 {item.purchasedAt ? item.purchasedAt.toLocaleDateString("ko-KR") : "모름"}
                 </p>
                 <ItemCardContent {...item} />
               </Link>

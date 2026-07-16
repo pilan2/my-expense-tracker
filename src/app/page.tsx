@@ -139,7 +139,7 @@ export default async function Home() {
                       {item.character} · {item.detail}
                     </span>
                     <span className="text-neutral-500">
-                      {item.purchasedAt.toLocaleDateString("ko-KR")}
+                      {item.purchasedAt ? item.purchasedAt.toLocaleDateString("ko-KR") : "날짜 모름"}
                     </span>
                   </Link>
                 </li>
