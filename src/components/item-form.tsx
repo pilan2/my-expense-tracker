@@ -2,11 +2,9 @@
 
 import { useState } from "react";
 import { NumberInput } from "@/components/number-input";
+import type { GenreCatalogEntry } from "@/lib/catalog";
 
 type Suggestions = {
-  genres: string[];
-  characters: string[];
-  charactersByGenre: Record<string, string[]>;
   series: string[];
   itemTypes: string[];
 };
@@ -31,54 +29,104 @@ export type ItemFormDefaults = {
 const inputClass =
   "rounded-md border border-neutral-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-400 dark:border-neutral-700 dark:bg-neutral-900";
 
+const pickerButtonClass = (selected: boolean) =>
+  `rounded-full border px-3 py-1.5 text-sm ${
+    selected
+      ? "border-neutral-900 bg-neutral-900 text-white dark:border-neutral-100 dark:bg-neutral-100 dark:text-neutral-900"
+      : "border-neutral-300 dark:border-neutral-700"
+  }`;
+
+// 장르/캐릭터를 버튼으로 고르되, 카탈로그에 없는 값이면(또는 "+ 직접 입력"을 누르면)
+// 텍스트로 새로 입력할 수 있게 한다.
+function PickerField({
+  label,
+  name,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  name: string;
+  options: string[];
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const [customMode, setCustomMode] = useState(Boolean(value) && !options.includes(value));
+
+  return (
+    <div className="flex flex-col gap-2 text-sm">
+      <span className="font-medium">{label}</span>
+      <div className="flex flex-wrap gap-2">
+        {options.map((option) => (
+          <button
+            key={option}
+            type="button"
+            onClick={() => {
+              setCustomMode(false);
+              onChange(option);
+            }}
+            className={pickerButtonClass(!customMode && value === option)}
+          >
+            {option}
+          </button>
+        ))}
+        <button
+          type="button"
+          onClick={() => {
+            setCustomMode(true);
+            onChange("");
+          }}
+          className={`rounded-full border border-dashed px-3 py-1.5 text-sm ${
+            customMode ? "border-neutral-900 dark:border-neutral-100" : "border-neutral-400 text-neutral-500 dark:border-neutral-600"
+          }`}
+        >
+          + 직접 입력
+        </button>
+      </div>
+      {customMode && (
+        <input
+          autoFocus
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={`${label} 직접 입력`}
+          className={inputClass}
+        />
+      )}
+      <input type="hidden" name={name} value={value} />
+    </div>
+  );
+}
+
 export function ItemForm({
   action,
   suggestions,
+  genreCatalog,
   defaultValues,
 }: {
   action: (formData: FormData) => void;
   suggestions: Suggestions;
+  genreCatalog: GenreCatalogEntry[];
   defaultValues?: Partial<ItemFormDefaults>;
 }) {
   const [quantity, setQuantity] = useState(defaultValues?.quantity ?? 1);
   const [isPhysical, setIsPhysical] = useState(defaultValues?.isPhysical ?? false);
   const [genre, setGenre] = useState(defaultValues?.genre ?? "");
+  const [character, setCharacter] = useState(defaultValues?.character ?? "");
 
-  // 선택한 장르에서 쓰인 캐릭터만 자동완성에 보이고, 아직 없는(새) 장르라면 전체 목록을 보여준다.
-  const characterOptions = suggestions.charactersByGenre[genre] ?? suggestions.characters;
+  const genreOptions = genreCatalog.map((g) => g.name);
+  const characterOptions = genreCatalog.find((g) => g.name === genre)?.characters.map((c) => c.name) ?? [];
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    if (!genre.trim() || !character.trim()) {
+      e.preventDefault();
+      window.alert("장르와 캐릭터를 입력해주세요.");
+    }
+  }
 
   return (
-    <form action={action} className="flex flex-col gap-4">
-      <Field label="장르">
-        <input
-          name="genre"
-          list="genre-list"
-          defaultValue={defaultValues?.genre}
-          onChange={(e) => setGenre(e.target.value)}
-          required
-          className={inputClass}
-        />
-        <datalist id="genre-list">
-          {suggestions.genres.map((g) => (
-            <option key={g} value={g} />
-          ))}
-        </datalist>
-      </Field>
-
-      <Field label="캐릭터">
-        <input
-          name="character"
-          list="character-list"
-          defaultValue={defaultValues?.character}
-          required
-          className={inputClass}
-        />
-        <datalist id="character-list">
-          {characterOptions.map((c) => (
-            <option key={c} value={c} />
-          ))}
-        </datalist>
-      </Field>
+    <form action={action} onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <PickerField label="장르" name="genre" options={genreOptions} value={genre} onChange={setGenre} />
+      <PickerField label="캐릭터" name="character" options={characterOptions} value={character} onChange={setCharacter} />
 
       <Field label="시리즈 (선택, 예: 오리지널/리부트)">
         <input

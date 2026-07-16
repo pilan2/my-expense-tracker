@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { manwonToWon } from "@/lib/money";
 import { calcRemainingQuantity } from "@/lib/sales";
 import { safeRedirectTarget } from "@/lib/nav";
+import { ensureInCatalog } from "@/lib/catalog";
 
 async function requireAuth() {
   const session = await auth();
@@ -51,6 +52,7 @@ export async function createItem(formData: FormData) {
   await requireAuth();
   const data = parseItemForm(formData);
   await prisma.item.create({ data });
+  await ensureInCatalog(data.genre, data.character);
   revalidatePath("/items");
   redirect("/items");
 }
@@ -66,6 +68,7 @@ export async function updateItem(id: string, from: string, formData: FormData) {
   }
 
   await prisma.item.update({ where: { id }, data });
+  await ensureInCatalog(data.genre, data.character);
   revalidatePath("/items");
   revalidatePath(`/items/${id}`);
   redirect(safeRedirectTarget(from));

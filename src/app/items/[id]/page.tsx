@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getItem, getFieldSuggestions } from "@/lib/items";
+import { getGenreCatalog } from "@/lib/catalog";
 import { getSalesForItem, calcRemainingQuantity, calcProfit } from "@/lib/sales";
 import { updateItem, deleteItem } from "@/lib/actions/items";
 import { createSale, deleteSale } from "@/lib/actions/sales";
@@ -21,9 +22,10 @@ export default async function ItemDetailPage({
   const { id } = await params;
   const { from: fromParam } = await searchParams;
   const from = safeRedirectTarget(fromParam ?? "/items");
-  const [item, suggestions, sales] = await Promise.all([
+  const [item, suggestions, genreCatalog, sales] = await Promise.all([
     getItem(id),
     getFieldSuggestions(),
+    getGenreCatalog(),
     getSalesForItem(id),
   ]);
 
@@ -69,6 +71,7 @@ export default async function ItemDetailPage({
       <ItemForm
         action={updateItem.bind(null, item.id, from)}
         suggestions={suggestions}
+        genreCatalog={genreCatalog}
         defaultValues={defaultValues}
       />
 

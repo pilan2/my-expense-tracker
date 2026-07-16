@@ -35,6 +35,9 @@ export default async function ItemsPage({
         <Link href={pendingOnly ? "/items" : "/items?pending=1"} className="underline">
           {pendingOnly ? "전체보기" : "배송비 미정만 보기"} →
         </Link>
+        <Link href="/catalog" className="underline">
+          장르/캐릭터 관리 →
+        </Link>
       </div>
 
       {items.length === 0 ? (
