@@ -36,7 +36,8 @@ function parseItemForm(formData: FormData) {
     detail: String(formData.get("detail") ?? "").trim(),
     quantity: Number(formData.get("quantity")),
     price: manwonToWon(String(formData.get("price") ?? "0")),
-    purchasedAt: purchasedAtRaw ? new Date(String(purchasedAtRaw)) : new Date(),
+    // 구매일을 모르면 비워둘 수 있다 (날짜 기반 통계에서만 제외되고, 합계 통계에는 그대로 포함).
+    purchasedAt: purchasedAtRaw ? new Date(String(purchasedAtRaw)) : null,
     shippingFee,
     // 배송비가 확정되어 입력됐다면, "이후 해외배송비 존재" 체크는 더 이상 의미가 없으니 자동 해제.
     hasOverseasShipping: Number(shippingFee) > 0 ? false : formData.get("hasOverseasShipping") === "on",

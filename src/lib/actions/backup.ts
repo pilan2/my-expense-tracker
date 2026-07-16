@@ -14,7 +14,7 @@ type BackupSale = {
   id: string;
   quantitySold: number;
   saleAmount: string | number;
-  saleDate: string;
+  saleDate: string | null;
   createdAt: string;
 };
 
@@ -27,7 +27,7 @@ type BackupItem = {
   detail: string;
   quantity: number;
   price: string | number;
-  purchasedAt: string;
+  purchasedAt: string | null;
   hasOverseasShipping: boolean;
   shippingFee: string | number;
   maker: string | null;
@@ -81,7 +81,7 @@ export async function restoreBackup(formData: FormData) {
           detail: item.detail,
           quantity: item.quantity,
           price: item.price,
-          purchasedAt: new Date(item.purchasedAt),
+          purchasedAt: item.purchasedAt ? new Date(item.purchasedAt) : null,
           hasOverseasShipping: item.hasOverseasShipping,
           shippingFee: item.shippingFee,
           maker: item.maker,
@@ -100,7 +100,7 @@ export async function restoreBackup(formData: FormData) {
             itemId: item.id,
             quantitySold: sale.quantitySold,
             saleAmount: sale.saleAmount,
-            saleDate: new Date(sale.saleDate),
+            saleDate: sale.saleDate ? new Date(sale.saleDate) : null,
             createdAt: new Date(sale.createdAt),
           },
         });

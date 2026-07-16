@@ -19,7 +19,8 @@ export async function createSale(itemId: string, formData: FormData) {
   const quantitySold = Number(formData.get("quantitySold"));
   const saleAmount = manwonToWon(String(formData.get("saleAmount") ?? "0"));
   const saleDateRaw = formData.get("saleDate");
-  const saleDate = saleDateRaw ? new Date(String(saleDateRaw)) : new Date();
+  // 판매일을 모르면 비워둘 수 있다 (날짜 기반 통계에서만 제외되고, 합계 통계에는 그대로 포함).
+  const saleDate = saleDateRaw ? new Date(String(saleDateRaw)) : null;
 
   const item = await prisma.item.findUniqueOrThrow({
     where: { id: itemId },
@@ -46,7 +47,8 @@ export async function createBulkSale(formData: FormData) {
   const itemIds = [...new Set(formData.getAll("itemIds").map(String))];
   const totalSaleWon = Number(manwonToWon(String(formData.get("totalSaleAmount") ?? "0")));
   const saleDateRaw = formData.get("saleDate");
-  const saleDate = saleDateRaw ? new Date(String(saleDateRaw)) : new Date();
+  // 판매일을 모르면 비워둘 수 있다 (날짜 기반 통계에서만 제외되고, 합계 통계에는 그대로 포함).
+  const saleDate = saleDateRaw ? new Date(String(saleDateRaw)) : null;
 
   if (itemIds.length < 2) {
     throw new Error("묶음 판매는 품목을 2개 이상 선택해야 합니다.");

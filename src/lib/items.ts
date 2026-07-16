@@ -110,8 +110,10 @@ export async function getShipmentsOnDate(dateStr: string) {
 }
 
 // 대시보드 "최근 구매" 미리보기 및 /purchases 전체 목록. limit 없으면 전부.
+// 구매일이 없는(모름) 품목은 날짜 기반 목록이라 제외한다.
 export async function getRecentPurchases(limit?: number) {
   const items = await prisma.item.findMany({
+    where: { purchasedAt: { not: null } },
     orderBy: { purchasedAt: "desc" },
     include: { sales: SALES_FOR_CARD },
     ...(limit ? { take: limit } : {}),
@@ -119,6 +121,7 @@ export async function getRecentPurchases(limit?: number) {
 
   return items.map((item) => ({
     ...item,
+    purchasedAt: item.purchasedAt as Date, // where절로 이미 걸러졌음이 보장됨
     remainingQuantity: calcRemainingQuantity(item.quantity, item.sales),
   }));
 }

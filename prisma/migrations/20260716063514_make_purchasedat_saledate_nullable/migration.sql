@@ -1,0 +1,7 @@
+-- AlterTable
+ALTER TABLE "Item" ALTER COLUMN "purchasedAt" DROP NOT NULL,
+ALTER COLUMN "purchasedAt" DROP DEFAULT;
+
+-- AlterTable
+ALTER TABLE "Sale" ALTER COLUMN "saleDate" DROP NOT NULL,
+ALTER COLUMN "saleDate" DROP DEFAULT;

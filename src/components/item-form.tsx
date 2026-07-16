@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { NumberInput } from "@/components/number-input";
+import { ClearableDateInput } from "@/components/clearable-date-input";
 import type { GenreCatalogEntry, ItemTypeCatalogEntry } from "@/lib/catalog";
 
 export type ItemFormDefaults = {
@@ -174,12 +175,10 @@ export function ItemForm({
         />
       </Field>
 
-      <Field label="구매일">
-        <input
+      <Field label="구매일 (모르면 비워두세요 - 날짜 기반 통계에서만 제외되고 금액 합계에는 포함됩니다)">
+        <ClearableDateInput
           name="purchasedAt"
-          type="date"
           defaultValue={defaultValues?.purchasedAt ?? new Date().toISOString().slice(0, 10)}
-          required
           className={inputClass}
         />
       </Field>

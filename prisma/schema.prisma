@@ -19,8 +19,9 @@ model Item {
   detail    String // 물품 세부사항 (구체적 품목명, 예: 키링/스탠드/고냥이)
 
   quantity    Int
-  price       Decimal  @db.Decimal(12, 2) // 원 단위 저장 (입력 폼에서는 만원 단위 입력 후 환산)
-  purchasedAt DateTime @default(now()) // 구매일 (수기 입력 가능, 과거 날짜로 소급 등록도 허용)
+  price       Decimal   @db.Decimal(12, 2) // 원 단위 저장 (입력 폼에서는 만원 단위 입력 후 환산)
+  purchasedAt DateTime? // 구매일 (수기 입력 가능, 과거 날짜로 소급 등록도 허용). 모르면 비워둘 수 있고,
+  // 이 경우 날짜 기반 통계(월별 추이 등)에서는 제외되고 단순 합계 통계에는 그대로 포함된다.
 
   hasOverseasShipping Boolean @default(false) // 이후 해외배송비 존재 여부
   shippingFee         Decimal @default(0) @db.Decimal(12, 2) // 배송비: 라인 전체 고정값(수량과 무관). 여러 품목을 한 배송으로 받으면 총 배송비를 품목 수로 나눠 배분
@@ -43,8 +44,9 @@ model Sale {
   itemId String
 
   quantitySold Int
-  saleAmount   Decimal  @db.Decimal(12, 2)
-  saleDate     DateTime @default(now())
+  saleAmount   Decimal   @db.Decimal(12, 2)
+  saleDate     DateTime? // 판매일. 모르면 비워둘 수 있고, purchasedAt과 마찬가지로 날짜 기반
+  // 통계에서는 제외되고 단순 합계 통계에는 그대로 포함된다.
 
   createdAt DateTime @default(now())
 }

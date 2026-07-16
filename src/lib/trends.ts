@@ -31,12 +31,14 @@ export async function getMonthlyTrends(): Promise<MonthlyPoint[]> {
   const monthMap = new Map<string, { purchaseTotal: number; saleTotal: number }>();
 
   for (const item of items) {
+    if (!item.purchasedAt) continue; // 구매일 모름 -> 날짜 기반 통계에서 제외
     const key = monthKey(item.purchasedAt);
     const entry = monthMap.get(key) ?? { purchaseTotal: 0, saleTotal: 0 };
     entry.purchaseTotal += Number(item.price) * item.quantity + Number(item.shippingFee);
     monthMap.set(key, entry);
   }
   for (const sale of sales) {
+    if (!sale.saleDate) continue; // 판매일 모름 -> 날짜 기반 통계에서 제외
     const key = monthKey(sale.saleDate);
     const entry = monthMap.get(key) ?? { purchaseTotal: 0, saleTotal: 0 };
     entry.saleTotal += Number(sale.saleAmount);
@@ -65,12 +67,15 @@ export async function getMonthlyTrendsByGenre(): Promise<GenreMonthlyTrend[]> {
     if (!genreMap.has(item.genre)) genreMap.set(item.genre, new Map());
     const monthMap = genreMap.get(item.genre)!;
 
-    const purchaseKey = monthKey(item.purchasedAt);
-    const purchaseEntry = monthMap.get(purchaseKey) ?? { purchaseTotal: 0, saleTotal: 0 };
-    purchaseEntry.purchaseTotal += Number(item.price) * item.quantity + Number(item.shippingFee);
-    monthMap.set(purchaseKey, purchaseEntry);
+    if (item.purchasedAt) {
+      const purchaseKey = monthKey(item.purchasedAt);
+      const purchaseEntry = monthMap.get(purchaseKey) ?? { purchaseTotal: 0, saleTotal: 0 };
+      purchaseEntry.purchaseTotal += Number(item.price) * item.quantity + Number(item.shippingFee);
+      monthMap.set(purchaseKey, purchaseEntry);
+    }
 
     for (const sale of item.sales) {
+      if (!sale.saleDate) continue; // 판매일 모름 -> 날짜 기반 통계에서 제외
       const saleKey = monthKey(sale.saleDate);
       const saleEntry = monthMap.get(saleKey) ?? { purchaseTotal: 0, saleTotal: 0 };
       saleEntry.saleTotal += Number(sale.saleAmount);
