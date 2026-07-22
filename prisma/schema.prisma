@@ -31,6 +31,9 @@ model Item {
   isPhysical       Boolean   @default(false) // 현물 여부
   expectedShipDate DateTime? // 예상 발송일 (현물이 아닐 때만 사용)
 
+  purchaseLink String? // 구매처 링크 (선택)
+  memo         String? // 메모 (선택, 특이사항 등)
+
   sales Sale[]
 
   createdAt DateTime @default(now())

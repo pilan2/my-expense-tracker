@@ -34,6 +34,8 @@ type BackupItem = {
   organizer: string | null;
   isPhysical: boolean;
   expectedShipDate: string | null;
+  purchaseLink: string | null;
+  memo: string | null;
   createdAt: string;
   updatedAt: string;
   sales: BackupSale[];
@@ -88,6 +90,8 @@ export async function restoreBackup(formData: FormData) {
           organizer: item.organizer,
           isPhysical: item.isPhysical,
           expectedShipDate: item.expectedShipDate ? new Date(item.expectedShipDate) : null,
+          purchaseLink: item.purchaseLink,
+          memo: item.memo,
           createdAt: new Date(item.createdAt),
           updatedAt: new Date(item.updatedAt),
         },

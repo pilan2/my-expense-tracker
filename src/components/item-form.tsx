@@ -20,6 +20,8 @@ export type ItemFormDefaults = {
   organizer: string;
   isPhysical: boolean;
   expectedShipDate: string;
+  purchaseLink: string;
+  memo: string;
 };
 
 const inputClass =
@@ -229,6 +231,16 @@ export function ItemForm({
         />
       </Field>
 
+      <Field label="구매처 링크 (선택)">
+        <input
+          name="purchaseLink"
+          type="url"
+          placeholder="https://..."
+          defaultValue={defaultValues?.purchaseLink}
+          className={inputClass}
+        />
+      </Field>
+
       <PickerField
         label="제작한 사람 (선택)"
         name="maker"
@@ -288,6 +300,15 @@ export function ItemForm({
           />
         </Field>
       )}
+
+      <Field label="메모 (선택)">
+        <textarea
+          name="memo"
+          rows={3}
+          defaultValue={defaultValues?.memo}
+          className={`${inputClass} resize-y`}
+        />
+      </Field>
 
       <button
         type="submit"

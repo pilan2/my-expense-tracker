@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getItem } from "@/lib/items";
 import { getGenreCatalog, getItemTypeCatalog } from "@/lib/catalog";
@@ -13,16 +14,33 @@ import { wonToManwon } from "@/lib/money";
 import { formatDDay, isOverdue } from "@/lib/dday";
 import { safeRedirectTarget } from "@/lib/nav";
 
+function selfHref(id: string, from: string, mode?: "edit") {
+  const params = new URLSearchParams({ from });
+  if (mode) params.set("mode", mode);
+  return `/items/${id}?${params.toString()}`;
+}
+
+function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-0.5 border-b border-neutral-100 pb-2 dark:border-neutral-900">
+      <span className="text-sm text-neutral-500">{label}</span>
+      <span className="text-base">{value}</span>
+    </div>
+  );
+}
+
 export default async function ItemDetailPage({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ from?: string }>;
+  searchParams: Promise<{ from?: string; mode?: string }>;
 }) {
   const { id } = await params;
-  const { from: fromParam } = await searchParams;
+  const { from: fromParam, mode } = await searchParams;
   const from = safeRedirectTarget(fromParam ?? "/items");
+  const isEditing = mode === "edit";
+
   const [item, genreCatalog, itemTypeCatalog, sales] = await Promise.all([
     getItem(id),
     getGenreCatalog(),
@@ -49,6 +67,8 @@ export default async function ItemDetailPage({
     expectedShipDate: item.expectedShipDate
       ? item.expectedShipDate.toISOString().slice(0, 10)
       : "",
+    purchaseLink: item.purchaseLink ?? "",
+    memo: item.memo ?? "",
   };
 
   const today = new Date().toISOString().slice(0, 10);
@@ -58,23 +78,116 @@ export default async function ItemDetailPage({
 
   return (
     <div className="box-border mx-auto w-full max-w-xl overflow-x-hidden p-6">
-      <BackButton href={from} />
-      <h1 className="mb-2 text-xl font-semibold">품목 수정</h1>
-      {!item.isPhysical && item.expectedShipDate && (
-        <p className="mb-6 text-sm">
-          발송예정 {item.expectedShipDate.toLocaleDateString("ko-KR")} ·{" "}
-          <span className={`font-medium ${isOverdue(item.expectedShipDate) ? "text-red-600" : "text-blue-600"}`}>
-            {formatDDay(item.expectedShipDate)}
-          </span>
-          {isOverdue(item.expectedShipDate) && " (곧 자동으로 현물 전환됩니다)"}
-        </p>
+      <BackButton href={isEditing ? selfHref(item.id, from) : from} />
+
+      {isEditing ? (
+        <>
+          <h1 className="mb-2 text-xl font-semibold">품목 수정</h1>
+          {!item.isPhysical && item.expectedShipDate && (
+            <p className="mb-6 text-sm">
+              발송예정 {item.expectedShipDate.toLocaleDateString("ko-KR")} ·{" "}
+              <span className={`font-medium ${isOverdue(item.expectedShipDate) ? "text-red-600" : "text-blue-600"}`}>
+                {formatDDay(item.expectedShipDate)}
+              </span>
+              {isOverdue(item.expectedShipDate) && " (곧 자동으로 현물 전환됩니다)"}
+            </p>
+          )}
+          <ItemForm
+            action={updateItem.bind(null, item.id, from)}
+            genreCatalog={genreCatalog}
+            itemTypeCatalog={itemTypeCatalog}
+            defaultValues={defaultValues}
+          />
+          <div className="mt-4">
+            <Link href={selfHref(item.id, from)} className="text-sm underline">
+              취소하고 보기로 돌아가기
+            </Link>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="mb-4 flex items-center justify-between">
+            <h1 className="text-xl font-semibold">품목 정보</h1>
+            <Link
+              href={selfHref(item.id, from, "edit")}
+              className="rounded-md bg-neutral-900 px-4 py-2 text-sm text-white hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900"
+            >
+              수정
+            </Link>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <DetailRow
+              label="장르 · 캐릭터"
+              value={item.genre === item.character ? item.genre : `${item.genre} · ${item.character}`}
+            />
+            {item.series && <DetailRow label="시리즈" value={item.series} />}
+            <DetailRow label="물품 종류" value={item.itemType} />
+            <DetailRow label="세부사항" value={item.detail} />
+            <DetailRow
+              label="수량"
+              value={remaining !== item.quantity ? `${item.quantity} (잔여 ${remaining})` : item.quantity}
+            />
+            <DetailRow label="가격" value={`${Number(item.price).toLocaleString("ko-KR")}원`} />
+            <DetailRow
+              label="구매일"
+              value={item.purchasedAt ? item.purchasedAt.toLocaleDateString("ko-KR") : "모름"}
+            />
+            {Number(item.shippingFee) > 0 && (
+              <DetailRow label="배송비" value={`${Number(item.shippingFee).toLocaleString("ko-KR")}원`} />
+            )}
+            {item.hasOverseasShipping && <DetailRow label="배송비" value="이후 계산 필요" />}
+            {item.maker && <DetailRow label="제작한 사람" value={item.maker} />}
+            {item.organizer && <DetailRow label="공구 개최한 사람" value={item.organizer} />}
+            <DetailRow
+              label="상태"
+              value={
+                item.isPhysical ? (
+                  "현물 보유 중"
+                ) : item.expectedShipDate ? (
+                  <>
+                    발송예정 {item.expectedShipDate.toLocaleDateString("ko-KR")}{" "}
+                    <span
+                      className={`font-medium ${isOverdue(item.expectedShipDate) ? "text-red-600" : "text-blue-600"}`}
+                    >
+                      {formatDDay(item.expectedShipDate)}
+                    </span>
+                  </>
+                ) : (
+                  "-"
+                )
+              }
+            />
+            {item.purchaseLink && (
+              <DetailRow
+                label="구매처"
+                value={
+                  <a
+                    href={item.purchaseLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="break-all text-blue-600 underline dark:text-blue-400"
+                  >
+                    {item.purchaseLink}
+                  </a>
+                }
+              />
+            )}
+            {item.memo && <DetailRow label="메모" value={<span className="whitespace-pre-wrap">{item.memo}</span>} />}
+            {sales.length > 0 && (
+              <DetailRow
+                label="판매 손익"
+                value={
+                  <span className={`font-medium ${profit >= 0 ? "text-blue-600" : "text-red-600"}`}>
+                    {profit >= 0 ? "+" : ""}
+                    {profit.toLocaleString("ko-KR")}원
+                  </span>
+                }
+              />
+            )}
+          </div>
+        </>
       )}
-      <ItemForm
-        action={updateItem.bind(null, item.id, from)}
-        genreCatalog={genreCatalog}
-        itemTypeCatalog={itemTypeCatalog}
-        defaultValues={defaultValues}
-      />
 
       <form action={deleteItem.bind(null, item.id, from)} className="mt-8 border-t pt-6 dark:border-neutral-800">
         <ConfirmSubmitButton

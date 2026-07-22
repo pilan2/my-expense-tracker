@@ -6,7 +6,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { manwonToWon } from "@/lib/money";
 import { calcRemainingQuantity } from "@/lib/sales";
-import { safeRedirectTarget } from "@/lib/nav";
+import { itemHref, safeRedirectTarget } from "@/lib/nav";
 import { ensureInCatalog } from "@/lib/catalog";
 
 async function requireAuth() {
@@ -20,6 +20,8 @@ function parseItemForm(formData: FormData) {
   const maker = String(formData.get("maker") ?? "").trim();
   const organizer = String(formData.get("organizer") ?? "").trim();
   const series = String(formData.get("series") ?? "").trim();
+  const purchaseLink = String(formData.get("purchaseLink") ?? "").trim();
+  const memo = String(formData.get("memo") ?? "").trim();
 
   if (!isPhysical && !expectedShipDateRaw) {
     throw new Error("현물로 보유 중이 아니면 예상 발송일을 입력해야 합니다.");
@@ -46,6 +48,8 @@ function parseItemForm(formData: FormData) {
     isPhysical,
     expectedShipDate:
       !isPhysical && expectedShipDateRaw ? new Date(String(expectedShipDateRaw)) : null,
+    purchaseLink: purchaseLink || null,
+    memo: memo || null,
   };
 }
 
@@ -86,7 +90,8 @@ export async function updateItem(id: string, from: string, formData: FormData) {
   });
   revalidatePath("/items");
   revalidatePath(`/items/${id}`);
-  redirect(safeRedirectTarget(from));
+  // 저장 후에는 상위 목록이 아니라 이 품목의 보기 화면으로 돌아간다.
+  redirect(itemHref(id, from));
 }
 
 export async function deleteItem(id: string, from: string) {
