@@ -34,7 +34,8 @@ model Item {
   purchaseLink String? // 구매처 링크 (선택)
   memo         String? // 메모 (선택, 특이사항 등)
 
-  sales Sale[]
+  sales             Sale[]
+  checklistEntries  EventChecklistItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -120,4 +121,38 @@ model Organizer {
   createdAt DateTime @default(now())
 
   @@unique([genreId, name])
+}
+
+// 행사 당일 체크리스트: 부스별로 수령/구매할 것을 미리 적어두고, 당일 부스별로 묶어서 확인한다.
+model Event {
+  id      String @id @default(cuid())
+  name    String // 행사 이름 (예: "코미케 104")
+  date    DateTime? // 행사 날짜 (선택, 모르면 비워둘 수 있음)
+
+  entries EventChecklistItem[]
+
+  createdAt DateTime @default(now())
+}
+
+enum EventChecklistType {
+  PICKUP // 수령: 이미 결제 완료, 현장에서 받기만 하면 됨
+  PURCHASE // 구매: 현장에서 결제까지 해야 함
+}
+
+model EventChecklistItem {
+  id       String             @id @default(cuid())
+  event    Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId  String
+  booth    String // 부스명/번호
+  label    String // 무엇을 수령/구매할지 간단한 설명 (품목 연결 시 자동 채움)
+  type     EventChecklistType
+  checked  Boolean            @default(false)
+  price    Decimal            @default(0) @db.Decimal(12, 2) // 원 단위, 개당 가격 (품목 연결 시 자동 채움)
+  quantity Int                @default(1)
+
+  // 이미 등록된 품목과 연결(주로 수령 항목에서 상세 정보 확인용). 품목이 삭제돼도 체크리스트 항목은 남는다.
+  item   Item?   @relation(fields: [itemId], references: [id], onDelete: SetNull)
+  itemId String?
+
+  createdAt DateTime @default(now())
 }

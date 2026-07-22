@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "EventChecklistItem" ADD COLUMN     "price" DECIMAL(12,2) NOT NULL DEFAULT 0,
+ADD COLUMN     "quantity" INTEGER NOT NULL DEFAULT 1;

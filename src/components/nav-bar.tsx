@@ -9,6 +9,9 @@ export function NavBar({ email }: { email?: string | null }) {
       </Link>
       <div className="flex items-center gap-4">
         {email && <span className="max-w-[45vw] truncate text-neutral-500 sm:max-w-none">{email}</span>}
+        <Link href="/events" className="underline">
+          행사
+        </Link>
         <Link href="/backup" className="underline">
           백업
         </Link>
