@@ -1,17 +1,11 @@
 import Link from "next/link";
 import { getItemsByCategory } from "@/lib/items";
+import { getCatalogOrderMaps, compareNameByCatalogOrder } from "@/lib/catalog";
 import { BackButton } from "@/components/back-button";
 import { ItemCardContent } from "@/components/item-card";
 import { itemHref } from "@/lib/nav";
 
-// "기타"는 분류상 항상 맨 아래로.
-function compareWithEtcLast(a: string, b: string) {
-  if (a === "기타") return 1;
-  if (b === "기타") return -1;
-  return a.localeCompare(b, "ko");
-}
-
-function groupByItemType<T extends { itemType: string }>(items: T[]) {
+function groupByItemType<T extends { itemType: string }>(items: T[], itemTypeOrder: Map<string, number>) {
   const map = new Map<string, T[]>();
   for (const item of items) {
     if (!map.has(item.itemType)) map.set(item.itemType, []);
@@ -19,11 +13,14 @@ function groupByItemType<T extends { itemType: string }>(items: T[]) {
   }
   return [...map.entries()]
     .map(([itemType, itemTypeItems]) => ({ itemType, items: itemTypeItems }))
-    .sort((a, b) => compareWithEtcLast(a.itemType, b.itemType));
+    .sort((a, b) => compareNameByCatalogOrder(itemTypeOrder, a.itemType, b.itemType));
 }
 
 // 시리즈가 있는 품목만 시리즈별로 묶고(그 안에서 다시 물품 종류로), 없는 품목은 물품 종류로만 묶는다.
-function groupBySeries<T extends { series: string | null; itemType: string }>(items: T[]) {
+function groupBySeries<T extends { series: string | null; itemType: string }>(
+  items: T[],
+  itemTypeOrder: Map<string, number>,
+) {
   const withoutSeries = items.filter((item) => !item.series);
   const seriesMap = new Map<string, T[]>();
   for (const item of items) {
@@ -32,10 +29,10 @@ function groupBySeries<T extends { series: string | null; itemType: string }>(it
     seriesMap.get(item.series)!.push(item);
   }
   const bySeries = [...seriesMap.entries()]
-    .map(([series, seriesItems]) => ({ series, itemTypeGroups: groupByItemType(seriesItems) }))
+    .map(([series, seriesItems]) => ({ series, itemTypeGroups: groupByItemType(seriesItems, itemTypeOrder) }))
     .sort((a, b) => a.series.localeCompare(b.series, "ko"));
 
-  return { withoutSeriesItemTypeGroups: groupByItemType(withoutSeries), bySeries };
+  return { withoutSeriesItemTypeGroups: groupByItemType(withoutSeries, itemTypeOrder), bySeries };
 }
 
 export default async function BrowseItemsPage({
@@ -47,12 +44,12 @@ export default async function BrowseItemsPage({
   const genre = decodeURIComponent(genreParam);
   const character = decodeURIComponent(characterParam);
 
-  const items = await getItemsByCategory(genre, character);
+  const [items, orderMaps] = await Promise.all([getItemsByCategory(genre, character), getCatalogOrderMaps()]);
   const from = `/browse/${encodeURIComponent(genre)}/${encodeURIComponent(character)}`;
   // "기타"는 캐릭터 선택 단계를 건너뛰므로, 뒤로가기의 상위 화면도 장르 목록이 아니라 대시보드로.
   const parentHref = genre === character ? "/" : `/browse/${encodeURIComponent(genre)}`;
 
-  const { withoutSeriesItemTypeGroups, bySeries } = groupBySeries(items);
+  const { withoutSeriesItemTypeGroups, bySeries } = groupBySeries(items, orderMaps.itemType);
 
   return (
     <div className="box-border mx-auto w-full max-w-3xl overflow-x-hidden p-6">

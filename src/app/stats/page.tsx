@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getMonthlyTrends, getMonthlyTrendsByGenre, getGenreComparisonTrends } from "@/lib/trends";
 import { getPurchasesInMonth } from "@/lib/items";
 import { getSalesInMonth, calcSaleProfit } from "@/lib/sales";
+import { getCatalogOrderMaps, compareNameByCatalogOrder, compareCharacterByCatalogOrder } from "@/lib/catalog";
 import { parseMonthParam, monthParamString } from "@/lib/month";
 import { shiftMonth } from "@/lib/calendar";
 import { BackButton } from "@/components/back-button";
@@ -14,19 +15,16 @@ function monthHref(year: number, month: number) {
   return `/stats?month=${monthParamString(year, month)}`;
 }
 
-// "기타"는 분류상 항상 맨 아래로.
-function compareWithEtcLast(a: string, b: string) {
-  if (a === "기타") return 1;
-  if (b === "기타") return -1;
-  return a.localeCompare(b, "ko");
-}
-
 type MonthPurchase = Awaited<ReturnType<typeof getPurchasesInMonth>>[number];
 type MonthSale = Awaited<ReturnType<typeof getSalesInMonth>>[number];
 
 // 전체 품목 목록과 같은 방식으로, 캐릭터 안에서 시리즈가 있는 건 "캐릭터 (시리즈)"로 묶고
 // 없는 건 "캐릭터"만으로 묶는다.
-function groupByGenreCharacterSeries(purchases: MonthPurchase[], sales: MonthSale[]) {
+function groupByGenreCharacterSeries(
+  purchases: MonthPurchase[],
+  sales: MonthSale[],
+  orderMaps: { genre: Map<string, number>; character: Map<string, number> },
+) {
   const NO_SERIES = "";
   const genreMap = new Map<
     string,
@@ -71,7 +69,7 @@ function groupByGenreCharacterSeries(purchases: MonthPurchase[], sales: MonthSal
       }[] = [];
 
       for (const [character, seriesMap] of [...entry.characterMap.entries()].sort((a, b) =>
-        compareWithEtcLast(a[0], b[0]),
+        compareCharacterByCatalogOrder(orderMaps.character, genre, a[0], b[0]),
       )) {
         const noSeriesBucket = seriesMap.get(NO_SERIES);
         if (noSeriesBucket) subgroups.push({ character, series: null, ...noSeriesBucket });
@@ -86,7 +84,7 @@ function groupByGenreCharacterSeries(purchases: MonthPurchase[], sales: MonthSal
 
       return { genre, purchaseTotal: entry.purchaseTotal, saleTotal: entry.saleTotal, subgroups };
     })
-    .sort((a, b) => compareWithEtcLast(a.genre, b.genre));
+    .sort((a, b) => compareNameByCatalogOrder(orderMaps.genre, a.genre, b.genre));
 }
 
 export default async function StatsPage({
@@ -104,19 +102,20 @@ export default async function StatsPage({
     ? { year: now.getFullYear(), month: now.getMonth() + 1 }
     : parsed;
 
-  const [overall, byGenre, comparison, monthPurchases, monthSales] = await Promise.all([
+  const [overall, byGenre, comparison, monthPurchases, monthSales, orderMaps] = await Promise.all([
     getMonthlyTrends(),
     getMonthlyTrendsByGenre(),
     getGenreComparisonTrends(),
     getPurchasesInMonth(year, month),
     getSalesInMonth(year, month),
+    getCatalogOrderMaps(),
   ]);
 
   const from = monthHref(year, month);
   const prev = shiftMonth(year, month, -1);
   const next = shiftMonth(year, month, 1);
   const isNextMonthInFuture = next.year * 12 + next.month > nowKey;
-  const monthGroups = groupByGenreCharacterSeries(monthPurchases, monthSales);
+  const monthGroups = groupByGenreCharacterSeries(monthPurchases, monthSales, orderMaps);
   const monthTotals = monthGroups.reduce(
     (acc, g) => ({ purchaseTotal: acc.purchaseTotal + g.purchaseTotal, saleTotal: acc.saleTotal + g.saleTotal }),
     { purchaseTotal: 0, saleTotal: 0 },

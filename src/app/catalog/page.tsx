@@ -3,15 +3,18 @@ import {
   addGenre,
   deleteGenre,
   renameGenre,
+  moveGenre,
   addCharacter,
   deleteCharacter,
   renameCharacter,
+  moveCharacter,
   addSeries,
   deleteSeries,
   renameSeries,
   addItemType,
   deleteItemType,
   renameItemType,
+  moveItemType,
   addMaker,
   deleteMaker,
   renameMaker,
@@ -22,6 +25,7 @@ import {
 import { BackButton } from "@/components/back-button";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 import { EditableName } from "@/components/editable-name";
+import { MoveButtons } from "@/components/move-buttons";
 
 export default async function CatalogPage() {
   const [genres, itemTypes] = await Promise.all([getGenreCatalog(), getItemTypeCatalog()]);
@@ -55,12 +59,21 @@ export default async function CatalogPage() {
         <p className="py-10 text-center text-neutral-500">등록된 장르가 없습니다.</p>
       ) : (
         <div className="flex flex-col gap-6">
-          {genres.map((genre) => (
+          {genres.map((genre, genreIndex) => {
+            return (
             <div key={genre.id} className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-800">
               <div className="mb-4 flex items-center justify-between">
-                <h2 className="font-semibold">
-                  <EditableName name={genre.name} action={renameGenre.bind(null, genre.id)} />
-                </h2>
+                <div className="flex items-center gap-2">
+                  <MoveButtons
+                    up={moveGenre.bind(null, genre.id, "up")}
+                    down={moveGenre.bind(null, genre.id, "down")}
+                    isFirst={genreIndex === 0}
+                    isLast={genreIndex === genres.length - 1}
+                  />
+                  <h2 className="font-semibold">
+                    <EditableName name={genre.name} action={renameGenre.bind(null, genre.id)} />
+                  </h2>
+                </div>
                 <form action={deleteGenre.bind(null, genre.id)}>
                   <ConfirmSubmitButton
                     confirmMessage={`"${genre.name}" 장르를 삭제하시겠습니까? 이 장르에 속한 캐릭터/시리즈/제작자/공구자 목록도 함께 삭제됩니다.`}
@@ -77,15 +90,24 @@ export default async function CatalogPage() {
                 <div className="mb-4">
                   <h3 className="mb-2 text-sm font-medium text-neutral-500">캐릭터</h3>
                   <div className="flex flex-col gap-3">
-                    {genre.characters.map((character) => (
+                    {genre.characters.map((character, characterIndex) => {
+                        return (
                       <div
                         key={character.id}
                         className="rounded-md border border-neutral-200 p-3 dark:border-neutral-800"
                       >
                         <div className="mb-2 flex items-center justify-between">
-                          <span className="text-sm font-medium">
-                            <EditableName name={character.name} action={renameCharacter.bind(null, character.id)} />
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <MoveButtons
+                              up={moveCharacter.bind(null, character.id, "up")}
+                              down={moveCharacter.bind(null, character.id, "down")}
+                              isFirst={characterIndex === 0}
+                              isLast={characterIndex === genre.characters.length - 1}
+                            />
+                            <span className="text-sm font-medium">
+                              <EditableName name={character.name} action={renameCharacter.bind(null, character.id)} />
+                            </span>
+                          </div>
                           <form action={deleteCharacter.bind(null, character.id)}>
                             <ConfirmSubmitButton
                               confirmMessage={`"${character.name}" 캐릭터를 삭제하시겠습니까? 이 캐릭터의 시리즈 목록도 함께 삭제됩니다.`}
@@ -133,7 +155,8 @@ export default async function CatalogPage() {
                           </button>
                         </form>
                       </div>
-                    ))}
+                        );
+                      })}
                     {genre.characters.length === 0 && (
                       <p className="text-sm text-neutral-500">캐릭터가 없습니다.</p>
                     )}
@@ -230,7 +253,8 @@ export default async function CatalogPage() {
                 </div>
               </details>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -238,22 +262,30 @@ export default async function CatalogPage() {
         <h2 className="mb-2 font-semibold">물품 종류 (대분류)</h2>
         <p className="mb-3 text-sm text-neutral-500">장르/캐릭터와 무관하게 전역으로 사용되는 목록이에요.</p>
         <ul className="mb-3 flex flex-wrap gap-2">
-          {itemTypes.map((itemType) => (
-            <li
-              key={itemType.id}
-              className="flex items-center gap-1.5 rounded-full border border-neutral-200 py-1 pr-1 pl-3 text-sm dark:border-neutral-800"
-            >
-              <EditableName name={itemType.name} action={renameItemType.bind(null, itemType.id)} />
-              <form action={deleteItemType.bind(null, itemType.id)}>
-                <ConfirmSubmitButton
-                  confirmMessage={`"${itemType.name}"을(를) 삭제하시겠습니까?`}
-                  className="flex h-5 w-5 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
-                >
-                  ×
-                </ConfirmSubmitButton>
-              </form>
-            </li>
-          ))}
+          {itemTypes.map((itemType, itemTypeIndex) => {
+            return (
+              <li
+                key={itemType.id}
+                className="flex items-center gap-1.5 rounded-full border border-neutral-200 py-1 pr-1 pl-3 text-sm dark:border-neutral-800"
+              >
+                <MoveButtons
+                  up={moveItemType.bind(null, itemType.id, "up")}
+                  down={moveItemType.bind(null, itemType.id, "down")}
+                  isFirst={itemTypeIndex === 0}
+                  isLast={itemTypeIndex === itemTypes.length - 1}
+                />
+                <EditableName name={itemType.name} action={renameItemType.bind(null, itemType.id)} />
+                <form action={deleteItemType.bind(null, itemType.id)}>
+                  <ConfirmSubmitButton
+                    confirmMessage={`"${itemType.name}"을(를) 삭제하시겠습니까?`}
+                    className="flex h-5 w-5 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                  >
+                    ×
+                  </ConfirmSubmitButton>
+                </form>
+              </li>
+            );
+          })}
           {itemTypes.length === 0 && <li className="text-sm text-neutral-500">없습니다.</li>}
         </ul>
         <form action={addItemType} className="flex gap-2">

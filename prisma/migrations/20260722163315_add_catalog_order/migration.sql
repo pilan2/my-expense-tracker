@@ -1,0 +1,8 @@
+-- AlterTable
+ALTER TABLE "Character" ADD COLUMN     "order" INTEGER NOT NULL DEFAULT 0;
+
+-- AlterTable
+ALTER TABLE "Genre" ADD COLUMN     "order" INTEGER NOT NULL DEFAULT 0;
+
+-- AlterTable
+ALTER TABLE "ItemType" ADD COLUMN     "order" INTEGER NOT NULL DEFAULT 0;

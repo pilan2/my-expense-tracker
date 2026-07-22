@@ -1,5 +1,5 @@
 import { formatDDay, isOverdue } from "@/lib/dday";
-import { calcProfit } from "@/lib/sales";
+import { calcProfit } from "@/lib/profit";
 
 // Prisma Decimal도 그대로 받을 수 있도록 toString()만 요구한다.
 type DecimalLike = number | string | { toString(): string };

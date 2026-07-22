@@ -1,22 +1,18 @@
 import Link from "next/link";
 import { getItems } from "@/lib/items";
+import { getCatalogOrderMaps, compareNameByCatalogOrder, compareCharacterByCatalogOrder } from "@/lib/catalog";
 import { assignShippingFee } from "@/lib/actions/shipping";
 import { BackButton } from "@/components/back-button";
-import { NumberInput } from "@/components/number-input";
-import { ItemCardContent } from "@/components/item-card";
-import { itemHref } from "@/lib/nav";
-
-// "기타"는 분류상 항상 맨 아래로.
-function compareWithEtcLast(a: string, b: string) {
-  if (a === "기타") return 1;
-  if (b === "기타") return -1;
-  return a.localeCompare(b, "ko");
-}
+import { ItemsSelectableList } from "@/components/items-selectable-list";
 
 // 캐릭터 안에서 시리즈가 있는 품목은 "캐릭터 (시리즈)"로, 없는 품목은 "캐릭터"만으로
 // 한 줄 제목을 만든다. 같은 캐릭터라도 시리즈가 여러 개면 그만큼 제목이 나뉘어 반복된다.
 // character/series를 따로 두는 건 렌더링에서 글자 크기를 다르게 주기 위해서다.
-function groupByCharacterAndSeries<T extends { character: string; series: string | null }>(items: T[]) {
+function groupByCharacterAndSeries<T extends { character: string; series: string | null }>(
+  items: T[],
+  genre: string,
+  characterOrder: Map<string, number>,
+) {
   const characterMap = new Map<string, T[]>();
   for (const item of items) {
     if (!characterMap.has(item.character)) characterMap.set(item.character, []);
@@ -25,7 +21,7 @@ function groupByCharacterAndSeries<T extends { character: string; series: string
 
   const groups: { character: string; series: string | null; items: T[] }[] = [];
   for (const [character, characterItems] of [...characterMap.entries()].sort((a, b) =>
-    compareWithEtcLast(a[0], b[0]),
+    compareCharacterByCatalogOrder(characterOrder, genre, a[0], b[0]),
   )) {
     const withoutSeries = characterItems.filter((item) => !item.series);
     if (withoutSeries.length > 0) groups.push({ character, series: null, items: withoutSeries });
@@ -52,18 +48,33 @@ export default async function ItemsPage({
   const { pending } = await searchParams;
   const pendingOnly = pending === "1";
 
-  const items = await getItems({ pendingShippingOnly: pendingOnly });
+  const [rawItems, orderMaps] = await Promise.all([
+    getItems({ pendingShippingOnly: pendingOnly }),
+    getCatalogOrderMaps(),
+  ]);
 
-  // 한 화면 안에서도 장르 > "캐릭터 (시리즈)"로 눈에 띄게 묶어서 보여주되(순서는 기존 최신순 유지),
-  // 체크박스는 전부 같은 폼 안에 있어야 배송비 나누기/묶음 판매가 여러 그룹에 걸쳐 동작한다.
+  // Decimal은 클라이언트 컴포넌트(ItemsSelectableList)로 넘어갈 수 없는 객체라, 순수 값으로 바꿔둔다.
+  const items = rawItems.map((item) => ({
+    ...item,
+    price: Number(item.price),
+    shippingFee: Number(item.shippingFee),
+    sales: item.sales.map((sale) => ({ ...sale, saleAmount: Number(sale.saleAmount) })),
+  }));
+
+  // 한 화면 안에서도 장르 > "캐릭터 (시리즈)"로 눈에 띄게 묶어서 보여주되(순서는 /catalog에서
+  // 지정한 순서를 따르고), 체크박스는 전부 같은 폼 안에 있어야 배송비 나누기/묶음 판매가
+  // 여러 그룹에 걸쳐 동작한다.
   const genreMap = new Map<string, typeof items>();
   for (const item of items) {
     if (!genreMap.has(item.genre)) genreMap.set(item.genre, []);
     genreMap.get(item.genre)!.push(item);
   }
   const groups = [...genreMap.entries()]
-    .map(([genre, genreItems]) => ({ genre, subgroups: groupByCharacterAndSeries(genreItems) }))
-    .sort((a, b) => compareWithEtcLast(a.genre, b.genre));
+    .map(([genre, genreItems]) => ({
+      genre,
+      subgroups: groupByCharacterAndSeries(genreItems, genre, orderMaps.character),
+    }))
+    .sort((a, b) => compareNameByCatalogOrder(orderMaps.genre, a.genre, b.genre));
 
   return (
     <div className="box-border mx-auto w-full max-w-3xl overflow-x-hidden p-6">
@@ -92,76 +103,7 @@ export default async function ItemsPage({
         </p>
       ) : (
         <form action={assignShippingFee}>
-          <div className="mb-4 flex flex-col gap-3 rounded-md border border-neutral-200 p-4 text-sm sm:flex-row sm:items-end dark:border-neutral-800">
-            {pendingOnly && (
-              <label className="flex flex-1 flex-col gap-1">
-                <span className="font-medium">
-                  아래에서 같이 배송받은 품목을 체크하고, 총 배송비(만원 단위)를 입력하면 각
-                  품목의 수량 비율대로 나눠서 배정됩니다.
-                </span>
-                <NumberInput
-                  name="totalShippingFee"
-                  min={0}
-                  step={0.0001}
-                  className="rounded-md border border-neutral-300 px-3 py-2 dark:border-neutral-700 dark:bg-neutral-900"
-                />
-              </label>
-            )}
-            <div className="flex gap-2">
-              {pendingOnly && (
-                <button
-                  type="submit"
-                  className="rounded-md bg-neutral-900 px-4 py-2 text-white hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900"
-                >
-                  배송비 나누기
-                </button>
-              )}
-              {!pendingOnly && (
-                <button
-                  type="submit"
-                  formMethod="get"
-                  formAction="/items/bulk-sale"
-                  className="rounded-md border border-neutral-300 px-4 py-2 hover:opacity-70 dark:border-neutral-700"
-                >
-                  묶음 판매
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-6">
-            {groups.map((genreGroup) => (
-              <div key={genreGroup.genre}>
-                <h2 className="mb-2 text-xl font-semibold">{genreGroup.genre}</h2>
-                <div className="flex flex-col gap-4">
-                  {genreGroup.subgroups.map((subgroup) => (
-                    <div key={`${subgroup.character}-${subgroup.series ?? ""}`}>
-                      <h3 className="mb-2 text-base font-medium">
-                        {subgroup.character}
-                        {subgroup.series ? ` (${subgroup.series})` : ""}
-                      </h3>
-                      <ul className="flex flex-col gap-2">
-                        {subgroup.items.map((item) => (
-                          <li
-                            key={item.id}
-                            className="flex items-start gap-3 rounded-md border border-neutral-200 p-3 dark:border-neutral-800"
-                          >
-                            <input type="checkbox" name="itemIds" value={item.id} className="mt-1 h-4 w-4" />
-                            <Link
-                              href={itemHref(item.id, pendingOnly ? "/items?pending=1" : "/items")}
-                              className="flex-1 hover:opacity-70"
-                            >
-                              <ItemCardContent {...item} showGenreCharacter={false} />
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
+          <ItemsSelectableList groups={groups} pendingOnly={pendingOnly} />
         </form>
       )}
     </div>

@@ -1,5 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
+import { getCatalogOrderMaps, compareNameByCatalogOrder } from "@/lib/catalog";
 
 export type MonthlyPoint = { month: string; purchaseTotal: number; saleTotal: number };
 export type GenreMonthlyTrend = { genre: string; points: MonthlyPoint[] };
@@ -12,13 +13,6 @@ function toSortedPoints(monthMap: Map<string, { purchaseTotal: number; saleTotal
   return [...monthMap.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([month, totals]) => ({ month, ...totals }));
-}
-
-// 장르는 분류상 "기타"를 항상 맨 아래로.
-function compareGenreWithEtcLast(a: string, b: string) {
-  if (a === "기타") return 1;
-  if (b === "기타") return -1;
-  return a.localeCompare(b, "ko");
 }
 
 // 월별 전체 구매/판매 총액 추이. 구매는 구매일, 판매는 판매일 기준으로 집계.
@@ -50,16 +44,19 @@ export async function getMonthlyTrends(): Promise<MonthlyPoint[]> {
 
 // 장르별 월별 구매/판매 총액 추이.
 export async function getMonthlyTrendsByGenre(): Promise<GenreMonthlyTrend[]> {
-  const items = await prisma.item.findMany({
-    select: {
-      genre: true,
-      purchasedAt: true,
-      price: true,
-      quantity: true,
-      shippingFee: true,
-      sales: { select: { saleDate: true, saleAmount: true } },
-    },
-  });
+  const [items, orderMaps] = await Promise.all([
+    prisma.item.findMany({
+      select: {
+        genre: true,
+        purchasedAt: true,
+        price: true,
+        quantity: true,
+        shippingFee: true,
+        sales: { select: { saleDate: true, saleAmount: true } },
+      },
+    }),
+    getCatalogOrderMaps(),
+  ]);
 
   const genreMap = new Map<string, Map<string, { purchaseTotal: number; saleTotal: number }>>();
 
@@ -85,7 +82,7 @@ export async function getMonthlyTrendsByGenre(): Promise<GenreMonthlyTrend[]> {
 
   return [...genreMap.entries()]
     .map(([genre, monthMap]) => ({ genre, points: toSortedPoints(monthMap) }))
-    .sort((a, b) => compareGenreWithEtcLast(a.genre, b.genre));
+    .sort((a, b) => compareNameByCatalogOrder(orderMaps.genre, a.genre, b.genre));
 }
 
 export type GenreComparisonSeries = { genre: string; values: number[] };
