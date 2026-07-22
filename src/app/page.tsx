@@ -10,7 +10,7 @@ export default async function Home() {
   const [summary, upcomingShipments, recentPurchases, recentSales, currentMonth] = await Promise.all([
     getCategorySummary(),
     getUpcomingShipments(),
-    getRecentPurchases(5),
+    getRecentPurchases(20),
     getRecentSales(5),
     getCurrentMonthTotals(),
   ]);
@@ -22,6 +22,14 @@ export default async function Home() {
     shipmentsByDate.get(dateStr)!.push(item);
   }
   const shipmentDateGroups = [...shipmentsByDate.entries()].slice(0, 5);
+
+  const purchasesByDate = new Map<string, typeof recentPurchases>();
+  for (const item of recentPurchases) {
+    const dateStr = item.purchasedAt!.toISOString().slice(0, 10);
+    if (!purchasesByDate.has(dateStr)) purchasesByDate.set(dateStr, []);
+    purchasesByDate.get(dateStr)!.push(item);
+  }
+  const purchaseDateGroups = [...purchasesByDate.entries()].slice(0, 5);
 
   return (
     <div className="box-border mx-auto w-full max-w-3xl space-y-8 overflow-x-hidden p-6">
@@ -125,21 +133,25 @@ export default async function Home() {
               전체보기 →
             </Link>
           </div>
-          {recentPurchases.length === 0 ? (
+          {purchaseDateGroups.length === 0 ? (
             <p className="text-sm text-neutral-500">구매 기록이 없습니다.</p>
           ) : (
             <ul className="flex flex-col gap-2">
-              {recentPurchases.map((item) => (
-                <li key={item.id}>
+              {purchaseDateGroups.map(([dateStr, items]) => (
+                <li key={dateStr}>
                   <Link
-                    href={itemHref(item.id, "/")}
-                    className="flex flex-col gap-1 rounded-md border border-neutral-200 px-3 py-2 text-sm hover:opacity-70 sm:flex-row sm:items-center sm:justify-between dark:border-neutral-800"
+                    href="/purchases"
+                    className="flex items-start justify-between gap-2 rounded-md border border-neutral-200 px-3 py-2 text-sm hover:opacity-70 dark:border-neutral-800"
                   >
                     <span>
-                      {item.character} · {item.detail}
+                      {items
+                        .slice(0, 2)
+                        .map((item) => `${item.character} · ${item.detail}`)
+                        .join(", ")}
+                      {items.length > 2 ? ` 외 ${items.length - 2}개` : ""}
                     </span>
-                    <span className="text-neutral-500">
-                      {item.purchasedAt ? item.purchasedAt.toLocaleDateString("ko-KR") : "날짜 모름"}
+                    <span className="shrink-0 text-neutral-500">
+                      {items[0].purchasedAt!.toLocaleDateString("ko-KR")}
                     </span>
                   </Link>
                 </li>

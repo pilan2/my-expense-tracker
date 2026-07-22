@@ -171,19 +171,36 @@ async function ListView() {
     return <p className="py-10 text-center text-neutral-500">발송 예정인 품목이 없습니다.</p>;
   }
 
+  const dateMap = new Map<string, typeof items>();
+  for (const item of items) {
+    const dateStr = item.expectedShipDate!.toISOString().slice(0, 10);
+    if (!dateMap.has(dateStr)) dateMap.set(dateStr, []);
+    dateMap.get(dateStr)!.push(item);
+  }
+  const dateGroups = [...dateMap.entries()];
+
   return (
-    <ul className="flex flex-col gap-2">
-      {items.map((item) => (
-        <li key={item.id}>
-          <Link
-            href={itemHref(item.id, "/shipments?view=list")}
-            className="block rounded-md border border-neutral-200 p-3 hover:opacity-70 dark:border-neutral-800"
-          >
-            <ItemCardContent {...item} />
-          </Link>
-        </li>
+    <div className="flex flex-col gap-6">
+      {dateGroups.map(([dateStr, groupItems]) => (
+        <div key={dateStr}>
+          <h2 className="mb-2 text-base font-medium text-neutral-500">
+            {groupItems[0].expectedShipDate!.toLocaleDateString("ko-KR")}
+          </h2>
+          <ul className="flex flex-col gap-2">
+            {groupItems.map((item) => (
+              <li key={item.id}>
+                <Link
+                  href={itemHref(item.id, "/shipments?view=list")}
+                  className="block rounded-md border border-neutral-200 p-3 hover:opacity-70 dark:border-neutral-800"
+                >
+                  <ItemCardContent {...item} />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
       ))}
-    </ul>
+    </div>
   );
 }
 
