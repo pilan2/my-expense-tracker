@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { signOut } from "@/auth";
+import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 
 export function NavBar({ email }: { email?: string | null }) {
   return (
@@ -8,7 +9,6 @@ export function NavBar({ email }: { email?: string | null }) {
         🏠 대시보드
       </Link>
       <div className="flex items-center gap-4">
-        {email && <span className="max-w-[45vw] truncate text-neutral-500 sm:max-w-none">{email}</span>}
         <Link href="/events" className="underline">
           행사
         </Link>
@@ -21,9 +21,12 @@ export function NavBar({ email }: { email?: string | null }) {
             await signOut({ redirectTo: "/login" });
           }}
         >
-          <button type="submit" className="underline">
+          <ConfirmSubmitButton
+            confirmMessage={`${email ? `${email} 계정에서 ` : ""}로그아웃 하시겠습니까?`}
+            className="underline"
+          >
             로그아웃
-          </button>
+          </ConfirmSubmitButton>
         </form>
       </div>
     </div>
