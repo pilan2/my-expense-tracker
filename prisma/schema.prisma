@@ -33,6 +33,7 @@ model Item {
 
   purchaseLink String? // 구매처 링크 (선택)
   memo         String? // 메모 (선택, 특이사항 등)
+  imageUrl     String? // 사진 (선택). Supabase Storage에 올린 파일의 공개 URL을 저장.
 
   sales             Sale[]
   checklistEntries  EventChecklistItem[]

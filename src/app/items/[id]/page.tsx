@@ -69,6 +69,7 @@ export default async function ItemDetailPage({
       : "",
     purchaseLink: item.purchaseLink ?? "",
     memo: item.memo ?? "",
+    imageUrl: item.imageUrl,
   };
 
   const today = new Date().toISOString().slice(0, 10);
@@ -106,6 +107,14 @@ export default async function ItemDetailPage({
         </>
       ) : (
         <>
+          {item.imageUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={item.imageUrl}
+              alt=""
+              className="mb-4 max-h-80 w-full rounded-lg object-contain"
+            />
+          )}
           <div className="mb-4 flex items-center justify-between">
             <h1 className="text-xl font-semibold">품목 정보</h1>
             <Link

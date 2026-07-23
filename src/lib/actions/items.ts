@@ -8,6 +8,7 @@ import { manwonToWon } from "@/lib/money";
 import { calcRemainingQuantity } from "@/lib/sales";
 import { itemHref, safeRedirectTarget } from "@/lib/nav";
 import { ensureInCatalog } from "@/lib/catalog";
+import { uploadItemImage, deleteItemImage } from "@/lib/storage";
 
 async function requireAuth() {
   const session = await auth();
@@ -56,7 +57,11 @@ function parseItemForm(formData: FormData) {
 export async function createItem(formData: FormData) {
   await requireAuth();
   const data = parseItemForm(formData);
-  await prisma.item.create({ data });
+
+  const imageFile = formData.get("image");
+  const imageUrl = imageFile instanceof File && imageFile.size > 0 ? await uploadItemImage(imageFile) : null;
+
+  await prisma.item.create({ data: { ...data, imageUrl } });
   await ensureInCatalog({
     genre: data.genre,
     character: data.character,
@@ -79,7 +84,22 @@ export async function updateItem(id: string, from: string, formData: FormData) {
     throw new Error(`이미 ${soldQuantity}개가 판매되어, 구매 수량을 그보다 적게 수정할 수 없습니다.`);
   }
 
-  await prisma.item.update({ where: { id }, data });
+  // 새 사진을 올렸으면 교체(기존 파일은 스토리지에서 삭제), "사진 삭제"만 체크했으면 비우기,
+  // 둘 다 아니면 기존 사진을 그대로 둔다.
+  const existing = await prisma.item.findUniqueOrThrow({ where: { id }, select: { imageUrl: true } });
+  const imageFile = formData.get("image");
+  const removeImage = formData.get("removeImage") === "on";
+
+  let imageUrl = existing.imageUrl;
+  if (imageFile instanceof File && imageFile.size > 0) {
+    imageUrl = await uploadItemImage(imageFile);
+    if (existing.imageUrl) await deleteItemImage(existing.imageUrl);
+  } else if (removeImage && existing.imageUrl) {
+    await deleteItemImage(existing.imageUrl);
+    imageUrl = null;
+  }
+
+  await prisma.item.update({ where: { id }, data: { ...data, imageUrl } });
   await ensureInCatalog({
     genre: data.genre,
     character: data.character,
@@ -96,7 +116,8 @@ export async function updateItem(id: string, from: string, formData: FormData) {
 
 export async function deleteItem(id: string, from: string) {
   await requireAuth();
-  await prisma.item.delete({ where: { id } });
+  const item = await prisma.item.delete({ where: { id } });
+  if (item.imageUrl) await deleteItemImage(item.imageUrl);
   revalidatePath("/items");
   redirect(safeRedirectTarget(from));
 }

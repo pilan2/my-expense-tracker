@@ -17,6 +17,7 @@ type ItemCardProps = {
   hasOverseasShipping: boolean;
   isPhysical: boolean;
   expectedShipDate: Date | null;
+  imageUrl?: string | null;
   sales: { quantitySold: number; saleAmount: DecimalLike }[];
   /** 장르/캐릭터로 이미 필터된 화면(브라우즈 하위 목록)에서는 중복 표시를 줄이기 위해 숨긴다 */
   showGenreCharacter?: boolean;
@@ -37,6 +38,7 @@ export function ItemCardContent({
   hasOverseasShipping,
   isPhysical,
   expectedShipDate,
+  imageUrl,
   sales,
   showGenreCharacter = true,
   showItemType = true,
@@ -53,52 +55,58 @@ export function ItemCardContent({
       : null;
 
   return (
-    <div className="flex flex-col gap-1">
-      <p className="font-medium">
-        {showGenreCharacter
-          ? genre === character
-            ? `${genre}${series ? ` (${series})` : ""} · `
-            : `${genre} · ${character}${series ? ` (${series})` : ""} · `
-          : ""}
-        {showItemType ? `${itemType} · ` : ""}
-        {detail}
-      </p>
-      <p className="text-sm text-neutral-500">
-        수량 {quantity}
-        {remainingQuantity !== quantity ? ` (잔여 ${remainingQuantity})` : ""}
-        {" · "}
-        {Number(price).toLocaleString("ko-KR")}원
-        {Number(shippingFee) > 0 ? ` (+배송비 ${Number(shippingFee).toLocaleString("ko-KR")}원)` : ""}
-      </p>
-      <p className="text-sm">
-        {remainingQuantity === 0 ? (
-          <span className="text-neutral-500">판매 완료</span>
-        ) : isPhysical ? (
-          <span className="text-neutral-500">현물</span>
-        ) : (
-          expectedShipDate && (
-            <>
-              <span className="text-neutral-500">
-                발송예정 {expectedShipDate.toLocaleDateString("ko-KR")}{" "}
-              </span>
-              <span className={`font-medium ${isOverdue(expectedShipDate) ? "text-red-600" : "text-blue-600"}`}>
-                {formatDDay(expectedShipDate)}
-              </span>
-            </>
-          )
-        )}
-        {hasOverseasShipping && (
-          <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-950 dark:text-amber-300">
-            배송비 미정
-          </span>
-        )}
-      </p>
-      {profit !== null && (
-        <p className={`text-sm font-medium ${profit >= 0 ? "text-blue-600" : "text-red-600"}`}>
-          손익 {profit >= 0 ? "+" : ""}
-          {profit.toLocaleString("ko-KR")}원
-        </p>
+    <div className="flex items-start gap-3">
+      {imageUrl && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={imageUrl} alt="" className="h-14 w-14 shrink-0 rounded-md object-cover" />
       )}
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <p className="font-medium">
+          {showGenreCharacter
+            ? genre === character
+              ? `${genre}${series ? ` (${series})` : ""} · `
+              : `${genre} · ${character}${series ? ` (${series})` : ""} · `
+            : ""}
+          {showItemType ? `${itemType} · ` : ""}
+          {detail}
+        </p>
+        <p className="text-sm text-neutral-500">
+          수량 {quantity}
+          {remainingQuantity !== quantity ? ` (잔여 ${remainingQuantity})` : ""}
+          {" · "}
+          {Number(price).toLocaleString("ko-KR")}원
+          {Number(shippingFee) > 0 ? ` (+배송비 ${Number(shippingFee).toLocaleString("ko-KR")}원)` : ""}
+        </p>
+        <p className="text-sm">
+          {remainingQuantity === 0 ? (
+            <span className="text-neutral-500">판매 완료</span>
+          ) : isPhysical ? (
+            <span className="text-neutral-500">현물</span>
+          ) : (
+            expectedShipDate && (
+              <>
+                <span className="text-neutral-500">
+                  발송예정 {expectedShipDate.toLocaleDateString("ko-KR")}{" "}
+                </span>
+                <span className={`font-medium ${isOverdue(expectedShipDate) ? "text-red-600" : "text-blue-600"}`}>
+                  {formatDDay(expectedShipDate)}
+                </span>
+              </>
+            )
+          )}
+          {hasOverseasShipping && (
+            <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-950 dark:text-amber-300">
+              배송비 미정
+            </span>
+          )}
+        </p>
+        {profit !== null && (
+          <p className={`text-sm font-medium ${profit >= 0 ? "text-blue-600" : "text-red-600"}`}>
+            손익 {profit >= 0 ? "+" : ""}
+            {profit.toLocaleString("ko-KR")}원
+          </p>
+        )}
+      </div>
     </div>
   );
 }
