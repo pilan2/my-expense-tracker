@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getEvents } from "@/lib/events";
-import { createEvent, deleteEvent, renameEvent } from "@/lib/actions/events";
+import { createEvent, deleteEvent, updateEvent } from "@/lib/actions/events";
 import { BackButton } from "@/components/back-button";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
-import { RenameEventForm } from "@/components/rename-event-form";
+import { EditEventForm } from "@/components/edit-event-form";
 
 export default async function EventsPage() {
   const events = await getEvents();
@@ -46,6 +46,10 @@ export default async function EventsPage() {
               (sum, e) => sum + Number(e.price) * e.quantity,
               0,
             );
+            // "낼 돈" = 아직 결제 안 한(현장 구매) 항목만의 합. 수령(PICKUP)은 이미 결제된 것이라 제외.
+            const dueAmount = event.entries
+              .filter((e) => e.type === "PURCHASE")
+              .reduce((sum, e) => sum + Number(e.price) * e.quantity, 0);
             return (
               <li
                 key={event.id}
@@ -56,11 +60,21 @@ export default async function EventsPage() {
                   <p className="text-sm text-neutral-500">
                     {event.date ? event.date.toLocaleDateString("ko-KR") : "날짜 미정"} · {doneCount}/
                     {event.entries.length}개 완료
-                    {totalSpent > 0 && ` · ${totalSpent.toLocaleString("ko-KR")}원 지출`}
                   </p>
+                  {(totalSpent > 0 || dueAmount > 0) && (
+                    <p className="text-sm text-neutral-500">
+                      {totalSpent > 0 && `전체 지출 ${totalSpent.toLocaleString("ko-KR")}원`}
+                      {totalSpent > 0 && dueAmount > 0 && " · "}
+                      {dueAmount > 0 && `낼 돈 ${dueAmount.toLocaleString("ko-KR")}원`}
+                    </p>
+                  )}
                 </Link>
                 <div className="flex items-center gap-3">
-                  <RenameEventForm currentName={event.name} action={renameEvent.bind(null, event.id)} />
+                  <EditEventForm
+                    currentName={event.name}
+                    currentDate={event.date ? event.date.toISOString().slice(0, 10) : ""}
+                    action={updateEvent.bind(null, event.id)}
+                  />
                   <form action={deleteEvent.bind(null, event.id)}>
                     <ConfirmSubmitButton
                       confirmMessage={`"${event.name}" 행사를 삭제하시겠습니까? 체크리스트도 함께 삭제됩니다.`}

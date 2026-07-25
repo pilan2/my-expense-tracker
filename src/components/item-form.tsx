@@ -160,7 +160,7 @@ export function ItemForm({
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={defaultValues.imageUrl} alt="" className="h-24 w-24 rounded-md object-cover" />
             <label className="flex items-center gap-2 text-neutral-500">
-              <input type="checkbox" name="removeImage" />
+              <input type="checkbox" name="removeImage" className="h-5 w-5" />
               사진 삭제
             </label>
           </div>
@@ -280,6 +280,7 @@ export function ItemForm({
           type="checkbox"
           name="hasOverseasShipping"
           defaultChecked={defaultValues?.hasOverseasShipping}
+          className="h-5 w-5"
         />
         이후 배송비 계산 필요
       </label>
@@ -301,6 +302,7 @@ export function ItemForm({
           name="isPhysical"
           checked={isPhysical}
           onChange={(e) => setIsPhysical(e.target.checked)}
+          className="h-5 w-5"
         />
         현물로 보유 중
       </label>

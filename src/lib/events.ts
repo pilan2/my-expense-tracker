@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 export function getEvents() {
   return prisma.event.findMany({
     orderBy: [{ date: "desc" }, { createdAt: "desc" }],
-    include: { entries: { select: { id: true, checked: true, price: true, quantity: true } } },
+    include: { entries: { select: { id: true, checked: true, price: true, quantity: true, type: true } } },
   });
 }
 

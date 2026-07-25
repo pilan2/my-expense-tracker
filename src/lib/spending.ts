@@ -98,3 +98,43 @@ export async function getCategorySummary(): Promise<CategorySummary> {
     genres,
   };
 }
+
+export type MakerSummary = {
+  name: string;
+  purchaseTotal: number;
+  saleTotal: number;
+  profit: number;
+};
+
+// 제작한 사람(작가)별로 묶어서 구매액/판매액/손익을 계산한다. 장르와 무관하게 이름이 같으면
+// 하나로 묶인다(제작자는 여러 장르에 걸쳐 활동할 수 있으므로).
+export async function getMakerSummary(): Promise<MakerSummary[]> {
+  const items = await prisma.item.findMany({
+    where: { maker: { not: null } },
+    select: {
+      maker: true,
+      price: true,
+      quantity: true,
+      shippingFee: true,
+      sales: { select: { quantitySold: true, saleAmount: true } },
+    },
+  });
+
+  const makerMap = new Map<string, { purchaseTotal: number; saleTotal: number; profit: number }>();
+
+  for (const item of items) {
+    const maker = item.maker!;
+    const sales = item.sales.map((s) => ({ quantitySold: s.quantitySold, saleAmount: Number(s.saleAmount) }));
+    const purchaseTotal = Number(item.price) * item.quantity + Number(item.shippingFee);
+    const saleTotal = sales.reduce((sum, s) => sum + s.saleAmount, 0);
+    const profit = calcProfit(Number(item.price), Number(item.shippingFee), item.quantity, sales);
+
+    const existing = makerMap.get(maker) ?? { purchaseTotal: 0, saleTotal: 0, profit: 0 };
+    addInto(existing, { purchaseTotal, saleTotal, profit });
+    makerMap.set(maker, existing);
+  }
+
+  return [...makerMap.entries()]
+    .map(([name, totals]) => ({ name, ...totals }))
+    .sort((a, b) => b.purchaseTotal - a.purchaseTotal);
+}

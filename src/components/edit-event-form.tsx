@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 
-export function RenameEventForm({
+export function EditEventForm({
   currentName,
+  currentDate,
   action,
 }: {
   currentName: string;
+  currentDate: string;
   action: (formData: FormData) => void;
 }) {
   const [editing, setEditing] = useState(false);
@@ -29,7 +31,7 @@ export function RenameEventForm({
         action(formData);
         setEditing(false);
       }}
-      className="flex items-center gap-1"
+      className="flex flex-wrap items-center gap-1"
     >
       <input
         name="name"
@@ -38,7 +40,13 @@ export function RenameEventForm({
         onKeyDown={(e) => {
           if (e.key === "Escape") setEditing(false);
         }}
-        className="w-32 rounded border border-neutral-300 px-1.5 py-0.5 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+        className="w-28 rounded border border-neutral-300 px-1.5 py-0.5 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+      />
+      <input
+        name="date"
+        type="date"
+        defaultValue={currentDate}
+        className="rounded border border-neutral-300 px-1.5 py-0.5 text-sm dark:border-neutral-700 dark:bg-neutral-900"
       />
       <button type="submit" className="text-xs underline">
         저장

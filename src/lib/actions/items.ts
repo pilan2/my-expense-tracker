@@ -86,7 +86,10 @@ export async function updateItem(id: string, from: string, formData: FormData) {
 
   // 새 사진을 올렸으면 교체(기존 파일은 스토리지에서 삭제), "사진 삭제"만 체크했으면 비우기,
   // 둘 다 아니면 기존 사진을 그대로 둔다.
-  const existing = await prisma.item.findUniqueOrThrow({ where: { id }, select: { imageUrl: true } });
+  const existing = await prisma.item.findUniqueOrThrow({
+    where: { id },
+    select: { imageUrl: true, isPhysical: true, expectedShipDate: true },
+  });
   const imageFile = formData.get("image");
   const removeImage = formData.get("removeImage") === "on";
 
@@ -99,7 +102,13 @@ export async function updateItem(id: string, from: string, formData: FormData) {
     imageUrl = null;
   }
 
-  await prisma.item.update({ where: { id }, data: { ...data, imageUrl } });
+  // 이미 현물(수동이든, 발송예정일이 지나 자동 전환됐든)인 채로 다시 저장할 때는 폼에 발송예정일
+  // 입력칸 자체가 없어서 parseItemForm이 항상 null로 돌려주는데, 그걸 그대로 반영하면 "언제
+  // 발송됐는지" 기록이 저장할 때마다 지워진다. 이미 현물이었다면 기존 값을 그대로 유지한다.
+  const expectedShipDate =
+    data.isPhysical && existing.isPhysical ? existing.expectedShipDate : data.expectedShipDate;
+
+  await prisma.item.update({ where: { id }, data: { ...data, expectedShipDate, imageUrl } });
   await ensureInCatalog({
     genre: data.genre,
     character: data.character,

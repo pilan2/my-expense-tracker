@@ -152,7 +152,9 @@ export default async function ItemDetailPage({
               label="상태"
               value={
                 item.isPhysical ? (
-                  "현물 보유 중"
+                  item.expectedShipDate
+                    ? `현물 보유 중 (발송일 ${item.expectedShipDate.toLocaleDateString("ko-KR")})`
+                    : "현물 보유 중"
                 ) : item.expectedShipDate ? (
                   <>
                     발송예정 {item.expectedShipDate.toLocaleDateString("ko-KR")}{" "}

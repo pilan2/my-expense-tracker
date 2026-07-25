@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getEvent, getItemOptions } from "@/lib/events";
-import { addChecklistItem, deleteChecklistItem, toggleChecklistItem } from "@/lib/actions/events";
+import { addChecklistItem, deleteChecklistItem, toggleChecklistItem, renameBooth } from "@/lib/actions/events";
 import { BackButton } from "@/components/back-button";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 import { ChecklistItemForm } from "@/components/checklist-item-form";
+import { EditBoothForm } from "@/components/edit-booth-form";
 import { itemHref } from "@/lib/nav";
 
 export default async function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -39,9 +40,19 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
         <p className="py-10 text-center text-neutral-500">아직 등록한 항목이 없습니다.</p>
       ) : (
         <div className="flex flex-col gap-4">
-          {boothGroups.map(([booth, entries]) => (
+          {boothGroups.map(([booth, entries]) => {
+            const boothTotal = entries.reduce((sum, e) => sum + Number(e.price) * e.quantity, 0);
+            return (
             <div key={booth} className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-800">
-              <h2 className="mb-2 text-lg font-semibold">{booth}</h2>
+              <div className="mb-2 flex items-center justify-between">
+                <h2 className="text-lg font-semibold">{booth}</h2>
+                <EditBoothForm currentName={booth} action={renameBooth.bind(null, event.id, booth)} />
+              </div>
+              {boothTotal > 0 && (
+                <p className="mb-2 text-xs text-neutral-500">
+                  부스 합계 {boothTotal.toLocaleString("ko-KR")}원
+                </p>
+              )}
               <ul className="flex flex-col gap-2">
                 {entries.map((entry) => (
                   <li
@@ -51,12 +62,16 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
                     }`}
                   >
                     <form action={toggleChecklistItem.bind(null, entry.id)}>
-                      <button type="submit" className="mt-0.5 text-lg leading-none" aria-label="완료 체크">
+                      <button
+                        type="submit"
+                        className="flex h-8 w-8 items-center justify-center text-2xl leading-none"
+                        aria-label="완료 체크"
+                      >
                         {entry.checked ? "☑" : "☐"}
                       </button>
                     </form>
                     <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-1.5">
+                      <div className="flex items-center gap-2">
                         <span
                           className={`rounded px-1.5 py-0.5 text-xs font-medium ${
                             entry.type === "PICKUP"
@@ -66,21 +81,21 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
                         >
                           {entry.type === "PICKUP" ? "수령" : "구매"}
                         </span>
-                        <span className={`text-sm ${entry.checked ? "line-through" : ""}`}>{entry.label}</span>
+                        {entry.item && (
+                          <Link
+                            href={itemHref(entry.item.id, from)}
+                            className="shrink-0 text-xs text-blue-600 underline dark:text-blue-400"
+                          >
+                            상세보기 →
+                          </Link>
+                        )}
                       </div>
+                      <p className={`mt-1 text-sm ${entry.checked ? "line-through" : ""}`}>{entry.label}</p>
                       {Number(entry.price) > 0 && (
                         <p className="mt-0.5 text-xs text-neutral-500">
                           {Number(entry.price).toLocaleString("ko-KR")}원 × {entry.quantity}개 ={" "}
                           {(Number(entry.price) * entry.quantity).toLocaleString("ko-KR")}원
                         </p>
-                      )}
-                      {entry.item && (
-                        <Link
-                          href={itemHref(entry.item.id, from)}
-                          className="mt-1 inline-block text-xs text-blue-600 underline dark:text-blue-400"
-                        >
-                          상세보기 →
-                        </Link>
                       )}
                     </div>
                     <form action={deleteChecklistItem.bind(null, entry.id)}>
@@ -95,7 +110,8 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
                 ))}
               </ul>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

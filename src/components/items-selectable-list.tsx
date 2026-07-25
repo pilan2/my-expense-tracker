@@ -97,7 +97,7 @@ export function ItemsSelectableList({
                         className="flex items-start gap-3 rounded-md border border-neutral-200 p-3 dark:border-neutral-800"
                       >
                         {selectMode && (
-                          <input type="checkbox" name="itemIds" value={item.id} className="mt-1 h-4 w-4" />
+                          <input type="checkbox" name="itemIds" value={item.id} className="mt-1 h-6 w-6" />
                         )}
                         <Link
                           href={itemHref(item.id, pendingOnly ? "/items?pending=1" : "/items")}

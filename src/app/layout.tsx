@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { auth } from "@/auth";
 import { NavBar } from "@/components/nav-bar";
+import { ScrollRestoration } from "@/components/scroll-restoration";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -39,6 +41,9 @@ export default async function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full w-full overflow-x-hidden">
+        <Suspense fallback={null}>
+          <ScrollRestoration />
+        </Suspense>
         {session && <NavBar email={session.user?.email} />}
         {children}
       </body>

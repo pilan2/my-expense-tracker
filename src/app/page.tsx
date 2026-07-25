@@ -205,7 +205,12 @@ export default async function Home() {
       </div>
 
       <div>
-        <h2 className="mb-4 text-lg font-semibold">장르별로 보기</h2>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold">장르별로 보기</h2>
+          <Link href="/browse/makers" className="text-sm underline">
+            제작자별로 보기 →
+          </Link>
+        </div>
         <ul className="flex flex-col gap-2">
           {summary.genres.map((genre) => (
             <li key={genre.name}>
