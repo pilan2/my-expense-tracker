@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getEvent, getItemOptions } from "@/lib/events";
+import { getEvent, getItemOptions, effectiveChecklistAmount } from "@/lib/events";
 import { addChecklistItem, deleteChecklistItem, toggleChecklistItem, renameBooth } from "@/lib/actions/events";
 import { BackButton } from "@/components/back-button";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
@@ -41,20 +41,33 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
       ) : (
         <div className="flex flex-col gap-4">
           {boothGroups.map(([booth, entries]) => {
-            const boothTotal = entries.reduce((sum, e) => sum + Number(e.price) * e.quantity, 0);
+            const boothTotal = entries.reduce((sum, e) => sum + effectiveChecklistAmount(e), 0);
+            const boothDue = entries
+              .filter((e) => e.type === "PURCHASE")
+              .reduce((sum, e) => sum + effectiveChecklistAmount(e), 0);
             return (
             <div key={booth} className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-800">
               <div className="mb-2 flex items-center justify-between">
                 <h2 className="text-lg font-semibold">{booth}</h2>
                 <EditBoothForm currentName={booth} action={renameBooth.bind(null, event.id, booth)} />
               </div>
-              {boothTotal > 0 && (
+              {(boothTotal > 0 || boothDue > 0) && (
                 <p className="mb-2 text-xs text-neutral-500">
-                  부스 합계 {boothTotal.toLocaleString("ko-KR")}원
+                  {boothTotal > 0 && `부스 합계 ${boothTotal.toLocaleString("ko-KR")}원`}
+                  {boothTotal > 0 && boothDue > 0 && " · "}
+                  {boothDue > 0 && `낼 돈 ${boothDue.toLocaleString("ko-KR")}원`}
                 </p>
               )}
               <ul className="flex flex-col gap-2">
-                {entries.map((entry) => (
+                {entries.map((entry) => {
+                  // 품목과 연결된 항목은 등록 당시 저장해둔 값이 아니라, 그 품목의 최신 이름/가격/
+                  // 수량을 그대로 보여준다(품목을 나중에 수정하면 체크리스트도 같이 바뀌도록).
+                  const label = entry.item
+                    ? `${entry.item.genre} · ${entry.item.character} · ${entry.item.detail}`
+                    : entry.label;
+                  const price = entry.item ? Number(entry.item.price) : Number(entry.price);
+                  const quantity = entry.item ? entry.item.quantity : entry.quantity;
+                  return (
                   <li
                     key={entry.id}
                     className={`flex items-start gap-2 rounded-md border border-neutral-200 p-2 dark:border-neutral-800 ${
@@ -90,11 +103,11 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
                           </Link>
                         )}
                       </div>
-                      <p className={`mt-1 text-sm ${entry.checked ? "line-through" : ""}`}>{entry.label}</p>
-                      {Number(entry.price) > 0 && (
+                      <p className={`mt-1 text-sm ${entry.checked ? "line-through" : ""}`}>{label}</p>
+                      {price > 0 && (
                         <p className="mt-0.5 text-xs text-neutral-500">
-                          {Number(entry.price).toLocaleString("ko-KR")}원 × {entry.quantity}개 ={" "}
-                          {(Number(entry.price) * entry.quantity).toLocaleString("ko-KR")}원
+                          {price.toLocaleString("ko-KR")}원 × {quantity}개 ={" "}
+                          {(price * quantity).toLocaleString("ko-KR")}원
                         </p>
                       )}
                     </div>
@@ -107,7 +120,8 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
                       </ConfirmSubmitButton>
                     </form>
                   </li>
-                ))}
+                  );
+                })}
               </ul>
             </div>
             );

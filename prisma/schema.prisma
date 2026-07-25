@@ -154,8 +154,9 @@ model EventChecklistItem {
   price    Decimal            @default(0) @db.Decimal(12, 2) // 원 단위, 개당 가격 (품목 연결 시 자동 채움)
   quantity Int                @default(1)
 
-  // 이미 등록된 품목과 연결(주로 수령 항목에서 상세 정보 확인용). 품목이 삭제돼도 체크리스트 항목은 남는다.
-  item   Item?   @relation(fields: [itemId], references: [id], onDelete: SetNull)
+  // 이미 등록된 품목과 연결(주로 수령 항목에서 상세 정보 확인용). 이름/가격/수량을 그 품목의
+  // 최신 값으로 그대로 보여주므로, 품목이 삭제되면 이 체크리스트 항목도 함께 삭제한다.
+  item   Item?   @relation(fields: [itemId], references: [id], onDelete: Cascade)
   itemId String?
 
   createdAt DateTime @default(now())

@@ -202,7 +202,7 @@ export default async function ItemDetailPage({
 
       <form action={deleteItem.bind(null, item.id, from)} className="mt-8 border-t pt-6 dark:border-neutral-800">
         <ConfirmSubmitButton
-          confirmMessage="이 품목을 삭제하시겠습니까? 연결된 판매 이력도 함께 삭제됩니다."
+          confirmMessage="이 품목을 삭제하시겠습니까? 연결된 판매 이력과 행사 체크리스트 항목도 함께 삭제됩니다."
           className="text-sm text-red-600 hover:underline"
         >
           이 품목 삭제

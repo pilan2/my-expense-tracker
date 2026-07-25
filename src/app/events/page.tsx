@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getEvents } from "@/lib/events";
+import { getEvents, effectiveChecklistAmount } from "@/lib/events";
 import { createEvent, deleteEvent, updateEvent } from "@/lib/actions/events";
 import { BackButton } from "@/components/back-button";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
@@ -42,14 +42,11 @@ export default async function EventsPage() {
         <ul className="flex flex-col gap-2">
           {events.map((event) => {
             const doneCount = event.entries.filter((e) => e.checked).length;
-            const totalSpent = event.entries.reduce(
-              (sum, e) => sum + Number(e.price) * e.quantity,
-              0,
-            );
+            const totalSpent = event.entries.reduce((sum, e) => sum + effectiveChecklistAmount(e), 0);
             // "낼 돈" = 아직 결제 안 한(현장 구매) 항목만의 합. 수령(PICKUP)은 이미 결제된 것이라 제외.
             const dueAmount = event.entries
               .filter((e) => e.type === "PURCHASE")
-              .reduce((sum, e) => sum + Number(e.price) * e.quantity, 0);
+              .reduce((sum, e) => sum + effectiveChecklistAmount(e), 0);
             return (
               <li
                 key={event.id}
