@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { NumberInput } from "@/components/number-input";
 import { ClearableDateInput } from "@/components/clearable-date-input";
+import { ImageCropInput } from "@/components/image-crop-input";
 import type { GenreCatalogEntry, ItemTypeCatalogEntry } from "@/lib/catalog";
 
 export type ItemFormDefaults = {
@@ -165,7 +166,7 @@ export function ItemForm({
             </label>
           </div>
         )}
-        <input type="file" name="image" accept="image/*" className="text-sm" />
+        <ImageCropInput name="image" />
       </div>
 
       <PickerField label="장르" name="genre" options={genreOptions} value={genre} onChange={handleGenreChange} />
