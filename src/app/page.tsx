@@ -188,10 +188,12 @@ export default async function Home() {
                       href={itemHref(sale.itemId, "/")}
                       className="flex flex-col gap-1 rounded-md border border-neutral-200 px-3 py-2 text-sm hover:opacity-70 sm:flex-row sm:items-center sm:justify-between dark:border-neutral-800"
                     >
-                      <span>
+                      <span className="min-w-0 truncate">
                         {sale.item.character} · {sale.item.detail}
                       </span>
-                      <span className={`font-medium ${profit >= 0 ? "text-blue-600" : "text-red-600"}`}>
+                      <span
+                        className={`shrink-0 font-medium ${profit >= 0 ? "text-blue-600" : "text-red-600"}`}
+                      >
                         {profit >= 0 ? "+" : ""}
                         {profit.toLocaleString("ko-KR")}원
                       </span>
