@@ -10,7 +10,7 @@ export default async function Home() {
   const [summary, upcomingShipments, recentPurchases, recentSales, currentMonth] = await Promise.all([
     getCategorySummary(),
     getUpcomingShipments(),
-    getRecentPurchases(20),
+    getRecentPurchases(),
     getRecentSales(5),
     getCurrentMonthTotals(),
   ]);
@@ -23,9 +23,13 @@ export default async function Home() {
   }
   const shipmentDateGroups = [...shipmentsByDate.entries()].slice(0, 5);
 
+  // getRecentPurchases()는 날짜 없는 품목도 맨 뒤에 포함해서 전부 돌려주므로(전체보기용),
+  // 미리보기에서는 날짜 있는 것만 쓰고 날짜순으로 최근 5개 "날짜"까지 모은다(품목 개수가
+  // 아니라 날짜 기준이라, 하루에 여러 개를 샀어도 그 날짜 그룹이 잘리지 않는다).
   const purchasesByDate = new Map<string, typeof recentPurchases>();
   for (const item of recentPurchases) {
-    const dateStr = item.purchasedAt!.toISOString().slice(0, 10);
+    if (!item.purchasedAt) continue;
+    const dateStr = item.purchasedAt.toISOString().slice(0, 10);
     if (!purchasesByDate.has(dateStr)) purchasesByDate.set(dateStr, []);
     purchasesByDate.get(dateStr)!.push(item);
   }
