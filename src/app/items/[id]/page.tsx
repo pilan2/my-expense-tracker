@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { getItem } from "@/lib/items";
 import { getGenreCatalog, getItemTypeCatalog } from "@/lib/catalog";
 import { getSalesForItem, calcRemainingQuantity, calcProfit } from "@/lib/sales";
-import { updateItem, deleteItem } from "@/lib/actions/items";
+import { updateItem, deleteItem, confirmDelivery } from "@/lib/actions/items";
 import { createSale, deleteSale } from "@/lib/actions/sales";
 import { ItemForm, type ItemFormDefaults } from "@/components/item-form";
 import { BackButton } from "@/components/back-button";
@@ -86,11 +86,14 @@ export default async function ItemDetailPage({
           <h1 className="mb-2 text-xl font-semibold">품목 수정</h1>
           {!item.isPhysical && item.expectedShipDate && (
             <p className="mb-6 text-sm">
-              발송예정 {item.expectedShipDate.toLocaleDateString("ko-KR")} ·{" "}
-              <span className={`font-medium ${isOverdue(item.expectedShipDate) ? "text-red-600" : "text-blue-600"}`}>
-                {formatDDay(item.expectedShipDate)}
-              </span>
-              {isOverdue(item.expectedShipDate) && " (곧 자동으로 현물 전환됩니다)"}
+              {isOverdue(item.expectedShipDate) ? (
+                <span className="font-medium text-amber-600 dark:text-amber-400">배송중</span>
+              ) : (
+                <>
+                  발송예정 {item.expectedShipDate.toLocaleDateString("ko-KR")} ·{" "}
+                  <span className="font-medium text-blue-600">{formatDDay(item.expectedShipDate)}</span>
+                </>
+              )}
             </p>
           )}
           <ItemForm
@@ -153,16 +156,21 @@ export default async function ItemDetailPage({
               value={
                 item.isPhysical ? (
                   item.expectedShipDate
-                    ? `현물 보유 중 (발송일 ${item.expectedShipDate.toLocaleDateString("ko-KR")})`
+                    ? `배송 완료 (발송일 ${item.expectedShipDate.toLocaleDateString("ko-KR")})`
                     : "현물 보유 중"
+                ) : item.expectedShipDate && isOverdue(item.expectedShipDate) ? (
+                  <div className="flex items-center gap-3">
+                    <span className="font-medium text-amber-600 dark:text-amber-400">배송중</span>
+                    <form action={confirmDelivery.bind(null, item.id)}>
+                      <button type="submit" className="text-sm text-blue-600 underline dark:text-blue-400">
+                        수령 확인
+                      </button>
+                    </form>
+                  </div>
                 ) : item.expectedShipDate ? (
                   <>
                     발송예정 {item.expectedShipDate.toLocaleDateString("ko-KR")}{" "}
-                    <span
-                      className={`font-medium ${isOverdue(item.expectedShipDate) ? "text-red-600" : "text-blue-600"}`}
-                    >
-                      {formatDDay(item.expectedShipDate)}
-                    </span>
+                    <span className="font-medium text-blue-600">{formatDDay(item.expectedShipDate)}</span>
                   </>
                 ) : (
                   "-"

@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { auth } from "@/auth";
 import { NavBar } from "@/components/nav-bar";
 import { ScrollRestoration } from "@/components/scroll-restoration";
+import { DateRefresher } from "@/components/date-refresher";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -44,6 +45,7 @@ export default async function RootLayout({
         <Suspense fallback={null}>
           <ScrollRestoration />
         </Suspense>
+        <DateRefresher />
         {session && <NavBar email={session.user?.email} />}
         {children}
       </body>

@@ -77,42 +77,58 @@ export function ItemsSelectableList({
       </div>
 
       <div className="flex flex-col gap-6">
-        {groups.map((genreGroup) => (
-          <div key={genreGroup.genre}>
-            <h2 className="mb-2 text-xl font-semibold">{genreGroup.genre}</h2>
-            <div className="flex flex-col gap-4">
-              {genreGroup.subgroups.map((subgroup) => (
-                <div key={`${subgroup.character}-${subgroup.series ?? ""}`}>
-                  {/* "기타" 장르는 캐릭터도 항상 "기타"라, 장르 제목과 중복되는 캐릭터 제목은 생략한다. */}
-                  {!(genreGroup.genre === "기타" && subgroup.character === "기타") && (
-                    <h3 className="mb-2 text-base font-medium">
-                      {subgroup.character}
-                      {subgroup.series ? ` (${subgroup.series})` : ""}
-                    </h3>
-                  )}
-                  <ul className="flex flex-col gap-2">
-                    {subgroup.items.map((item) => (
-                      <li
-                        key={item.id}
-                        className="flex items-start gap-3 rounded-md border border-neutral-200 p-3 dark:border-neutral-800"
-                      >
-                        {selectMode && (
-                          <input type="checkbox" name="itemIds" value={item.id} className="mt-1 h-6 w-6" />
-                        )}
-                        <Link
-                          href={itemHref(item.id, pendingOnly ? "/items?pending=1" : "/items")}
-                          className="flex-1 hover:opacity-70"
+        {groups.map((genreGroup) => {
+          // 묶음 판매(배송비 나누기가 아닐 때) 선택 중에는 이미 다 팔린 품목은 더 팔 수 없으니
+          // 목록 자체에서 뺀다. 그 결과 캐릭터/장르에 남는 품목이 없으면 그 제목도 같이 숨긴다.
+          const visibleSubgroups = genreGroup.subgroups
+            .map((subgroup) => ({
+              ...subgroup,
+              items:
+                selectMode && !pendingOnly
+                  ? subgroup.items.filter((item) => item.remainingQuantity > 0)
+                  : subgroup.items,
+            }))
+            .filter((subgroup) => subgroup.items.length > 0);
+
+          if (visibleSubgroups.length === 0) return null;
+
+          return (
+            <div key={genreGroup.genre}>
+              <h2 className="mb-2 text-xl font-semibold">{genreGroup.genre}</h2>
+              <div className="flex flex-col gap-4">
+                {visibleSubgroups.map((subgroup) => (
+                  <div key={`${subgroup.character}-${subgroup.series ?? ""}`}>
+                    {/* "기타" 장르는 캐릭터도 항상 "기타"라, 장르 제목과 중복되는 캐릭터 제목은 생략한다. */}
+                    {!(genreGroup.genre === "기타" && subgroup.character === "기타") && (
+                      <h3 className="mb-2 text-base font-medium">
+                        {subgroup.character}
+                        {subgroup.series ? ` (${subgroup.series})` : ""}
+                      </h3>
+                    )}
+                    <ul className="flex flex-col gap-2">
+                      {subgroup.items.map((item) => (
+                        <li
+                          key={item.id}
+                          className="flex items-start gap-3 rounded-md border border-neutral-200 p-3 dark:border-neutral-800"
                         >
-                          <ItemCardContent {...item} showGenreCharacter={false} />
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
+                          {selectMode && (
+                            <input type="checkbox" name="itemIds" value={item.id} className="mt-1 h-6 w-6" />
+                          )}
+                          <Link
+                            href={itemHref(item.id, pendingOnly ? "/items?pending=1" : "/items")}
+                            className="flex-1 hover:opacity-70"
+                          >
+                            <ItemCardContent {...item} showGenreCharacter={false} />
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </>
   );

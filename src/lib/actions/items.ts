@@ -102,7 +102,7 @@ export async function updateItem(id: string, from: string, formData: FormData) {
     imageUrl = null;
   }
 
-  // 이미 현물(수동이든, 발송예정일이 지나 자동 전환됐든)인 채로 다시 저장할 때는 폼에 발송예정일
+  // 이미 현물(직접 체크했든, 수령 확인을 눌렀든)인 채로 다시 저장할 때는 폼에 발송예정일
   // 입력칸 자체가 없어서 parseItemForm이 항상 null로 돌려주는데, 그걸 그대로 반영하면 "언제
   // 발송됐는지" 기록이 저장할 때마다 지워진다. 이미 현물이었다면 기존 값을 그대로 유지한다.
   const expectedShipDate =
@@ -121,6 +121,16 @@ export async function updateItem(id: string, from: string, formData: FormData) {
   revalidatePath(`/items/${id}`);
   // 저장 후에는 상위 목록이 아니라 이 품목의 보기 화면으로 돌아간다.
   redirect(itemHref(id, from));
+}
+
+// "배송중"(발송예정일이 지났지만 아직 못 받은 상태)인 품목을 실제로 받았을 때, 한 번 눌러서
+// "배송 완료"(현물)로 바꾼다. 전에는 발송예정일이 지나면 자동으로 현물 전환됐지만, 실제로
+// 받기 전까지는 배송중임을 구분해서 보여주기 위해 이제는 사용자가 직접 확인해야 한다.
+export async function confirmDelivery(id: string) {
+  await requireAuth();
+  await prisma.item.update({ where: { id }, data: { isPhysical: true } });
+  revalidatePath("/items");
+  revalidatePath(`/items/${id}`);
 }
 
 export async function deleteItem(id: string, from: string) {

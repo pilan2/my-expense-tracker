@@ -82,8 +82,10 @@ export function ItemCardContent({
             <span className="text-neutral-500">판매 완료</span>
           ) : isPhysical ? (
             <span className="text-neutral-500">
-              현물{expectedShipDate ? ` (발송일 ${expectedShipDate.toLocaleDateString("ko-KR")})` : ""}
+              {expectedShipDate ? `배송 완료 (발송일 ${expectedShipDate.toLocaleDateString("ko-KR")})` : "현물 보유 중"}
             </span>
+          ) : expectedShipDate && isOverdue(expectedShipDate) ? (
+            <span className="font-medium text-amber-600 dark:text-amber-400">배송중</span>
           ) : (
             expectedShipDate && (
               <>
