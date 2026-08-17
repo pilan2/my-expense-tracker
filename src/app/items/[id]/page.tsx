@@ -11,7 +11,7 @@ import { NumberInput } from "@/components/number-input";
 import { ClearableDateInput } from "@/components/clearable-date-input";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 import { wonToManwon } from "@/lib/money";
-import { formatDDay, isOverdue } from "@/lib/dday";
+import { formatShipDDay, formatShipDateLabel, isShipmentOverdue } from "@/lib/dday";
 import { safeRedirectTarget } from "@/lib/nav";
 
 function selfHref(id: string, from: string, mode?: "edit") {
@@ -64,9 +64,11 @@ export default async function ItemDetailPage({
     maker: item.maker ?? "",
     organizer: item.organizer ?? "",
     isPhysical: item.isPhysical,
-    expectedShipDate: item.expectedShipDate
-      ? item.expectedShipDate.toISOString().slice(0, 10)
-      : "",
+    expectedShipDate:
+      item.expectedShipDate && !item.shipDateApprox ? item.expectedShipDate.toISOString().slice(0, 10) : "",
+    expectedShipMonth:
+      item.expectedShipDate && item.shipDateApprox ? item.expectedShipDate.toISOString().slice(0, 7) : "",
+    shipDateApprox: item.shipDateApprox,
     purchaseLink: item.purchaseLink ?? "",
     memo: item.memo ?? "",
     imageUrl: item.imageUrl,
@@ -86,12 +88,17 @@ export default async function ItemDetailPage({
           <h1 className="mb-2 text-xl font-semibold">품목 수정</h1>
           {!item.isPhysical && item.expectedShipDate && (
             <p className="mb-6 text-sm">
-              {isOverdue(item.expectedShipDate) ? (
-                <span className="font-medium text-amber-600 dark:text-amber-400">배송중</span>
+              {isShipmentOverdue(item.expectedShipDate, item.shipDateApprox) ? (
+                <>
+                  <span className="font-medium text-amber-600 dark:text-amber-400">배송중</span>
+                  <span> (발송일 {formatShipDateLabel(item.expectedShipDate, item.shipDateApprox)})</span>
+                </>
               ) : (
                 <>
-                  발송예정 {item.expectedShipDate.toLocaleDateString("ko-KR")} ·{" "}
-                  <span className="font-medium text-blue-600">{formatDDay(item.expectedShipDate)}</span>
+                  발송예정 {formatShipDateLabel(item.expectedShipDate, item.shipDateApprox)} ·{" "}
+                  <span className="font-medium text-blue-600">
+                    {formatShipDDay(item.expectedShipDate, item.shipDateApprox)}
+                  </span>
                 </>
               )}
             </p>
@@ -156,11 +163,14 @@ export default async function ItemDetailPage({
               value={
                 item.isPhysical ? (
                   item.expectedShipDate
-                    ? `배송 완료 (발송일 ${item.expectedShipDate.toLocaleDateString("ko-KR")})`
+                    ? `배송 완료 (발송일 ${formatShipDateLabel(item.expectedShipDate, item.shipDateApprox)})`
                     : "현물 보유 중"
-                ) : item.expectedShipDate && isOverdue(item.expectedShipDate) ? (
+                ) : item.expectedShipDate && isShipmentOverdue(item.expectedShipDate, item.shipDateApprox) ? (
                   <div className="flex items-center gap-3">
                     <span className="font-medium text-amber-600 dark:text-amber-400">배송중</span>
+                    <span className="text-sm text-neutral-500">
+                      (발송일 {formatShipDateLabel(item.expectedShipDate, item.shipDateApprox)})
+                    </span>
                     <form action={confirmDelivery.bind(null, item.id)}>
                       <button type="submit" className="text-sm text-blue-600 underline dark:text-blue-400">
                         수령 확인
@@ -169,14 +179,29 @@ export default async function ItemDetailPage({
                   </div>
                 ) : item.expectedShipDate ? (
                   <>
-                    발송예정 {item.expectedShipDate.toLocaleDateString("ko-KR")}{" "}
-                    <span className="font-medium text-blue-600">{formatDDay(item.expectedShipDate)}</span>
+                    발송예정 {formatShipDateLabel(item.expectedShipDate, item.shipDateApprox)}{" "}
+                    <span className="font-medium text-blue-600">
+                      {formatShipDDay(item.expectedShipDate, item.shipDateApprox)}
+                    </span>
                   </>
                 ) : (
                   "-"
                 )
               }
             />
+            {item.shippingGroup && (
+              <DetailRow
+                label="발송 그룹"
+                value={
+                  <Link
+                    href={`/shipping-groups/${item.shippingGroup.id}`}
+                    className="text-blue-600 underline dark:text-blue-400"
+                  >
+                    {item.shippingGroup.label} →
+                  </Link>
+                }
+              />
+            )}
             {item.purchaseLink && (
               <DetailRow
                 label="구매처"

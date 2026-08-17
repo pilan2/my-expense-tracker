@@ -1,4 +1,4 @@
-import { formatDDay, isOverdue } from "@/lib/dday";
+import { formatShipDDay, formatShipDateLabel, isShipmentOverdue } from "@/lib/dday";
 import { calcProfit } from "@/lib/profit";
 
 // Prisma Decimal도 그대로 받을 수 있도록 toString()만 요구한다.
@@ -17,6 +17,7 @@ type ItemCardProps = {
   hasOverseasShipping: boolean;
   isPhysical: boolean;
   expectedShipDate: Date | null;
+  shipDateApprox: boolean;
   imageUrl?: string | null;
   sales: { quantitySold: number; saleAmount: DecimalLike }[];
   /** 장르/캐릭터로 이미 필터된 화면(브라우즈 하위 목록)에서는 중복 표시를 줄이기 위해 숨긴다 */
@@ -38,6 +39,7 @@ export function ItemCardContent({
   hasOverseasShipping,
   isPhysical,
   expectedShipDate,
+  shipDateApprox,
   imageUrl,
   sales,
   showGenreCharacter = true,
@@ -82,18 +84,26 @@ export function ItemCardContent({
             <span className="text-neutral-500">판매 완료</span>
           ) : isPhysical ? (
             <span className="text-neutral-500">
-              {expectedShipDate ? `배송 완료 (발송일 ${expectedShipDate.toLocaleDateString("ko-KR")})` : "현물 보유 중"}
+              {expectedShipDate
+                ? `배송 완료 (발송일 ${formatShipDateLabel(expectedShipDate, shipDateApprox)})`
+                : "현물 보유 중"}
             </span>
-          ) : expectedShipDate && isOverdue(expectedShipDate) ? (
-            <span className="font-medium text-amber-600 dark:text-amber-400">배송중</span>
+          ) : expectedShipDate && isShipmentOverdue(expectedShipDate, shipDateApprox) ? (
+            <>
+              <span className="font-medium text-amber-600 dark:text-amber-400">배송중</span>
+              <span className="text-neutral-500">
+                {" "}
+                (발송일 {formatShipDateLabel(expectedShipDate, shipDateApprox)})
+              </span>
+            </>
           ) : (
             expectedShipDate && (
               <>
                 <span className="text-neutral-500">
-                  발송예정 {expectedShipDate.toLocaleDateString("ko-KR")}{" "}
+                  발송예정 {formatShipDateLabel(expectedShipDate, shipDateApprox)}{" "}
                 </span>
-                <span className={`font-medium ${isOverdue(expectedShipDate) ? "text-red-600" : "text-blue-600"}`}>
-                  {formatDDay(expectedShipDate)}
+                <span className="font-medium text-blue-600">
+                  {formatShipDDay(expectedShipDate, shipDateApprox)}
                 </span>
               </>
             )

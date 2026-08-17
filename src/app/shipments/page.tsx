@@ -4,8 +4,8 @@ import { getMonthGrid, shiftMonth } from "@/lib/calendar";
 import { parseMonthParam, monthParamString } from "@/lib/month";
 import { BackButton } from "@/components/back-button";
 import { ItemCardContent } from "@/components/item-card";
-import { isOverdue } from "@/lib/dday";
 import { itemHref } from "@/lib/nav";
+import { formatShipDateLabel } from "@/lib/dday";
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
@@ -53,6 +53,14 @@ export default async function ShipmentsPage({
         )}
       </div>
 
+      {view !== "day" && (
+        <div className="mb-4 text-right text-sm">
+          <Link href="/shipping-groups" className="underline">
+            발송 그룹 관리 →
+          </Link>
+        </div>
+      )}
+
       {view === "calendar" && <CalendarView monthParam={monthParam} />}
       {view === "list" && <ListView />}
       {view === "day" && dateParam && <DayView dateStr={dateParam} />}
@@ -70,8 +78,12 @@ async function CalendarView({ monthParam }: { monthParam?: string }) {
     ? { year: now.getFullYear(), month: now.getMonth() + 1 }
     : parsed;
 
-  const items = await getShipmentsInMonth(year, month);
+  const allItems = await getShipmentsInMonth(year, month);
   const currentMonthParam = monthParamString(year, month);
+
+  // 월 단위로만 아는 품목은 특정 날짜 칸에 넣을 수 없으니 달력 밑에 따로 보여준다.
+  const items = allItems.filter((item) => !item.shipDateApprox);
+  const approxItems = allItems.filter((item) => item.shipDateApprox);
 
   const itemsByDay = new Map<number, typeof items>();
   for (const item of items) {
@@ -136,11 +148,7 @@ async function CalendarView({ monthParam }: { monthParam?: string }) {
                           {dayItems.slice(0, 3).map((item) => (
                             <span
                               key={item.id}
-                              className={`truncate rounded px-1 py-0.5 ${
-                                isOverdue(item.expectedShipDate!)
-                                  ? "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300"
-                                  : "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
-                              }`}
+                              className="truncate rounded bg-blue-100 px-1 py-0.5 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
                             >
                               {item.character}
                             </span>
@@ -160,6 +168,24 @@ async function CalendarView({ monthParam }: { monthParam?: string }) {
           </div>
         ))}
       </div>
+
+      {approxItems.length > 0 && (
+        <div className="mt-4">
+          <p className="mb-2 text-sm font-medium text-neutral-500">{month}월 중 발송 예정 (날짜 미정)</p>
+          <ul className="flex flex-col gap-2">
+            {approxItems.map((item) => (
+              <li key={item.id}>
+                <Link
+                  href={itemHref(item.id, monthHref(year, month))}
+                  className="block rounded-md border border-neutral-200 p-3 hover:opacity-70 dark:border-neutral-800"
+                >
+                  <ItemCardContent {...item} />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </>
   );
 }
@@ -171,20 +197,27 @@ async function ListView() {
     return <p className="py-10 text-center text-neutral-500">발송 예정인 품목이 없습니다.</p>;
   }
 
+  // 월 단위로만 아는 품목은 같은 날(그 달 1일)에 잡힌 특정일 품목과 한 그룹으로 묶이지 않도록
+  // 키를 따로 둔다. getUpcomingShipments가 이미 "같은 달이면 월 단위 품목이 먼저" 순으로
+  // 정렬해뒀으므로, 그룹 순서도 자연스럽게 요구사항대로 나온다.
   const dateMap = new Map<string, typeof items>();
   for (const item of items) {
-    const dateStr = item.expectedShipDate!.toISOString().slice(0, 10);
-    if (!dateMap.has(dateStr)) dateMap.set(dateStr, []);
-    dateMap.get(dateStr)!.push(item);
+    const key = item.shipDateApprox
+      ? `approx-${item.expectedShipDate!.getFullYear()}-${item.expectedShipDate!.getMonth()}`
+      : `exact-${item.expectedShipDate!.toISOString().slice(0, 10)}`;
+    if (!dateMap.has(key)) dateMap.set(key, []);
+    dateMap.get(key)!.push(item);
   }
   const dateGroups = [...dateMap.entries()];
 
   return (
     <div className="flex flex-col gap-6">
-      {dateGroups.map(([dateStr, groupItems]) => (
-        <div key={dateStr}>
+      {dateGroups.map(([key, groupItems]) => (
+        <div key={key}>
           <h2 className="mb-2 text-base font-medium text-neutral-500">
-            {groupItems[0].expectedShipDate!.toLocaleDateString("ko-KR")}
+            {groupItems[0].shipDateApprox
+              ? `${formatShipDateLabel(groupItems[0].expectedShipDate!, true)} 중`
+              : groupItems[0].expectedShipDate!.toLocaleDateString("ko-KR")}
           </h2>
           <ul className="flex flex-col gap-2">
             {groupItems.map((item) => (

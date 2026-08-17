@@ -4,6 +4,7 @@ import { useState } from "react";
 import { NumberInput } from "@/components/number-input";
 import { ClearableDateInput } from "@/components/clearable-date-input";
 import { ImageCropInput } from "@/components/image-crop-input";
+import { ShipDateInput } from "@/components/ship-date-input";
 import type { GenreCatalogEntry, ItemTypeCatalogEntry } from "@/lib/catalog";
 
 export type ItemFormDefaults = {
@@ -21,6 +22,8 @@ export type ItemFormDefaults = {
   organizer: string;
   isPhysical: boolean;
   expectedShipDate: string;
+  expectedShipMonth: string;
+  shipDateApprox: boolean;
   purchaseLink: string;
   memo: string;
   imageUrl: string | null;
@@ -309,15 +312,11 @@ export function ItemForm({
       </label>
 
       {!isPhysical && (
-        <Field label="예상 발송일">
-          <input
-            name="expectedShipDate"
-            type="date"
-            defaultValue={defaultValues?.expectedShipDate}
-            required
-            className={inputClass}
-          />
-        </Field>
+        <ShipDateInput
+          defaultDate={defaultValues?.expectedShipDate}
+          defaultMonth={defaultValues?.expectedShipMonth}
+          defaultApprox={defaultValues?.shipDateApprox}
+        />
       )}
 
       <Field label="메모 (선택)">

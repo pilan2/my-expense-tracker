@@ -3,7 +3,7 @@ import { getCategorySummary } from "@/lib/spending";
 import { getUpcomingShipments, getRecentPurchases } from "@/lib/items";
 import { getRecentSales, calcSaleProfit } from "@/lib/sales";
 import { getCurrentMonthTotals } from "@/lib/trends";
-import { formatDDay, isOverdue } from "@/lib/dday";
+import { formatShipDDay } from "@/lib/dday";
 import { itemHref } from "@/lib/nav";
 
 export default async function Home() {
@@ -117,10 +117,8 @@ export default async function Home() {
                       .join(", ")}
                     {items.length > 2 ? ` 외 ${items.length - 2}개` : ""}
                   </span>
-                  <span
-                    className={`shrink-0 font-medium ${isOverdue(items[0].expectedShipDate!) ? "text-red-600" : "text-blue-600"}`}
-                  >
-                    {formatDDay(items[0].expectedShipDate!)}
+                  <span className="shrink-0 font-medium text-blue-600">
+                    {formatShipDDay(items[0].expectedShipDate!, items[0].shipDateApprox)}
                   </span>
                 </Link>
               </li>

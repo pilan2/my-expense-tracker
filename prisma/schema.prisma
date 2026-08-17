@@ -29,17 +29,33 @@ model Item {
   organizer           String? // 공구 개최한 사람 (선택)
 
   isPhysical       Boolean   @default(false) // 현물 여부
-  expectedShipDate DateTime? // 예상 발송일 (현물이 아닐 때만 사용)
+  expectedShipDate DateTime? // 예상 발송일 (현물이 아닐 때만 사용). shipDateApprox가 true면 "그 달 1일"이
+  // 저장되어 있고 정확한 날짜가 아니라 그 달 전체를 뜻한다.
+  shipDateApprox Boolean @default(false) // 예상 발송일이 정확한 날짜가 아니라 "몇 월"까지만 아는 경우
 
   purchaseLink String? // 구매처 링크 (선택)
   memo         String? // 메모 (선택, 특이사항 등)
   imageUrl     String? // 사진 (선택). Supabase Storage에 올린 파일의 공개 URL을 저장.
+
+  // 같은 날 구매하고 제작자/공구자가 같은 품목들은 자동으로 같은 발송 그룹으로 묶여서,
+  // 발송일이 밀릴 때 그룹 전체를 한 번에 수정할 수 있다. 그룹이 지워져도 품목은 남는다.
+  shippingGroup   ShippingGroup? @relation(fields: [shippingGroupId], references: [id], onDelete: SetNull)
+  shippingGroupId String?
 
   sales             Sale[]
   checklistEntries  EventChecklistItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// 같은 날 구매 + 같은 제작자/공구자를 기준으로 자동 생성되는, 발송일을 한 번에 관리하기 위한
+// 품목 묶음. 사용자가 이름을 바꾸거나 품목을 넣고 뺄 수 있다.
+model ShippingGroup {
+  id        String   @id @default(cuid())
+  label     String
+  items     Item[]
+  createdAt DateTime @default(now())
 }
 
 model Sale {

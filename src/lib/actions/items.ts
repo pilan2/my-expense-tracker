@@ -9,6 +9,7 @@ import { calcRemainingQuantity } from "@/lib/sales";
 import { itemHref, safeRedirectTarget } from "@/lib/nav";
 import { ensureInCatalog } from "@/lib/catalog";
 import { uploadItemImage, deleteItemImage } from "@/lib/storage";
+import { autoAssignShippingGroup } from "@/lib/shipping-group-matching";
 
 async function requireAuth() {
   const session = await auth();
@@ -18,18 +19,33 @@ async function requireAuth() {
 function parseItemForm(formData: FormData) {
   const isPhysical = formData.get("isPhysical") === "on";
   const expectedShipDateRaw = formData.get("expectedShipDate");
+  const expectedShipMonthRaw = formData.get("expectedShipMonth");
   const maker = String(formData.get("maker") ?? "").trim();
   const organizer = String(formData.get("organizer") ?? "").trim();
   const series = String(formData.get("series") ?? "").trim();
   const purchaseLink = String(formData.get("purchaseLink") ?? "").trim();
   const memo = String(formData.get("memo") ?? "").trim();
 
-  if (!isPhysical && !expectedShipDateRaw) {
+  if (!isPhysical && !expectedShipDateRaw && !expectedShipMonthRaw) {
     throw new Error("현물로 보유 중이 아니면 예상 발송일을 입력해야 합니다.");
   }
 
   const shippingFee = manwonToWon(String(formData.get("shippingFee") ?? "0"));
   const purchasedAtRaw = formData.get("purchasedAt");
+
+  // 정확한 날짜를 모르고 "몇 월"까지만 아는 경우, 그 달 1일을 저장하고 shipDateApprox로
+  // "정확한 날짜가 아니라 그 달 전체"임을 표시해둔다. 폼에서 두 입력 중 하나만 보여주므로
+  // (조건부 렌더링), 실제로 값이 들어온 쪽을 그대로 따른다.
+  let expectedShipDate: Date | null = null;
+  let shipDateApprox = false;
+  if (!isPhysical) {
+    if (expectedShipMonthRaw) {
+      expectedShipDate = new Date(`${String(expectedShipMonthRaw)}-01`);
+      shipDateApprox = true;
+    } else if (expectedShipDateRaw) {
+      expectedShipDate = new Date(String(expectedShipDateRaw));
+    }
+  }
 
   return {
     genre: String(formData.get("genre") ?? "").trim(),
@@ -47,8 +63,8 @@ function parseItemForm(formData: FormData) {
     maker: maker || null,
     organizer: organizer || null,
     isPhysical,
-    expectedShipDate:
-      !isPhysical && expectedShipDateRaw ? new Date(String(expectedShipDateRaw)) : null,
+    expectedShipDate,
+    shipDateApprox,
     purchaseLink: purchaseLink || null,
     memo: memo || null,
   };
@@ -61,7 +77,8 @@ export async function createItem(formData: FormData) {
   const imageFile = formData.get("image");
   const imageUrl = imageFile instanceof File && imageFile.size > 0 ? await uploadItemImage(imageFile) : null;
 
-  await prisma.item.create({ data: { ...data, imageUrl } });
+  const created = await prisma.item.create({ data: { ...data, imageUrl } });
+  await autoAssignShippingGroup(created);
   await ensureInCatalog({
     genre: data.genre,
     character: data.character,
@@ -88,7 +105,7 @@ export async function updateItem(id: string, from: string, formData: FormData) {
   // 둘 다 아니면 기존 사진을 그대로 둔다.
   const existing = await prisma.item.findUniqueOrThrow({
     where: { id },
-    select: { imageUrl: true, isPhysical: true, expectedShipDate: true },
+    select: { imageUrl: true, isPhysical: true, expectedShipDate: true, shipDateApprox: true },
   });
   const imageFile = formData.get("image");
   const removeImage = formData.get("removeImage") === "on";
@@ -107,8 +124,14 @@ export async function updateItem(id: string, from: string, formData: FormData) {
   // 발송됐는지" 기록이 저장할 때마다 지워진다. 이미 현물이었다면 기존 값을 그대로 유지한다.
   const expectedShipDate =
     data.isPhysical && existing.isPhysical ? existing.expectedShipDate : data.expectedShipDate;
+  const shipDateApprox =
+    data.isPhysical && existing.isPhysical ? existing.shipDateApprox : data.shipDateApprox;
 
-  await prisma.item.update({ where: { id }, data: { ...data, expectedShipDate, imageUrl } });
+  const updated = await prisma.item.update({
+    where: { id },
+    data: { ...data, expectedShipDate, shipDateApprox, imageUrl },
+  });
+  await autoAssignShippingGroup(updated);
   await ensureInCatalog({
     genre: data.genre,
     character: data.character,
@@ -119,6 +142,7 @@ export async function updateItem(id: string, from: string, formData: FormData) {
   });
   revalidatePath("/items");
   revalidatePath(`/items/${id}`);
+  revalidatePath("/shipping-groups");
   // 저장 후에는 상위 목록이 아니라 이 품목의 보기 화면으로 돌아간다.
   redirect(itemHref(id, from));
 }
