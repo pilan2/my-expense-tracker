@@ -28,56 +28,31 @@ async function renameCatchingConflict(run: () => Promise<unknown>, conflictMessa
   }
 }
 
-// order 값으로 정렬하되(같으면 가나다순). "기타"도 다른 항목과 동일하게 취급해서, 사용자가
-// 원하면 화살표로 맨 뒤든 어디든 옮길 수 있다.
-function compareByOrder<T extends { name: string; order: number }>(a: T, b: T) {
-  if (a.order !== b.order) return a.order - b.order;
-  return a.name.localeCompare(b.name, "ko");
-}
-
-// 정렬된 목록에서 대상을 인접한 항목과 순서(order)째 맞바꾼다. 맨 앞/뒤라 이동할 곳이
-// 없으면 조용히 아무것도 하지 않는다.
-async function swapAdjacentOrder<T extends { id: string; name: string; order: number }>(
-  siblings: T[],
-  id: string,
-  direction: "up" | "down",
-  persist: (id: string, order: number) => Promise<unknown>,
+// 드래그로 정해진 최종 순서(id 배열)를 그대로 0부터 순번을 매겨 저장한다.
+async function persistOrder(
+  orderedIds: string[],
+  persist: (id: string, order: number) => Prisma.PrismaPromise<unknown>,
 ) {
-  const sorted = [...siblings].sort(compareByOrder);
-  const index = sorted.findIndex((item) => item.id === id);
-  const swapIndex = direction === "up" ? index - 1 : index + 1;
-  if (index === -1 || swapIndex < 0 || swapIndex >= sorted.length) return;
-
-  // order 값이 전부 기본값(0)이라 같을 수 있어서, 먼저 현재 표시 순서대로 순번을 매겨 확정한 뒤 맞바꾼다.
-  await Promise.all(sorted.map((item, i) => persist(item.id, i)));
-  await Promise.all([persist(sorted[index].id, swapIndex), persist(sorted[swapIndex].id, index)]);
+  await prisma.$transaction(orderedIds.map((id, order) => persist(id, order)));
 }
 
-export async function moveGenre(id: string, direction: "up" | "down") {
+export async function reorderGenres(orderedIds: string[]) {
   await requireAuth();
-  const genres = await prisma.genre.findMany();
-  await swapAdjacentOrder(genres, id, direction, (gid, order) =>
-    prisma.genre.update({ where: { id: gid }, data: { order } }),
-  );
+  await persistOrder(orderedIds, (id, order) => prisma.genre.update({ where: { id }, data: { order } }));
   revalidatePath("/", "layout");
 }
 
-export async function moveCharacter(id: string, direction: "up" | "down") {
+// 캐릭터는 같은 장르 안에서만 순서가 의미 있으므로, 넘어온 id들이 실제로 그 장르 소속인지는
+// 신경 쓰지 않고(항상 같은 장르 카드 안에서만 드래그가 일어남) 그대로 저장한다.
+export async function reorderCharacters(orderedIds: string[]) {
   await requireAuth();
-  const character = await prisma.character.findUniqueOrThrow({ where: { id } });
-  const characters = await prisma.character.findMany({ where: { genreId: character.genreId } });
-  await swapAdjacentOrder(characters, id, direction, (cid, order) =>
-    prisma.character.update({ where: { id: cid }, data: { order } }),
-  );
+  await persistOrder(orderedIds, (id, order) => prisma.character.update({ where: { id }, data: { order } }));
   revalidatePath("/", "layout");
 }
 
-export async function moveItemType(id: string, direction: "up" | "down") {
+export async function reorderItemTypes(orderedIds: string[]) {
   await requireAuth();
-  const itemTypes = await prisma.itemType.findMany();
-  await swapAdjacentOrder(itemTypes, id, direction, (tid, order) =>
-    prisma.itemType.update({ where: { id: tid }, data: { order } }),
-  );
+  await persistOrder(orderedIds, (id, order) => prisma.itemType.update({ where: { id }, data: { order } }));
   revalidatePath("/", "layout");
 }
 
