@@ -1,7 +1,14 @@
 {
   "name": "my-expense-tracker",
   "version": "0.1.0",
+  "description": "개인 소장품(굿즈 등) 구매·판매·발송을 관리하는 PWA 지출 추적 앱. Next.js + Prisma + Supabase.",
   "private": true,
+  "license": "MIT",
+  "author": "pilan2 (https://github.com/pilan2)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pilan2/my-expense-tracker.git"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
