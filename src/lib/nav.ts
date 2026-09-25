@@ -3,7 +3,7 @@ export function itemHref(id: string, from: string): string {
   return `/items/${id}?from=${encodeURIComponent(from)}`;
 }
 
-// 서버 액션이 리다이렉트할 때, 상대 경로가 아니면(엉뚱한 값이 들어오면) 안전하게 기본값으로.
+// 저장 후 화면을 이동할 때, 상대 경로가 아니면(엉뚱한 값이 들어오면) 안전하게 기본값으로.
 export function safeRedirectTarget(from: string, fallback = "/items"): string {
-  return from.startsWith("/") ? from : fallback;
+  return from.startsWith("/") && !from.startsWith("//") && !from.includes("\\") ? from : fallback;
 }

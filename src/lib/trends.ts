@@ -1,5 +1,4 @@
-import "server-only";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/local/repository";
 import { getCatalogOrderMaps, compareNameByCatalogOrder } from "@/lib/catalog";
 
 export type MonthlyPoint = { month: string; purchaseTotal: number; saleTotal: number };
@@ -16,11 +15,11 @@ function toSortedPoints(monthMap: Map<string, { purchaseTotal: number; saleTotal
 }
 
 // 월별 전체 구매/판매 총액 추이. 구매는 구매일, 판매는 판매일 기준으로 집계.
-export async function getMonthlyTrends(): Promise<MonthlyPoint[]> {
-  const [items, sales] = await Promise.all([
-    prisma.item.findMany({ select: { purchasedAt: true, price: true, quantity: true, shippingFee: true } }),
-    prisma.sale.findMany({ select: { saleDate: true, saleAmount: true } }),
-  ]);
+export  function getMonthlyTrends(): MonthlyPoint[] {
+  const [items, sales] = [
+    db.item.findMany({ select: { purchasedAt: true, price: true, quantity: true, shippingFee: true } }),
+    db.sale.findMany({ select: { saleDate: true, saleAmount: true } }),
+  ] as const;
 
   const monthMap = new Map<string, { purchaseTotal: number; saleTotal: number }>();
 
@@ -43,9 +42,9 @@ export async function getMonthlyTrends(): Promise<MonthlyPoint[]> {
 }
 
 // 장르별 월별 구매/판매 총액 추이.
-export async function getMonthlyTrendsByGenre(): Promise<GenreMonthlyTrend[]> {
-  const [items, orderMaps] = await Promise.all([
-    prisma.item.findMany({
+export  function getMonthlyTrendsByGenre(): GenreMonthlyTrend[] {
+  const [items, orderMaps] = [
+    db.item.findMany({
       select: {
         genre: true,
         purchasedAt: true,
@@ -56,7 +55,7 @@ export async function getMonthlyTrendsByGenre(): Promise<GenreMonthlyTrend[]> {
       },
     }),
     getCatalogOrderMaps(),
-  ]);
+  ] as const;
 
   const genreMap = new Map<string, Map<string, { purchaseTotal: number; saleTotal: number }>>();
 
@@ -98,8 +97,8 @@ const MAX_GENRE_SERIES = 8;
 
 // 장르별 월별 구매/판매 추이를 같은 좌표계에서 겹쳐 비교할 수 있도록, 전체 월 목록에 맞춰
 // 값이 없는 달은 0으로 채워 정렬한다.
-export async function getGenreComparisonTrends(): Promise<GenreComparisonTrend> {
-  const byGenre = await getMonthlyTrendsByGenre();
+export  function getGenreComparisonTrends(): GenreComparisonTrend {
+  const byGenre = getMonthlyTrendsByGenre();
   const withActivity = byGenre.map((g) => ({
     ...g,
     activity: g.points.reduce((sum, p) => sum + p.purchaseTotal + p.saleTotal, 0),
@@ -146,21 +145,21 @@ export async function getGenreComparisonTrends(): Promise<GenreComparisonTrend> 
 }
 
 // 이번 달 구매/판매 총액 (대시보드 요약용).
-export async function getCurrentMonthTotals(): Promise<{ purchaseTotal: number; saleTotal: number }> {
+export  function getCurrentMonthTotals(): { purchaseTotal: number; saleTotal: number } {
   const now = new Date();
   const start = new Date(now.getFullYear(), now.getMonth(), 1);
   const end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
-  const [items, sales] = await Promise.all([
-    prisma.item.findMany({
+  const [items, sales] = [
+    db.item.findMany({
       where: { purchasedAt: { gte: start, lt: end } },
       select: { price: true, quantity: true, shippingFee: true },
     }),
-    prisma.sale.findMany({
+    db.sale.findMany({
       where: { saleDate: { gte: start, lt: end } },
       select: { saleAmount: true },
     }),
-  ]);
+  ] as const;
 
   const purchaseTotal = items.reduce((sum, item) => sum + Number(item.price) * item.quantity + Number(item.shippingFee), 0);
   const saleTotal = sales.reduce((sum, sale) => sum + Number(sale.saleAmount), 0);

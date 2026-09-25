@@ -1,6 +1,4 @@
-import "server-only";
-import { prisma } from "@/lib/prisma";
-import { Prisma } from "@/generated/prisma/client";
+import { transactionDb as db, type Where } from "@/lib/local/repository";
 
 // 같은 날 구매 + 제작자 또는 공구자가 같은, 아직 발송 그룹에 안 들어간 다른 미현물 품목이
 // 있으면 자동으로 같은 발송 그룹에 넣는다. 이미 그룹에 들어간 품목은 사용자가 직접 뺐을 수도
@@ -17,11 +15,11 @@ export async function autoAssignShippingGroup(item: {
   if (item.isPhysical || item.shippingGroupId || !item.purchasedAt) return;
   if (!item.maker && !item.organizer) return;
 
-  const orConditions: Prisma.ItemWhereInput[] = [];
+  const orConditions: Where[] = [];
   if (item.maker) orConditions.push({ maker: item.maker });
   if (item.organizer) orConditions.push({ organizer: item.organizer });
 
-  const candidates = await prisma.item.findMany({
+  const candidates = await db.item.findMany({
     where: {
       id: { not: item.id },
       isPhysical: false,
@@ -34,13 +32,13 @@ export async function autoAssignShippingGroup(item: {
 
   const existingGroupId = candidates.find((c) => c.shippingGroupId)?.shippingGroupId;
   if (existingGroupId) {
-    await prisma.item.update({ where: { id: item.id }, data: { shippingGroupId: existingGroupId } });
+    await db.item.update({ where: { id: item.id }, data: { shippingGroupId: existingGroupId } });
     return;
   }
 
   const label = `${item.maker ?? item.organizer} · ${item.purchasedAt.toLocaleDateString("ko-KR")} 구매`;
-  const group = await prisma.shippingGroup.create({ data: { label } });
-  await prisma.item.updateMany({
+  const group = await db.shippingGroup.create({ data: { label } });
+  await db.item.updateMany({
     where: { id: { in: [item.id, ...candidates.map((c) => c.id)] } },
     data: { shippingGroupId: group.id },
   });

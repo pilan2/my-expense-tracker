@@ -1,5 +1,9 @@
 "use client";
 
+import { LocalImage } from "@/components/local-image";
+
+import { LocalForm } from "@/components/local-form";
+
 import { useState } from "react";
 import { NumberInput } from "@/components/number-input";
 import { ClearableDateInput } from "@/components/clearable-date-input";
@@ -156,13 +160,12 @@ export function ItemForm({
   }
 
   return (
-    <form action={action} onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <LocalForm action={action} onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div className="flex flex-col gap-2 text-sm">
         <span className="font-medium">사진 (선택)</span>
         {defaultValues?.imageUrl && (
           <div className="flex items-center gap-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={defaultValues.imageUrl} alt="" className="h-24 w-24 rounded-md object-cover" />
+                        <LocalImage src={defaultValues.imageUrl} alt="" className="h-24 w-24 rounded-md object-cover" />
             <label className="flex items-center gap-2 text-neutral-500">
               <input type="checkbox" name="removeImage" className="h-5 w-5" />
               사진 삭제
@@ -334,7 +337,7 @@ export function ItemForm({
       >
         저장
       </button>
-    </form>
+    </LocalForm>
   );
 }
 

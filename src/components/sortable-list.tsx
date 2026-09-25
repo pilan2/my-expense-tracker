@@ -54,7 +54,7 @@ function SortableRow({ id, children }: { id: string; children: (handle: DragHand
 }
 
 // 드래그로 순서를 바꿀 수 있는 목록. 드롭 즉시 화면 순서를 먼저 바꾸고(낙관적 업데이트),
-// 서버에는 최종 순서(id 배열)만 넘겨서 저장을 맡긴다.
+// 최종 순서(id 배열)를 기기에 저장한다.
 export function SortableList<T extends { id: string }>({
   items,
   onReorder,
@@ -64,7 +64,7 @@ export function SortableList<T extends { id: string }>({
   dndId,
 }: {
   items: T[];
-  onReorder: (orderedIds: string[]) => void;
+  onReorder: (orderedIds: string[]) => void | Promise<void>;
   renderItem: (item: T, handle: DragHandleProps) => ReactNode;
   className?: string;
   // 세로로 한 줄씩 쌓이는 목록은 기본값(verticalListSortingStrategy)이면 되지만, 물품 종류처럼
@@ -78,7 +78,7 @@ export function SortableList<T extends { id: string }>({
   dndId: string;
 }) {
   const [ordered, setOrdered] = useState(items);
-  // 다른 조작(추가/삭제/이름변경)으로 목록이 서버에서 다시 내려오면 최신 내용으로 맞춘다.
+  // 다른 조작(추가/삭제/이름변경)으로 목록이 변경되면 최신 내용으로 맞춘다.
   // (렌더 중 상태 조정 패턴 — https://react.dev/reference/react/useState#storing-information-from-previous-renders)
   const [prevItems, setPrevItems] = useState(items);
   if (items !== prevItems) {
@@ -88,7 +88,7 @@ export function SortableList<T extends { id: string }>({
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
 
-  function handleDragEnd(event: DragEndEvent) {
+  async function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
@@ -96,7 +96,11 @@ export function SortableList<T extends { id: string }>({
     const newIndex = ordered.findIndex((item) => item.id === over.id);
     const next = arrayMove(ordered, oldIndex, newIndex);
     setOrdered(next);
-    onReorder(next.map((item) => item.id));
+    try { await onReorder(next.map((item) => item.id)); }
+    catch (error) {
+      setOrdered(items);
+      window.alert(error instanceof Error ? error.message : "순서를 저장하지 못했습니다.");
+    }
   }
 
   return (

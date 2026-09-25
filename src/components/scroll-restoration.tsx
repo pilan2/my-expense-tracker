@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "@/lib/local/navigation";
 
 // 뒤로가기가 브라우저 히스토리가 아니라 고정된 상위 페이지 링크로 이동하는 방식이라(nav.ts 참고),
 // 브라우저가 원래 해주는 스크롤 위치 복원이 동작하지 않는다. 그래서 페이지별로 스크롤 위치를

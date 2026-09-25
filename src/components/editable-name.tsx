@@ -3,7 +3,7 @@
 import { useActionState, useState } from "react";
 import type { RenameState } from "@/lib/actions/catalog";
 
-// 이름을 눌러서 수정 모드로 바꾸면, 저장 시 서버 액션이 카탈로그 항목뿐 아니라
+// 이름을 눌러서 수정 모드로 바꾸면, 저장 시 로컬 액션이 카탈로그 항목뿐 아니라
 // 그 이름을 쓰던 품목들도 함께 바꿔준다. 이름 충돌 등 에러는 throw 대신 상태값으로
 // 돌아오므로(useActionState) 프로덕션에서도 실제 에러 메시지가 그대로 보인다.
 // 수정 폼은 절대 위치로 띄워서, 좁은 pill 모양 chip 안에서 내용이 넘치지 않게 한다.
@@ -17,7 +17,10 @@ export function EditableName({
   inputClassName?: string;
 }) {
   const [editing, setEditing] = useState(false);
-  const [state, formAction, isPending] = useActionState(action, {});
+  const [state, formAction, isPending] = useActionState(async (previous: RenameState, data: FormData) => {
+    try { return await action(previous, data); }
+    catch (error) { return { error: error instanceof Error ? error.message : "저장하지 못했습니다." }; }
+  }, {});
 
   // 액션 결과가 바뀐 순간(=제출이 끝난 순간) 렌더 중에 바로 반영한다(useEffect 대신
   // 렌더 중 상태 조정 패턴 — https://react.dev/reference/react/useState#storing-information-from-previous-renders).

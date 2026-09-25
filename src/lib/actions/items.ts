@@ -1,20 +1,13 @@
-"use server";
+import { localAction } from "@/lib/local/action";
 
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
-import { auth } from "@/auth";
-import { prisma } from "@/lib/prisma";
+import { redirect } from "@/lib/local/navigation";
+import { transactionDb as db } from "@/lib/local/repository";
 import { manwonToWon } from "@/lib/money";
 import { calcRemainingQuantity } from "@/lib/sales";
 import { itemHref, safeRedirectTarget } from "@/lib/nav";
 import { ensureInCatalog } from "@/lib/catalog";
-import { uploadItemImage, deleteItemImage } from "@/lib/storage";
+import { uploadItemImage } from "@/lib/local/images";
 import { autoAssignShippingGroup } from "@/lib/shipping-group-matching";
-
-async function requireAuth() {
-  const session = await auth();
-  if (!session) throw new Error("Unauthorized");
-}
 
 function parseItemForm(formData: FormData) {
   const isPhysical = formData.get("isPhysical") === "on";
@@ -70,14 +63,13 @@ function parseItemForm(formData: FormData) {
   };
 }
 
-export async function createItem(formData: FormData) {
-  await requireAuth();
+export const createItem = localAction(async function createItem(formData: FormData) {
   const data = parseItemForm(formData);
 
   const imageFile = formData.get("image");
   const imageUrl = imageFile instanceof File && imageFile.size > 0 ? await uploadItemImage(imageFile) : null;
 
-  const created = await prisma.item.create({ data: { ...data, imageUrl } });
+  const created = await db.item.create({ data: { ...data, imageUrl } });
   await autoAssignShippingGroup(created);
   await ensureInCatalog({
     genre: data.genre,
@@ -87,23 +79,21 @@ export async function createItem(formData: FormData) {
     maker: data.maker,
     organizer: data.organizer,
   });
-  revalidatePath("/items");
   redirect("/items");
-}
+});
 
-export async function updateItem(id: string, from: string, formData: FormData) {
-  await requireAuth();
+export const updateItem = localAction(async function updateItem(id: string, from: string, formData: FormData) {
   const data = parseItemForm(formData);
 
-  const sales = await prisma.sale.findMany({ where: { itemId: id }, select: { quantitySold: true } });
+  const sales = await db.sale.findMany({ where: { itemId: id }, select: { quantitySold: true } });
   const soldQuantity = sales.reduce((sum, s) => sum + s.quantitySold, 0);
   if (calcRemainingQuantity(data.quantity, sales) < 0) {
     throw new Error(`이미 ${soldQuantity}개가 판매되어, 구매 수량을 그보다 적게 수정할 수 없습니다.`);
   }
 
-  // 새 사진을 올렸으면 교체(기존 파일은 스토리지에서 삭제), "사진 삭제"만 체크했으면 비우기,
+  // 새 사진을 골랐으면 교체, "사진 삭제"만 체크했으면 비우기,
   // 둘 다 아니면 기존 사진을 그대로 둔다.
-  const existing = await prisma.item.findUniqueOrThrow({
+  const existing = await db.item.findUniqueOrThrow({
     where: { id },
     select: { imageUrl: true, isPhysical: true, expectedShipDate: true, shipDateApprox: true },
   });
@@ -113,9 +103,7 @@ export async function updateItem(id: string, from: string, formData: FormData) {
   let imageUrl = existing.imageUrl;
   if (imageFile instanceof File && imageFile.size > 0) {
     imageUrl = await uploadItemImage(imageFile);
-    if (existing.imageUrl) await deleteItemImage(existing.imageUrl);
   } else if (removeImage && existing.imageUrl) {
-    await deleteItemImage(existing.imageUrl);
     imageUrl = null;
   }
 
@@ -127,7 +115,7 @@ export async function updateItem(id: string, from: string, formData: FormData) {
   const shipDateApprox =
     data.isPhysical && existing.isPhysical ? existing.shipDateApprox : data.shipDateApprox;
 
-  const updated = await prisma.item.update({
+  const updated = await db.item.update({
     where: { id },
     data: { ...data, expectedShipDate, shipDateApprox, imageUrl },
   });
@@ -140,27 +128,18 @@ export async function updateItem(id: string, from: string, formData: FormData) {
     maker: data.maker,
     organizer: data.organizer,
   });
-  revalidatePath("/items");
-  revalidatePath(`/items/${id}`);
-  revalidatePath("/shipping-groups");
   // 저장 후에는 상위 목록이 아니라 이 품목의 보기 화면으로 돌아간다.
   redirect(itemHref(id, from));
-}
+});
 
 // "배송중"(발송예정일이 지났지만 아직 못 받은 상태)인 품목을 실제로 받았을 때, 한 번 눌러서
 // "배송 완료"(현물)로 바꾼다. 전에는 발송예정일이 지나면 자동으로 현물 전환됐지만, 실제로
 // 받기 전까지는 배송중임을 구분해서 보여주기 위해 이제는 사용자가 직접 확인해야 한다.
-export async function confirmDelivery(id: string) {
-  await requireAuth();
-  await prisma.item.update({ where: { id }, data: { isPhysical: true } });
-  revalidatePath("/items");
-  revalidatePath(`/items/${id}`);
-}
+export const confirmDelivery = localAction(async function confirmDelivery(id: string) {
+  await db.item.update({ where: { id }, data: { isPhysical: true } });
+});
 
-export async function deleteItem(id: string, from: string) {
-  await requireAuth();
-  const item = await prisma.item.delete({ where: { id } });
-  if (item.imageUrl) await deleteItemImage(item.imageUrl);
-  revalidatePath("/items");
+export const deleteItem = localAction(async function deleteItem(id: string, from: string) {
+  await db.item.delete({ where: { id } });
   redirect(safeRedirectTarget(from));
-}
+});

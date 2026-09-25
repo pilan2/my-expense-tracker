@@ -1,5 +1,7 @@
 "use client";
 
+import { LocalForm } from "@/components/local-form";
+
 import { useMemo, useState } from "react";
 
 type ItemOption = {
@@ -39,9 +41,9 @@ export function ChecklistItemForm({
   const hasSelection = selectedIds.length > 0;
 
   return (
-    <form
-      action={(formData) => {
-        action(formData);
+    <LocalForm
+      action={async (formData) => {
+        await action(formData);
         setSelectedIds([]);
         setFilter("");
         setLabel("");
@@ -143,6 +145,6 @@ export function ChecklistItemForm({
       >
         체크리스트에 추가
       </button>
-    </form>
+    </LocalForm>
   );
 }

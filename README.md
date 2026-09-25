@@ -1,96 +1,102 @@
 # My Expense Tracker
 
-굿즈/소장품 구매와 판매를 관리하는 개인용 지출 추적 웹앱입니다. 무엇을 얼마에 샀고, 얼마에
-팔았고, 언제 발송되는지를 한 곳에서 관리하려고 만들었습니다. 모바일에서도 앱처럼 설치해
-쓸 수 있도록 PWA로 만들었습니다.
+굿즈/소장품 구매·판매·발송을 관리하는 모바일 중심 개인용 PWA입니다.
+데이터와 사진은 **현재 기기의 브라우저(IndexedDB)에만 저장**합니다. 로그인이나
+Supabase 설정 없이 사용하며, 조회·수정·통계 계산 시 서버에 데이터를 보내지 않습니다.
 
 ## 주요 기능
 
-- **구매/판매 관리**: 장르·캐릭터·시리즈·물품 종류별로 구매 품목을 등록하고, 부분 판매를
-  포함한 판매 이력과 손익을 관리합니다.
-- **발송 관리**: 발송 예정일 기준 D-Day 표시, 발송일이 지나면 "배송중" 상태로 자동 전환되고
-  실제 수령을 확인하면 "배송 완료"로 바뀝니다. 발송일이 "몇 월"까지만 정해진 경우도 입력할
-  수 있습니다.
-- **발송 그룹**: 같은 날 구매하고 제작자/공구 개최자가 같은 품목을 자동으로 묶어서, 발송일이
-  밀리면 그룹 전체를 한 번에 수정할 수 있습니다.
-- **카탈로그 관리**: 장르/캐릭터/물품 종류 등 선택지를 직접 추가·삭제·이름 변경할 수 있고,
-  드래그 앤 드롭으로 노출 순서를 바꿀 수 있습니다.
-- **행사 체크리스트**: 오프라인 행사(마켓 등) 참여 시 부스별로 구매/수령할 목록을 미리
-  적어두고 당일 확인할 수 있습니다.
-- **통계 대시보드**: 월별 구매/판매 추이, 카테고리별 합계를 확인할 수 있습니다.
-- **사진 업로드**: 품목 사진을 업로드할 때 브라우저에서 바로 회전·자유 비율로 잘라서 올릴 수
-  있습니다.
-- **PWA**: 홈 화면에 설치해 앱처럼 사용할 수 있습니다.
-- **백업**: 전체 데이터를 JSON으로 내려받을 수 있습니다.
-
-## 기술 스택
-
-- [Next.js 16](https://nextjs.org) (App Router, Server Actions)
-- [Prisma 7](https://www.prisma.io) + [Supabase](https://supabase.com) (PostgreSQL)
-- [NextAuth.js (Auth.js)](https://authjs.dev) — Google OAuth 로그인
-- [Tailwind CSS](https://tailwindcss.com)
-- [@dnd-kit](https://dndkit.com), [react-image-crop](https://github.com/sekoyo/react-image-crop)
-- 배포: [Vercel](https://vercel.com)
-
-## 로그인 방식
-
-Google OAuth로 로그인하지만, 로그인 자체는 **환경변수 `ALLOWED_EMAIL`에 등록된 이메일
-한 개만** 허용하는 화이트리스트 방식입니다(1인용 개인 가계부 앱이기 때문입니다). 직접
-배포해서 써보려면 아래 설정에서 본인 이메일로 지정해야 본인 계정으로 로그인할 수 있습니다.
+- 구매 품목 등록·수정·사진 회전/자르기, 부분 판매와 묶음 판매, 손익 계산
+- 배송비 분배, 발송 예정일/D-Day, 월 단위 발송일, 수령 확인, 발송 그룹
+- 장르·캐릭터·시리즈·물품 종류·제작자·공구자 카탈로그 및 순서 변경
+- 행사별 부스 구매/수령 체크리스트
+- 월별·카테고리별 구매/판매 통계
+- 홈 화면 설치, 첫 온라인 실행에서 준비가 끝난 뒤 오프라인 실행
+- **사진과 모든 데이터를 포함하는 JSON 백업·복원**
 
 ## 시작하기
 
-### 1. 저장소 클론 및 설치
+Node.js 20.9 이상이 필요합니다. 새 앱 실행에는 환경변수가 필요하지 않습니다.
 
 ```bash
-git clone https://github.com/pilan2/my-expense-tracker.git
-cd my-expense-tracker
-npm install
-```
-
-### 2. Supabase 프로젝트 준비
-
-1. [Supabase](https://supabase.com)에서 새 프로젝트를 만듭니다(무료 티어로 충분합니다).
-2. **Database**: 프로젝트의 **Connect** 메뉴 > **ORM** 탭에서 Prisma용 연결 문자열
-   (`DATABASE_URL`, `DIRECT_URL`)을 확인합니다.
-3. **Storage**: 품목 사진을 저장할 `item-images`라는 이름의 **public** 버킷을 만듭니다.
-   **Project Settings > API**에서 Project URL(`SUPABASE_URL`)과 `service_role` 키
-   (`SUPABASE_SERVICE_ROLE_KEY`)를 확인합니다.
-
-### 3. Google OAuth 클라이언트 준비
-
-1. [Google Cloud Console](https://console.cloud.google.com)에서 프로젝트를 만들고 OAuth
-   동의 화면을 설정합니다.
-2. **사용자 인증 정보 > OAuth 클라이언트 ID**를 만들고(웹 애플리케이션), 승인된 리디렉션
-   URI에 `http://localhost:3000/api/auth/callback/google`(배포 시에는 실제 도메인으로도
-   추가)을 등록합니다.
-3. 발급된 클라이언트 ID/보안 비밀번호를 `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`에 씁니다.
-
-### 4. 환경변수 설정
-
-`.env.example`을 `.env.local`로 복사하고 값을 채웁니다.
-
-```bash
-cp .env.example .env.local
-```
-
-- `NEXTAUTH_SECRET`은 `openssl rand -base64 32`로 생성합니다.
-- `ALLOWED_EMAIL`에는 로그인을 허용할 본인 Google 계정 이메일을 씁니다.
-
-### 5. DB 스키마 반영 및 실행
-
-```bash
-npx prisma migrate deploy
+npm ci
 npm run dev
 ```
 
-`http://localhost:3000`에서 확인할 수 있습니다.
+`http://localhost:3000`에서 확인합니다. 개발 모드에서는 서비스 워커를 등록하지 않습니다.
+오프라인 동작은 프로덕션 빌드로 확인합니다.
 
-### 배포
+```bash
+npm run build
+npm start
+```
 
-Vercel에 저장소를 연결하고, 위 환경변수를 그대로 Vercel 프로젝트 환경변수에 등록하면
-GitHub `main` 브랜치 push 시 자동으로 배포됩니다.
+모바일에서는 HTTPS 주소로 접속하고 홈 화면에 설치하세요. 화면 위에 **오프라인 사용
+준비 완료**가 표시된 뒤에는 네트워크 없이 조회·등록·수정·판매·백업이 가능합니다.
+앱 업데이트가 준비되면 **새 버전으로 다시 열기**를 눌러 적용합니다.
+작성 중인 내용은 먼저 저장하세요. 업데이트는 기기에 저장된 데이터를 삭제하지 않습니다.
+
+## 기존 클라우드 앱에서 이전
+
+**이 버전을 배포하기 전에 기존 데이터를 내보내세요.**
+기존 앱의 백업은 품목과 판매만 포함하므로 행사·카탈로그·발송 그룹·사진까지 보존하려면
+전체 내보내기 도구를 사용합니다.
+
+```bash
+npm --prefix tools/cloud-export install
+node --env-file=.env.local tools/cloud-export/export.mjs /tmp/expense-tracker-full.json
+```
+
+생성된 JSON을 모바일로 옮기고 새 앱의 **백업 → 불러오기**에서 가져옵니다.
+도구는 기존 DB와 사진을 읽기만 하며, 클라우드 데이터는 수정·삭제하지 않습니다.
+자세한 준비·이전 절차와 이전 백업 형식의 제한은 [로컬 저장 안내](docs/local-storage.md)를
+참고하세요. 실제 클라우드 데이터 이전과 서비스 종료는 자동으로 수행하지 않습니다.
+
+## 데이터 보관
+
+- 기기·브라우저·사이트 주소마다 데이터가 분리됩니다. PC와 자동 동기화하지 않습니다.
+- 브라우저 데이터 삭제, 기기 변경·분실, 도메인 변경 전에 JSON 백업을 보관하세요.
+- 백업 화면에서 지속 저장을 요청할 수 있지만, 브라우저가 허용하지 않을 수도 있습니다.
+- 불러오기는 현재 기기의 **전체 데이터 교체**입니다. 먼저 현재 데이터를 백업하세요.
+- 신규 사진과 버전 2 백업 복원은 클라우드 저장소가 필요 없습니다. 이전 형식의 백업에서
+  사진 URL을 가져올 때만 해당 URL에 접속합니다.
+
+## 구현
+
+Next.js App Router + React + TypeScript + Tailwind CSS를 사용합니다.
+기존 App Router 경로들은 같은 클라이언트 앱을 제공하고, 앱 내부 이동은 브라우저
+History API로 처리해 화면 이동마다 서버 응답을 기다리지 않습니다.
+
+- `src/views/`: 기존 화면·통계 표시 로직
+- `src/lib/local/`: IndexedDB, 원자적 저장, 검증, 로컬 조회, 백업, 내부 이동
+- `src/lib/actions/`: 서버 액션을 대체한 로컬 저장 함수
+- `scripts/build-service-worker.mjs`: 빌드별 앱 파일 사전 캐시 생성
+- `tools/cloud-export/`: 기존 클라우드의 일회성 읽기 전용 내보내기
+- `prisma/`: 이전 클라우드 스키마·마이그레이션 기록(앱 실행에 사용하지 않음)
+
+Prisma, PostgreSQL 클라이언트, NextAuth는 앱 의존성에서 제거했습니다.
+사진은 메타데이터와 별도 저장해 일반 수정 때 사진 전체를 다시 기록하지 않습니다.
+관련 레코드와 사진은 하나의 IndexedDB 트랜잭션으로 저장됩니다.
+
+## 검증 및 배포
+
+```bash
+npx tsc --noEmit -p .
+npm run lint
+npm test
+npm run build
+npx playwright install chromium  # 브라우저가 설치되어 있지 않은 경우
+npm run test:e2e
+npm audit
+```
+
+브라우저 테스트는 포트 3100에서 프로덕션 서버를 실행하고 모바일 뷰포트로 검사합니다.
+데이터는 테스트 브라우저에만 저장되며 실제 DB나 사용자 기기에 연결하지 않습니다.
+
+Vercel에서는 일반 Next.js 프로젝트로 배포합니다. 빌드 명령은 `npm run build`를 사용해
+서비스 워커도 생성해야 합니다. 새 앱에는 기존 DB/OAuth/Supabase 환경변수가 필요하지
+않습니다. 데이터 이전 결과를 확인한 뒤 배포 설정에서 정리하세요.
 
 ## 라이선스
 
-[MIT](./LICENSE)
+[MIT](LICENSE)

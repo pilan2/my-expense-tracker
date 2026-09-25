@@ -1,54 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { Suspense } from "react";
-import { Geist, Geist_Mono } from "next/font/google";
-import { auth } from "@/auth";
-import { NavBar } from "@/components/nav-bar";
-import { ScrollRestoration } from "@/components/scroll-restoration";
-import { DateRefresher } from "@/components/date-refresher";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "My Expense Tracker",
-  description: "소비/판매 내역 관리",
+  description: "기기에 저장하는 개인 소비/판매 내역 관리",
 };
-
 export const viewport: Viewport = {
-  themeColor: "#0a0a0a",
-  width: "device-width",
-  initialScale: 1,
+  themeColor: "#0a0a0a", width: "device-width", initialScale: 1,
 };
-
-export default async function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  const session = await auth();
-
-  return (
-    <html
-      lang="ko"
-      suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full w-full overflow-x-hidden">
-        <Suspense fallback={null}>
-          <ScrollRestoration />
-        </Suspense>
-        <DateRefresher />
-        {session && <NavBar email={session.user?.email} />}
-        {children}
-      </body>
-    </html>
-  );
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  return <html lang="ko" className="h-full antialiased"><body className="min-h-full w-full overflow-x-hidden">{children}</body></html>;
 }

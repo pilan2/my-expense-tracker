@@ -1,0 +1,7 @@
+{
+  "name": "expense-tracker-cloud-export",
+  "private": true,
+  "type": "module",
+  "description": "기존 클라우드 데이터의 일회성 읽기 전용 내보내기",
+  "dependencies": { "pg": "^8.22.0" }
+}

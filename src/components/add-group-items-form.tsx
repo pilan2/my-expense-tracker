@@ -1,5 +1,7 @@
 "use client";
 
+import { LocalForm } from "@/components/local-form";
+
 import { useMemo, useState } from "react";
 
 type ItemOption = { id: string; genre: string; character: string; detail: string };
@@ -29,9 +31,9 @@ export function AddGroupItemsForm({
   }
 
   return (
-    <form
-      action={(formData) => {
-        action(formData);
+    <LocalForm
+      action={async (formData) => {
+        await action(formData);
         setSelectedIds([]);
         setFilter("");
       }}
@@ -74,6 +76,6 @@ export function AddGroupItemsForm({
       >
         선택한 품목 추가
       </button>
-    </form>
+    </LocalForm>
   );
 }

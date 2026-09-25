@@ -1,5 +1,7 @@
 "use client";
 
+import { LocalForm } from "@/components/local-form";
+
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 import { EditableName } from "@/components/editable-name";
 import { DragHandle, SortableList } from "@/components/sortable-list";
@@ -48,14 +50,14 @@ export function GenreList({ genres, actions }: { genres: GenreCatalogEntry[]; ac
                 <EditableName name={genre.name} action={actions.renameGenre.bind(null, genre.id)} />
               </h2>
             </div>
-            <form action={actions.deleteGenre.bind(null, genre.id)}>
+            <LocalForm action={actions.deleteGenre.bind(null, genre.id)}>
               <ConfirmSubmitButton
                 confirmMessage={`"${genre.name}" 장르를 삭제하시겠습니까? 이 장르에 속한 캐릭터/시리즈/제작자/공구자 목록도 함께 삭제됩니다.`}
                 className="text-sm text-red-600 hover:underline"
               >
                 장르 삭제
               </ConfirmSubmitButton>
-            </form>
+            </LocalForm>
           </div>
 
           <details>
@@ -80,14 +82,14 @@ export function GenreList({ genres, actions }: { genres: GenreCatalogEntry[]; ac
                             <EditableName name={character.name} action={actions.renameCharacter.bind(null, character.id)} />
                           </span>
                         </div>
-                        <form action={actions.deleteCharacter.bind(null, character.id)}>
+                        <LocalForm action={actions.deleteCharacter.bind(null, character.id)}>
                           <ConfirmSubmitButton
                             confirmMessage={`"${character.name}" 캐릭터를 삭제하시겠습니까? 이 캐릭터의 시리즈 목록도 함께 삭제됩니다.`}
                             className="text-xs text-red-600 hover:underline"
                           >
                             캐릭터 삭제
                           </ConfirmSubmitButton>
-                        </form>
+                        </LocalForm>
                       </div>
 
                       <ul className="mb-2 flex flex-wrap gap-1.5">
@@ -97,14 +99,14 @@ export function GenreList({ genres, actions }: { genres: GenreCatalogEntry[]; ac
                             className="flex items-center gap-1 rounded-full border border-neutral-200 py-0.5 pr-1 pl-2 text-xs dark:border-neutral-800"
                           >
                             <EditableName name={series.name} action={actions.renameSeries.bind(null, series.id)} />
-                            <form action={actions.deleteSeries.bind(null, series.id)}>
+                            <LocalForm action={actions.deleteSeries.bind(null, series.id)}>
                               <ConfirmSubmitButton
                                 confirmMessage={`"${series.name}" 시리즈를 삭제하시겠습니까?`}
                                 className="flex h-4 w-4 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
                               >
                                 ×
                               </ConfirmSubmitButton>
-                            </form>
+                            </LocalForm>
                           </li>
                         ))}
                         {character.series.length === 0 && (
@@ -112,7 +114,7 @@ export function GenreList({ genres, actions }: { genres: GenreCatalogEntry[]; ac
                         )}
                       </ul>
 
-                      <form action={actions.addSeries.bind(null, character.id)} className="flex gap-2">
+                      <LocalForm action={actions.addSeries.bind(null, character.id)} className="flex gap-2">
                         <input
                           name="name"
                           placeholder="새 시리즈 이름"
@@ -125,13 +127,13 @@ export function GenreList({ genres, actions }: { genres: GenreCatalogEntry[]; ac
                         >
                           시리즈 추가
                         </button>
-                      </form>
+                      </LocalForm>
                     </div>
                   )}
                 />
               )}
 
-              <form action={actions.addCharacter.bind(null, genre.id)} className="mt-3 flex gap-2">
+              <LocalForm action={actions.addCharacter.bind(null, genre.id)} className="mt-3 flex gap-2">
                 <input
                   name="name"
                   placeholder="새 캐릭터 이름"
@@ -144,7 +146,7 @@ export function GenreList({ genres, actions }: { genres: GenreCatalogEntry[]; ac
                 >
                   캐릭터 추가
                 </button>
-              </form>
+              </LocalForm>
             </div>
 
             <div className="mb-4">
@@ -156,19 +158,19 @@ export function GenreList({ genres, actions }: { genres: GenreCatalogEntry[]; ac
                     className="flex items-center gap-1.5 rounded-full border border-neutral-200 py-1 pr-1 pl-3 text-sm dark:border-neutral-800"
                   >
                     <EditableName name={maker.name} action={actions.renameMaker.bind(null, maker.id)} />
-                    <form action={actions.deleteMaker.bind(null, maker.id)}>
+                    <LocalForm action={actions.deleteMaker.bind(null, maker.id)}>
                       <ConfirmSubmitButton
                         confirmMessage={`"${maker.name}"을(를) 삭제하시겠습니까?`}
                         className="flex h-5 w-5 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
                       >
                         ×
                       </ConfirmSubmitButton>
-                    </form>
+                    </LocalForm>
                   </li>
                 ))}
                 {genre.makers.length === 0 && <li className="text-sm text-neutral-500">없습니다.</li>}
               </ul>
-              <form action={actions.addMaker.bind(null, genre.id)} className="flex gap-2">
+              <LocalForm action={actions.addMaker.bind(null, genre.id)} className="flex gap-2">
                 <input
                   name="name"
                   placeholder="새 제작자 이름"
@@ -181,7 +183,7 @@ export function GenreList({ genres, actions }: { genres: GenreCatalogEntry[]; ac
                 >
                   제작자 추가
                 </button>
-              </form>
+              </LocalForm>
             </div>
 
             <div>
@@ -193,19 +195,19 @@ export function GenreList({ genres, actions }: { genres: GenreCatalogEntry[]; ac
                     className="flex items-center gap-1.5 rounded-full border border-neutral-200 py-1 pr-1 pl-3 text-sm dark:border-neutral-800"
                   >
                     <EditableName name={organizer.name} action={actions.renameOrganizer.bind(null, organizer.id)} />
-                    <form action={actions.deleteOrganizer.bind(null, organizer.id)}>
+                    <LocalForm action={actions.deleteOrganizer.bind(null, organizer.id)}>
                       <ConfirmSubmitButton
                         confirmMessage={`"${organizer.name}"을(를) 삭제하시겠습니까?`}
                         className="flex h-5 w-5 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
                       >
                         ×
                       </ConfirmSubmitButton>
-                    </form>
+                    </LocalForm>
                   </li>
                 ))}
                 {genre.organizers.length === 0 && <li className="text-sm text-neutral-500">없습니다.</li>}
               </ul>
-              <form action={actions.addOrganizer.bind(null, genre.id)} className="flex gap-2">
+              <LocalForm action={actions.addOrganizer.bind(null, genre.id)} className="flex gap-2">
                 <input
                   name="name"
                   placeholder="새 공구자 이름"
@@ -218,7 +220,7 @@ export function GenreList({ genres, actions }: { genres: GenreCatalogEntry[]; ac
                 >
                   공구자 추가
                 </button>
-              </form>
+              </LocalForm>
             </div>
           </details>
         </div>

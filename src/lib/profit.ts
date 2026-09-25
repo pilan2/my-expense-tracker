@@ -1,5 +1,4 @@
-// prisma를 건드리지 않는 순수 계산 함수만 모아둔 파일. item-card.tsx처럼 클라이언트
-// 컴포넌트에서도 import할 수 있어야 해서, server-only인 lib/sales.ts와 분리했다.
+// 저장소에 의존하지 않는 수량·손익 계산 함수.
 
 // 판매 건 하나(quantitySold, saleAmount)만의 손익. calcProfit을 원소 1개짜리 배열로 호출해 재사용.
 export function calcSaleProfit(sale: {

@@ -1,5 +1,7 @@
 "use client";
 
+import { LocalForm } from "@/components/local-form";
+
 import { useState } from "react";
 
 export function EditGroupLabelForm({
@@ -24,9 +26,9 @@ export function EditGroupLabelForm({
   }
 
   return (
-    <form
-      action={(formData) => {
-        action(formData);
+    <LocalForm
+      action={async (formData) => {
+        await action(formData);
         setEditing(false);
       }}
       className="flex flex-wrap items-center gap-1"
@@ -50,6 +52,6 @@ export function EditGroupLabelForm({
       >
         취소
       </button>
-    </form>
+    </LocalForm>
   );
 }

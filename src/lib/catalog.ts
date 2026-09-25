@@ -1,5 +1,4 @@
-import "server-only";
-import { prisma } from "@/lib/prisma";
+import { db, transactionDb } from "@/lib/local/repository";
 
 export type GenreCatalogEntry = {
   id: string;
@@ -28,8 +27,8 @@ function compareByOrder<T extends { name: string; order: number }>(a: T, b: T) {
 }
 
 // 품목 등록 폼의 버튼 선택지 + /catalog 관리 화면에서 함께 쓰는 장르/캐릭터/시리즈/제작자/공구자 목록.
-export async function getGenreCatalog(): Promise<GenreCatalogEntry[]> {
-  const genres = await prisma.genre.findMany({
+export  function getGenreCatalog(): GenreCatalogEntry[] {
+  const genres = db.genre.findMany({
     orderBy: [{ order: "asc" }, { name: "asc" }],
     include: {
       characters: {
@@ -59,8 +58,8 @@ export async function getGenreCatalog(): Promise<GenreCatalogEntry[]> {
 }
 
 // 장르/캐릭터와 무관한 전역 물품 종류(대분류) 목록.
-export async function getItemTypeCatalog(): Promise<ItemTypeCatalogEntry[]> {
-  const itemTypes = await prisma.itemType.findMany({ orderBy: [{ order: "asc" }, { name: "asc" }] });
+export  function getItemTypeCatalog(): ItemTypeCatalogEntry[] {
+  const itemTypes = db.itemType.findMany({ orderBy: [{ order: "asc" }, { name: "asc" }] });
   return [...itemTypes].sort(compareByOrder);
 }
 
@@ -73,12 +72,12 @@ export type CatalogOrderMaps = {
   itemType: Map<string, number>;
 };
 
-export async function getCatalogOrderMaps(): Promise<CatalogOrderMaps> {
-  const [genres, characters, itemTypes] = await Promise.all([
-    prisma.genre.findMany({ select: { name: true, order: true } }),
-    prisma.character.findMany({ select: { name: true, order: true, genre: { select: { name: true } } } }),
-    prisma.itemType.findMany({ select: { name: true, order: true } }),
-  ]);
+export  function getCatalogOrderMaps(): CatalogOrderMaps {
+  const [genres, characters, itemTypes] = [
+    db.genre.findMany({ select: { name: true, order: true } }),
+    db.character.findMany({ select: { name: true, order: true, genre: { select: { name: true } } } }),
+    db.itemType.findMany({ select: { name: true, order: true } }),
+  ] as const;
 
   return {
     genre: new Map(genres.map((g) => [g.name, g.order])),
@@ -109,7 +108,7 @@ export function compareCharacterByCatalogOrder(
 }
 
 // 품목 저장 시 새로 쓰인 값들을, 다음부터 버튼으로 고를 수 있도록 카탈로그에 채워 넣는다.
-// 이미 있으면 조용히 무시(품목 저장 자체를 막으면 안 되므로 실패해도 무시).
+// 이미 있는 이름은 유지하며, 품목과 카탈로그는 한 트랜잭션으로 저장한다.
 export async function ensureInCatalog(data: {
   genre: string;
   character: string;
@@ -118,44 +117,40 @@ export async function ensureInCatalog(data: {
   maker: string | null;
   organizer: string | null;
 }) {
-  try {
-    const genre = await prisma.genre.upsert({
-      where: { name: data.genre },
-      create: { name: data.genre },
+  const genre = await transactionDb.genre.upsert({
+    where: { name: data.genre },
+    create: { name: data.genre },
+    update: {},
+  });
+  const character = await transactionDb.character.upsert({
+    where: { genreId_name: { genreId: genre.id, name: data.character } },
+    create: { name: data.character, genreId: genre.id },
+    update: {},
+  });
+  await transactionDb.itemType.upsert({
+    where: { name: data.itemType },
+    create: { name: data.itemType },
+    update: {},
+  });
+  if (data.series) {
+    await transactionDb.series.upsert({
+      where: { characterId_name: { characterId: character.id, name: data.series } },
+      create: { name: data.series, characterId: character.id },
       update: {},
     });
-    const character = await prisma.character.upsert({
-      where: { genreId_name: { genreId: genre.id, name: data.character } },
-      create: { name: data.character, genreId: genre.id },
+  }
+  if (data.maker) {
+    await transactionDb.maker.upsert({
+      where: { genreId_name: { genreId: genre.id, name: data.maker } },
+      create: { name: data.maker, genreId: genre.id },
       update: {},
     });
-    await prisma.itemType.upsert({
-      where: { name: data.itemType },
-      create: { name: data.itemType },
+  }
+  if (data.organizer) {
+    await transactionDb.organizer.upsert({
+      where: { genreId_name: { genreId: genre.id, name: data.organizer } },
+      create: { name: data.organizer, genreId: genre.id },
       update: {},
     });
-    if (data.series) {
-      await prisma.series.upsert({
-        where: { characterId_name: { characterId: character.id, name: data.series } },
-        create: { name: data.series, characterId: character.id },
-        update: {},
-      });
-    }
-    if (data.maker) {
-      await prisma.maker.upsert({
-        where: { genreId_name: { genreId: genre.id, name: data.maker } },
-        create: { name: data.maker, genreId: genre.id },
-        update: {},
-      });
-    }
-    if (data.organizer) {
-      await prisma.organizer.upsert({
-        where: { genreId_name: { genreId: genre.id, name: data.organizer } },
-        create: { name: data.organizer, genreId: genre.id },
-        update: {},
-      });
-    }
-  } catch {
-    // 카탈로그 동기화 실패는 품목 저장 자체를 막을 이유가 없으니 무시.
   }
 }

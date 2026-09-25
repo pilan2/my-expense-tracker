@@ -1,3 +1,5 @@
+
+import { LocalImage } from "@/components/local-image";
 import { formatShipDDay, formatShipDateLabel, isShipmentOverdue } from "@/lib/dday";
 import { calcProfit } from "@/lib/profit";
 
@@ -59,8 +61,7 @@ export function ItemCardContent({
   return (
     <div className="flex items-start gap-3">
       {imageUrl && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={imageUrl} alt="" className="h-14 w-14 shrink-0 rounded-md object-cover" />
+        <LocalImage src={imageUrl} alt="" className="h-14 w-14 shrink-0 rounded-md object-cover" />
       )}
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <p className="font-medium">

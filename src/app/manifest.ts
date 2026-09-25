@@ -4,7 +4,9 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "My Expense Tracker",
     short_name: "소비 트래커",
-    description: "소비/판매 내역 관리",
+    description: "기기에 저장하는 개인 소비/판매 내역 관리",
+    id: "/",
+    scope: "/",
     start_url: "/",
     display: "standalone",
     background_color: "#0a0a0a",

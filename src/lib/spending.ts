@@ -1,5 +1,4 @@
-import "server-only";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/local/repository";
 import { calcProfit } from "@/lib/sales";
 import { getCatalogOrderMaps, compareNameByCatalogOrder, compareCharacterByCatalogOrder } from "@/lib/catalog";
 
@@ -37,9 +36,9 @@ function addInto(target: { purchaseTotal: number; saleTotal: number; profit: num
 
 // 품목을 장르 > 캐릭터로 묶어서, 각 단위마다 구매액/판매액/손익을 함께 계산한다.
 // 판매되지 않은 품목은 saleTotal=0, profit은 판매된 만큼만 반영(배송비도 판매 비율만큼만).
-export async function getCategorySummary(): Promise<CategorySummary> {
-  const [items, orderMaps] = await Promise.all([
-    prisma.item.findMany({
+export  function getCategorySummary(): CategorySummary {
+  const [items, orderMaps] = [
+    db.item.findMany({
       select: {
         genre: true,
         character: true,
@@ -50,7 +49,7 @@ export async function getCategorySummary(): Promise<CategorySummary> {
       },
     }),
     getCatalogOrderMaps(),
-  ]);
+  ] as const;
 
   const genreMap = new Map<string, Map<string, CharacterSummary>>();
 
@@ -108,8 +107,8 @@ export type MakerSummary = {
 
 // 제작한 사람(작가)별로 묶어서 구매액/판매액/손익을 계산한다. 장르와 무관하게 이름이 같으면
 // 하나로 묶인다(제작자는 여러 장르에 걸쳐 활동할 수 있으므로).
-export async function getMakerSummary(): Promise<MakerSummary[]> {
-  const items = await prisma.item.findMany({
+export  function getMakerSummary(): MakerSummary[] {
+  const items = db.item.findMany({
     where: { maker: { not: null } },
     select: {
       maker: true,
