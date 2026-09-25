@@ -58,8 +58,20 @@
 
 ```bash
 npx tsc --noEmit -p .
-npx tsx --test tests/local-data.test.ts
+npm test
 ```
 
 테스트는 실제 사용자 IndexedDB와 클라우드에 연결하지 않는다. 모의 IndexedDB에서
 저장 완료 시점, 롤백, 사진 정리, 관계 조회, 연쇄 삭제, 백업 호환과 손상 입력을 검사한다.
+
+## 배포 빌드
+
+Vercel의 Build Command는 `npm run build`를 사용한다. Next.js 빌드 후
+`scripts/build-service-worker.mjs`가 오프라인용 `public/sw.js`를 생성한다.
+이 파일은 Git에 저장하지 않으며, 새 체크아웃에는 `public` 폴더도 없을 수 있으므로
+스크립트가 폴더를 먼저 생성한다. 완료 시 `Generated public/sw.js` 로그가 출력된다.
+
+Next.js 페이지 목록까지 출력된 뒤 빌드가 실패하면 그 아래의 서비스 워커 생성 로그도
+확인한다. `ENOENT ... public/sw.js` 오류는 출력 폴더가 없을 때 발생했던 문제로,
+폴더 자동 생성 수정이 포함된 최신 커밋으로 배포하면 해결된다.
+`npm test`에는 출력 폴더가 없는 최초 빌드와 폴더가 있는 재빌드 검증이 포함되어 있다.
