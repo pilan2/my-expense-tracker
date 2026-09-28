@@ -136,3 +136,30 @@ test("카탈로그 이름 변경, 배송비 배분, 묶음 판매와 삭제 확�
   await page.goto("/events/event-1");
   await expect(page.getByText("아직 등록한 항목이 없습니다.")).toBeVisible();
 });
+
+test("행사만 복구: 모바일 기존 품목·사진 유지, 재선택 시 중복 방지", async ({ page }) => {
+  await importFixture(page);
+  const source = fixture();
+  const file = {
+    format: "expense-tracker-events", schemaVersion: 1,
+    event: source.data.event.map(row => ({ ...row, id: "recovered-event", name: "복구된 행사" })),
+    eventChecklistItem: source.data.eventChecklistItem.map(row => ({ ...row, id: "recovered-entry", eventId: "recovered-event" })),
+  };
+  const input = { name: "events.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(file)) };
+  await page.getByLabel("행사 복구 파일").setInputFiles(input);
+  await expect(page.getByText("추가할 행사 1개 · 체크리스트 1개 · 이미 있는 행사 0개")).toBeVisible();
+  page.once("dialog", dialog => dialog.accept());
+  await page.getByRole("button", { name: "행사만 추가", exact: true }).click();
+  await expect(page.getByText("행사 1개 · 체크리스트 1개를 추가했습니다. 기존 행사 0개는 유지했습니다.")).toBeVisible();
+  await page.getByLabel("행사 복구 파일").setInputFiles(input);
+  await expect(page.getByText("추가할 행사 0개 · 체크리스트 0개 · 이미 있는 행사 1개")).toBeVisible();
+  await expect(page.getByRole("button", { name: "행사만 추가", exact: true })).toBeDisabled();
+  await page.getByRole("link", { name: "행사", exact: true }).click();
+  await expect(page.getByText("복구된 행사", { exact: true })).toBeVisible();
+  await expect(page.getByText("테스트 행사", { exact: true })).toBeVisible();
+  await page.reload();
+  await page.getByRole("link").filter({ hasText: "복구된 행사" }).click();
+  await expect(page.getByRole("button", { name: "완료 체크" })).toBeVisible();
+  await page.getByRole("link", { name: "상세보기 →" }).click();
+  await expect.poll(() => page.locator('img').first().evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(1);
+});

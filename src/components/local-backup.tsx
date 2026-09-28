@@ -1,5 +1,6 @@
 "use client";
 import { useRef, useState } from "react";
+import { EventRecovery } from "./event-recovery";
 import { BackButton } from "./back-button";
 import { LocalForm } from "./local-form";
 import { parseBackup, restoreParsedBackup, exportBackup, downloadJson } from "@/lib/local/backup";
@@ -44,6 +45,7 @@ export default function LocalBackup() {
         {backup.legacy && <p className="mt-2 text-amber-700 dark:text-amber-400">이전 버전의 백업입니다. 백업에 없던 행사·체크리스트·카탈로그 순서는 복원되지 않습니다. 사진은 인터넷으로 가져옵니다. 모든 정보를 보존하려면 이전 안내의 전체 내보내기를 사용해주세요.</p>}</div>}
       <button type="submit" disabled={!backup || reading} className="rounded bg-red-600 px-4 py-2 text-sm text-white disabled:opacity-40">불러오기 (기존 데이터 교체)</button>
     </LocalForm>
+    <EventRecovery />
     {message && <p role="status" className="text-sm">{message}</p>}
     <div className="text-sm"><button className="underline" onClick={async () => {
       try { setPersistent(await navigator.storage?.persist?.() ? "브라우저의 지속 저장이 허용됐습니다. 별도 백업도 계속 보관해주세요." : "브라우저가 지속 저장을 허용하지 않았습니다. 정기적으로 백업해주세요."); }
