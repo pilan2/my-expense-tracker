@@ -74,6 +74,8 @@ export async function restoreParsedBackup(backup: ReturnType<typeof parseBackup>
 
 export async function exportBackup() {
   const { data, images: blobs } = await readBackupSnapshot();
+  // 행사·체크리스트를 포함한 모든 테이블과 참조를 검사한 뒤 파일을 만든다.
+  validateData(data);
   const images: Record<string, string> = {};
   for (const [id, blob] of blobs) images[id] = await blobToDataUrl(blob);
   return { schemaVersion: 2, exportedAt: new Date().toISOString(), data, images };

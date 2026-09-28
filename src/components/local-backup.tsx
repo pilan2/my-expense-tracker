@@ -1,11 +1,13 @@
 "use client";
 import { useRef, useState } from "react";
+import { currentData } from "@/lib/local/database";
 import { EventRecovery } from "./event-recovery";
 import { BackButton } from "./back-button";
 import { LocalForm } from "./local-form";
 import { parseBackup, restoreParsedBackup, exportBackup, downloadJson } from "@/lib/local/backup";
 
 export default function LocalBackup() {
+  const data = currentData();
   const selection = useRef(0);
   const [backup, setBackup] = useState<ReturnType<typeof parseBackup>>();
   const [error, setError] = useState("");
@@ -15,9 +17,15 @@ export default function LocalBackup() {
   return <div className="mx-auto max-w-xl space-y-6 p-6">
     <BackButton href="/" /><h1 className="text-xl font-semibold">백업 및 기기 저장</h1>
     <p className="text-sm text-neutral-500">데이터와 사진은 이 기기의 현재 브라우저에만 저장됩니다. 브라우저 데이터 삭제나 기기 변경에 대비해 백업 파일을 앱 밖에 보관해주세요.</p>
-    <LocalForm action={async () => { downloadJson(await exportBackup()); setMessage("사진을 포함한 전체 백업을 만들었습니다. 다운로드한 파일을 보관해주세요."); }} className="rounded-md border border-neutral-300 p-4 dark:border-neutral-700">
+    <LocalForm action={async () => {
+      setMessage("");
+      const exported = await exportBackup();
+      downloadJson(exported);
+      setMessage(`전체 백업 파일을 만들었습니다: 품목 ${exported.data.item.length}개 · 판매 ${exported.data.sale.length}개 · 행사 ${exported.data.event.length}개 · 체크리스트 ${exported.data.eventChecklistItem.length}개 · 사진 ${Object.keys(exported.images).length}개. 다운로드한 파일을 보관해주세요.`);
+    }} className="rounded-md border border-neutral-300 p-4 dark:border-neutral-700">
       <h2 className="mb-2 font-medium">전체 백업 다운로드</h2>
       <p className="mb-3 text-sm">품목, 판매, 행사, 체크리스트, 카탈로그 순서, 발송 그룹, 사진을 모두 포함합니다.</p>
+      <p className="mb-3 text-sm">현재 기기의 행사 {data.event.length}개 · 체크리스트 {data.eventChecklistItem.length}개도 함께 백업합니다.</p>
       <button type="submit" className="rounded bg-neutral-900 px-4 py-2 text-white dark:bg-neutral-100 dark:text-neutral-900">다운로드</button>
     </LocalForm>
     <LocalForm action={async () => {
@@ -41,8 +49,8 @@ export default function LocalBackup() {
       }} className="max-w-full text-sm" />
       {reading && <p role="status">백업 검사 중…</p>}
       {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
-      {backup && <div className="text-sm"><p>품목 {backup.data.item.length}개 · 판매 {backup.data.sale.length}개 · 행사 {backup.data.event.length}개 · 사진 {backup.images.size}개</p>
-        {backup.legacy && <p className="mt-2 text-amber-700 dark:text-amber-400">이전 버전의 백업입니다. 백업에 없던 행사·체크리스트·카탈로그 순서는 복원되지 않습니다. 사진은 인터넷으로 가져옵니다. 모든 정보를 보존하려면 이전 안내의 전체 내보내기를 사용해주세요.</p>}</div>}
+      {backup && <div className="text-sm"><p>품목 {backup.data.item.length}개 · 판매 {backup.data.sale.length}개 · 행사 {backup.data.event.length}개 · 체크리스트 {backup.data.eventChecklistItem.length}개 · 사진 {backup.images.size}개</p>
+        {backup.legacy && <p className="mt-2 text-amber-700 dark:text-amber-400">이전 버전의 백업입니다. 이 파일에는 행사·체크리스트가 없습니다. 전체 교체 시 현재 기기의 행사·체크리스트도 삭제됩니다. 카탈로그 순서도 복원되지 않습니다. 사진은 인터넷으로 가져옵니다. 모든 정보를 보존하려면 이전 안내의 전체 내보내기를 사용해주세요.</p>}</div>}
       <button type="submit" disabled={!backup || reading} className="rounded bg-red-600 px-4 py-2 text-sm text-white disabled:opacity-40">불러오기 (기존 데이터 교체)</button>
     </LocalForm>
     <EventRecovery />

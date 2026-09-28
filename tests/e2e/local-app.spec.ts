@@ -17,7 +17,7 @@ function fixture() {
 async function importFixture(page: Page) {
   await page.goto("/backup");
   await page.getByLabel("백업 파일").setInputFiles({ name: "backup.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(fixture())) });
-  await expect(page.getByText("품목 1개 · 판매 0개 · 행사 1개 · 사진 1개")).toBeVisible();
+  await expect(page.getByText("품목 1개 · 판매 0개 · 행사 1개 · 체크리스트 1개 · 사진 1개")).toBeVisible();
   page.once("dialog", dialog => dialog.accept());
   await page.getByRole("button", { name: "불러오기 (기존 데이터 교체)" }).click();
   await expect(page.getByText("백업을 이 기기에 저장했습니다.")).toBeVisible();
@@ -162,4 +162,57 @@ test("행사만 복구: 모바일 기존 품목·사진 유지, 재선택 시 �
   await expect(page.getByRole("button", { name: "완료 체크" })).toBeVisible();
   await page.getByRole("link", { name: "상세보기 →" }).click();
   await expect.poll(() => page.locator('img').first().evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(1);
+});
+
+test("전체 백업 왕복: 행사 2개·체크리스트 35개와 모든 데이터를 새 기기에 보존", async ({ page, browser }) => {
+  const original = fixture();
+  original.data.event.push({ ...original.data.event[0], id: "event-2", name: "두 번째 행사", date: new Date("2030-10-10T00:00:00.000Z") });
+  const entry = original.data.eventChecklistItem[0];
+  original.data.eventChecklistItem = Array.from({ length: 35 }, (_, index) => ({
+    ...entry, id: `entry-${index}`, eventId: index < 20 ? "event-1" : "event-2",
+    booth: `A-${index}`, label: `항목 ${index}`, checked: index % 2 === 0,
+    type: index % 2 === 0 ? "PICKUP" : "PURCHASE", itemId: index % 2 === 0 ? "item-1" : null,
+    price: 1000 + index, quantity: index + 1,
+  }));
+  const json = JSON.parse(JSON.stringify(original));
+  async function restore(target: Page, value: unknown) {
+    await target.goto("/backup");
+    await target.getByLabel("백업 파일").setInputFiles({ name: "full.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(value)) });
+    await expect(target.getByText("품목 1개 · 판매 0개 · 행사 2개 · 체크리스트 35개 · 사진 1개", { exact: true })).toBeVisible();
+    target.once("dialog", dialog => dialog.accept());
+    await target.getByRole("button", { name: "불러오기 (기존 데이터 교체)" }).click();
+    await expect(target.getByText("백업을 이 기기에 저장했습니다.")).toBeVisible();
+  }
+  async function download(target: Page) {
+    const pending = target.waitForEvent("download");
+    await target.getByRole("button", { name: "다운로드", exact: true }).click();
+    const stream = await (await pending).createReadStream();
+    const chunks: Buffer[] = [];
+    for await (const chunk of stream!) chunks.push(Buffer.from(chunk));
+    await expect(target.getByRole("status").filter({ hasText: "전체 백업 파일을 만들었습니다" })).toContainText("행사 2개 · 체크리스트 35개");
+    return JSON.parse(Buffer.concat(chunks).toString());
+  }
+  await restore(page, original);
+  await expect(page.getByText("현재 기기의 행사 2개 · 체크리스트 35개도 함께 백업합니다.")).toBeVisible();
+  const exported = await download(page);
+  expect(exported.data).toEqual(json.data);
+  expect(exported.images).toEqual(json.images);
+  const isolated = await browser.newContext({ baseURL: "http://localhost:3100", viewport: { width: 393, height: 851 }, isMobile: true, hasTouch: true });
+  try {
+    const target = await isolated.newPage();
+    await restore(target, exported);
+    await target.reload();
+    await expect(target.getByText("현재 기기의 행사 2개 · 체크리스트 35개도 함께 백업합니다.")).toBeVisible();
+    const roundTrip = await download(target);
+    expect(roundTrip.data).toEqual(json.data);
+    expect(roundTrip.images).toEqual(json.images);
+    // 빈 배열과 구분하여, 목록 자체가 누락된 파일은 적용하지 않는다.
+    for (const table of ["event", "eventChecklistItem"]) {
+      const broken = structuredClone(exported);
+      delete broken.data[table];
+      await target.getByLabel("백업 파일").setInputFiles({ name: "broken.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(broken)) });
+      await expect(target.getByRole("alert").filter({ hasText: `백업에 ${table} 목록이 없습니다.` })).toBeVisible();
+      await expect(target.getByRole("button", { name: "불러오기 (기존 데이터 교체)" })).toBeDisabled();
+    }
+  } finally { await isolated.close(); }
 });
