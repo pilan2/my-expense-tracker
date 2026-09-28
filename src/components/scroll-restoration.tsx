@@ -12,7 +12,8 @@ export function ScrollRestoration() {
   const key = `scroll:${pathname}?${searchParams.toString()}`;
 
   useEffect(() => {
-    const saved = sessionStorage.getItem(key);
+    // 새 품목 등록은 이전 입력 위치와 관계없이 항상 맨 위에서 시작한다.
+    const saved = pathname === "/items/new" ? null : sessionStorage.getItem(key);
     const target = saved ? Number(saved) : 0;
 
     let cancelled = false;
@@ -66,7 +67,7 @@ export function ScrollRestoration() {
       window.removeEventListener("scroll", onScroll);
       document.removeEventListener("click", onClickCapture, { capture: true });
     };
-  }, [key]);
+  }, [key, pathname]);
 
   return null;
 }
