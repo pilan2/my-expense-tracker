@@ -80,7 +80,7 @@ export function ItemCardContent({
           {Number(price).toLocaleString("ko-KR")}원
           {Number(shippingFee) > 0 ? ` (+배송비 ${Number(shippingFee).toLocaleString("ko-KR")}원)` : ""}
         </p>
-        <p className="text-sm">
+        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
           {remainingQuantity === 0 ? (
             <span className="text-neutral-500">판매 완료</span>
           ) : isPhysical ? (
@@ -103,14 +103,14 @@ export function ItemCardContent({
                 <span className="text-neutral-500">
                   발송예정 {formatShipDateLabel(expectedShipDate, shipDateApprox)}{" "}
                 </span>
-                <span className="font-medium text-blue-600">
+                <span className="whitespace-nowrap font-medium text-blue-600">
                   {formatShipDDay(expectedShipDate, shipDateApprox)}
                 </span>
               </>
             )
           )}
           {hasOverseasShipping && (
-            <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-950 dark:text-amber-300">
+            <span className="shrink-0 whitespace-nowrap rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-950 dark:text-amber-300">
               배송비 미정
             </span>
           )}
