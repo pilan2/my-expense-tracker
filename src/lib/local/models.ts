@@ -19,20 +19,38 @@ export type Entry = {
   id: string; eventId: string; booth: string; label: string; type: "PICKUP" | "PURCHASE";
   checked: boolean; price: number; quantity: number; itemId: string | null; createdAt: Date;
 };
+export type Budget = { id: string; amount: number; createdAt: Date };
+export type Wish = {
+  id: string; title: string; month: string; price: number; quantity: number; shippingFee: number;
+  reason: string | null; priority: number; deadline: Date | null; purchaseLink: string | null;
+  status: "pending" | "purchased"; itemId: string | null; createdAt: Date;
+};
 export type Models = {
   item: Item; sale: Sale; genre: Genre; character: Character; series: Series;
   itemType: Genre; maker: Maker; organizer: Maker; shippingGroup: ShippingGroup;
   event: Event; eventChecklistItem: Entry;
+  budgetRule: Budget; monthlyBudget: Budget; wish: Wish;
 };
 export type Table = keyof Models;
 export type Data = { [K in Table]: Models[K][] };
-export const tables: Table[] = ["item", "sale", "genre", "character", "series", "itemType", "maker", "organizer", "shippingGroup", "event", "eventChecklistItem"];
+export const tables: Table[] = ["item", "sale", "genre", "character", "series", "itemType", "maker", "organizer", "shippingGroup", "event", "eventChecklistItem", "budgetRule", "monthlyBudget", "wish"];
 export function emptyData(): Data {
-  return { item: [], sale: [], genre: [], character: [], series: [], itemType: [], maker: [], organizer: [], shippingGroup: [], event: [], eventChecklistItem: [] };
+  return { item: [], sale: [], genre: [], character: [], series: [], itemType: [], maker: [], organizer: [], shippingGroup: [], event: [], eventChecklistItem: [], budgetRule: [], monthlyBudget: [], wish: [] };
 }
+
+// 이전 로컬 저장본에는 새 테이블만 빈 목록으로 보충한다. 기존 테이블은 검사 대상이다.
+export function upgradeStoredData(data: Data): Data {
+  return { ...data, budgetRule: data.budgetRule === undefined ? [] : data.budgetRule,
+    monthlyBudget: data.monthlyBudget === undefined ? [] : data.monthlyBudget,
+    wish: data.wish === undefined ? [] : data.wish };
+}
+export function isBudgetMonth(value: string) { return /^[1-9]\d{3}-(0[1-9]|1[0-2])$/.test(value); }
 
 // 백업 입력 검증과 새 레코드 기본값에 같은 필드 정의를 사용한다.
 export const schema: Record<Table, Record<string, string>> = {
+  budgetRule: { id: "string", amount: "money", createdAt: "date" },
+  monthlyBudget: { id: "string", amount: "money", createdAt: "date" },
+  wish: { id: "string", title: "string", month: "string", price: "money", quantity: "positive", shippingFee: "money", reason: "string?", priority: "positive", deadline: "date?", purchaseLink: "string?", status: "wishStatus", itemId: "string?", createdAt: "date" },
   item: { id: "string", genre: "string", character: "string", series: "string?", itemType: "string", detail: "string", quantity: "positive", price: "money", purchasedAt: "date?", hasOverseasShipping: "boolean", shippingFee: "money", maker: "string?", organizer: "string?", isPhysical: "boolean", expectedShipDate: "date?", shipDateApprox: "boolean", purchaseLink: "string?", memo: "string?", imageUrl: "string?", shippingGroupId: "string?", createdAt: "date", updatedAt: "date" },
   sale: { id: "string", itemId: "string", quantitySold: "positive", saleAmount: "money", saleDate: "date?", createdAt: "date" },
   genre: { id: "string", name: "string", order: "integer", createdAt: "date" },
@@ -65,6 +83,8 @@ export function normalizeRow<K extends Table>(table: K, input: unknown): Models[
       if (!Number.isFinite(number) || number < 0 || number > Number.MAX_SAFE_INTEGER / 100 || (kind !== "money" && !Number.isInteger(number)) || (kind === "positive" && number < 1)) throw new Error(`${table}.${key}: 금액 또는 수량이 올바르지 않습니다.`);
     } else if (kind === "boolean") {
       if (typeof value !== "boolean") throw new Error(`${table}.${key}: 체크 값이 올바르지 않습니다.`);
+    } else if (kind === "wishStatus") {
+      if (value !== "pending" && value !== "purchased") throw new Error("구매 후보 상태가 올바르지 않습니다.");
     } else if (kind === "enum") {
       if (value !== "PICKUP" && value !== "PURCHASE") throw new Error("체크리스트 종류가 올바르지 않습니다.");
     } else if (typeof value !== "string" || (!kind.endsWith("?") && !value.trim())) throw new Error(`${table}.${key}: 내용을 입력해주세요.`);
@@ -79,6 +99,7 @@ export function validateData(data: Data) {
   for (const table of tables) {
     const ids = new Set<string>();
     const names = new Set<string>();
+    if (!Array.isArray(data[table])) throw new Error(`${table} 목록이 없습니다.`);
     for (const row of data[table]) {
       normalizeRow(table, row);
       if (ids.has(row.id)) throw new Error("중복된 ID가 있습니다.");
@@ -90,12 +111,26 @@ export function validateData(data: Data) {
       }
     }
   }
-  const refs: [Table, string, Table][] = [["sale", "itemId", "item"], ["character", "genreId", "genre"], ["series", "characterId", "character"], ["maker", "genreId", "genre"], ["organizer", "genreId", "genre"], ["item", "shippingGroupId", "shippingGroup"], ["eventChecklistItem", "eventId", "event"], ["eventChecklistItem", "itemId", "item"]];
+  const refs: [Table, string, Table][] = [["wish", "itemId", "item"], ["sale", "itemId", "item"], ["character", "genreId", "genre"], ["series", "characterId", "character"], ["maker", "genreId", "genre"], ["organizer", "genreId", "genre"], ["item", "shippingGroupId", "shippingGroup"], ["eventChecklistItem", "eventId", "event"], ["eventChecklistItem", "itemId", "item"]];
   for (const [table, field, parent] of refs) {
     const ids = new Set(data[parent].map(r => r.id));
     for (const row of data[table]) {
       const id = (row as unknown as Record<string, unknown>)[field];
       if (id !== null && !ids.has(String(id))) throw new Error(`${table}: 연결된 데이터를 찾을 수 없습니다.`);
+    }
+  }
+  for (const row of [...data.budgetRule, ...data.monthlyBudget]) {
+    if (!isBudgetMonth(row.id)) throw new Error("예산 월이 올바르지 않습니다.");
+    if (!Number.isInteger(row.amount)) throw new Error("예산은 원 단위 정수로 입력해주세요.");
+  }
+  const linkedItems = new Set<string>();
+  for (const wish of data.wish) {
+    if (!isBudgetMonth(wish.month) || wish.priority > 3) throw new Error("구매 후보의 월 또는 우선순위가 올바르지 않습니다.");
+    if (wish.purchaseLink && !/^https?:\/\//i.test(wish.purchaseLink)) throw new Error("구매처 링크는 http 또는 https 주소여야 합니다.");
+    if (wish.status === "pending" && wish.itemId !== null) throw new Error("구매 전 후보에 품목이 연결되어 있습니다.");
+    if (wish.itemId) {
+      if (linkedItems.has(wish.itemId)) throw new Error("여러 구매 후보가 같은 품목에 연결되어 있습니다.");
+      linkedItems.add(wish.itemId);
     }
   }
   const sold = new Map<string, number>();

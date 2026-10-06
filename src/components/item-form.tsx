@@ -1,5 +1,7 @@
 "use client";
 
+import { ItemBudgetPreview } from "./item-budget-preview";
+import { todayString } from "@/lib/budget";
 import { LocalImage } from "@/components/local-image";
 
 import { LocalForm } from "@/components/local-form";
@@ -115,12 +117,19 @@ export function ItemForm({
   genreCatalog,
   itemTypeCatalog,
   defaultValues,
+  itemId,
+  wishId,
 }: {
   action: (formData: FormData) => void;
   genreCatalog: GenreCatalogEntry[];
   itemTypeCatalog: ItemTypeCatalogEntry[];
   defaultValues?: Partial<ItemFormDefaults>;
+  itemId?: string;
+  wishId?: string;
 }) {
+  const [price, setPrice] = useState(defaultValues?.price ?? "");
+  const [shippingFee, setShippingFee] = useState(defaultValues?.shippingFee ?? "0");
+  const [purchasedAt, setPurchasedAt] = useState(defaultValues?.purchasedAt ?? todayString());
   const [quantity, setQuantity] = useState(defaultValues?.quantity ?? 1);
   const [isPhysical, setIsPhysical] = useState(defaultValues?.isPhysical ?? false);
   const [genre, setGenre] = useState(defaultValues?.genre ?? "");
@@ -161,6 +170,7 @@ export function ItemForm({
 
   return (
     <LocalForm action={action} onSubmit={handleSubmit} className="flex flex-col gap-4">
+      {wishId && <input type="hidden" name="wishId" value={wishId} />}
       <div className="flex flex-col gap-2 text-sm">
         <span className="font-medium">사진 (선택)</span>
         {defaultValues?.imageUrl && (
@@ -211,7 +221,8 @@ export function ItemForm({
       <Field label="구매일 (날짜 기반 통계에 사용 가능)">
         <ClearableDateInput
           name="purchasedAt"
-          defaultValue={defaultValues?.purchasedAt ?? new Date().toISOString().slice(0, 10)}
+          defaultValue={defaultValues?.purchasedAt ?? todayString()}
+          onValueChange={setPurchasedAt}
           className={inputClass}
         />
       </Field>
@@ -248,7 +259,8 @@ export function ItemForm({
           name="price"
           min={0}
           step={0.0001}
-          defaultValue={defaultValues?.price}
+          value={price}
+          onChange={event => setPrice(event.target.value)}
           required
           className={inputClass}
         />
@@ -298,7 +310,8 @@ export function ItemForm({
           min={0}
           // 자동 분배는 원 단위까지 정확하게 나누므로(1원 = 0.0001만원), 수기 입력도 같은 정밀도를 허용한다.
           step={0.0001}
-          defaultValue={defaultValues?.shippingFee ?? "0"}
+          value={shippingFee}
+          onChange={event => setShippingFee(event.target.value)}
           className={inputClass}
         />
       </Field>
@@ -330,6 +343,8 @@ export function ItemForm({
           className={`${inputClass} resize-y`}
         />
       </Field>
+
+      <ItemBudgetPreview date={purchasedAt} price={price} quantity={quantity} shippingFee={shippingFee} itemId={itemId} />
 
       <button
         type="submit"

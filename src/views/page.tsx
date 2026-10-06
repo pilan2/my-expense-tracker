@@ -1,3 +1,4 @@
+import { BudgetSummary } from "@/components/budget-summary";
 import Link from "@/lib/local/navigation";
 import { getCategorySummary } from "@/lib/spending";
 import { getUpcomingShipments, getRecentPurchases } from "@/lib/items";
@@ -51,6 +52,8 @@ export default  function Home() {
           + 품목 등록
         </Link>
       </div>
+
+      <BudgetSummary />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
         <div className="rounded-lg border border-neutral-200 p-4 sm:p-6 dark:border-neutral-800">

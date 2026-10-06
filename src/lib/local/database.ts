@@ -1,4 +1,4 @@
-import { emptyData, validateData, type Data } from "./models";
+import { emptyData, validateData, upgradeStoredData, type Data } from "./models";
 
 type Snapshot = { revision: number; data: Data };
 let connection: Promise<IDBDatabase> | undefined;
@@ -41,7 +41,10 @@ async function readSnapshot(): Promise<Snapshot> {
   return new Promise((resolve, reject) => {
     const tx = db.transaction("state", "readonly");
     const request = tx.objectStore("state").get("data");
-    tx.oncomplete = () => resolve(request.result ?? { revision: 0, data: emptyData() });
+    tx.oncomplete = () => {
+      const saved = request.result ?? { revision: 0, data: emptyData() };
+      resolve({ ...saved, data: upgradeStoredData(saved.data) });
+    };
     tx.onabort = () => reject(tx.error);
   });
 }
@@ -141,7 +144,7 @@ export async function readBackupSnapshot(): Promise<{ data: Data; images: Map<st
     let data = emptyData();
     let missing = false;
     state.onsuccess = () => {
-      data = state.result?.data ?? emptyData();
+      data = upgradeStoredData(state.result?.data ?? emptyData());
       for (const id of imageIds(data)) {
         const photo = tx.objectStore("images").get(id);
         photo.onsuccess = () => { if (photo.result instanceof Blob) images.set(id, photo.result); else missing = true; };

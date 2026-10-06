@@ -36,9 +36,12 @@ export function parseBackup(input: unknown): { data: Data; images: Map<string, s
       for (const table of ["maker", "organizer"] as const) if (item[table]) db[table].upsert({ where: { genreId: genre.id, name: item[table] }, create: { genreId: genre.id, name: item[table] }, update: {} });
     }
   } else {
-    if (root.schemaVersion !== 2) throw new Error("지원하지 않는 백업 버전입니다.");
+    if (root.schemaVersion !== 2 && root.schemaVersion !== 3) throw new Error("지원하지 않는 백업 버전입니다.");
     const source = object(root.data);
-    for (const table of tables) setRows(table, rows(source, table));
+    for (const table of tables) {
+      if (root.schemaVersion === 2 && ["budgetRule", "monthlyBudget", "wish"].includes(table)) continue;
+      setRows(table, rows(source, table));
+    }
     for (const [id, value] of Object.entries(object(root.images))) {
       if (!/^local-image:[a-zA-Z0-9-]+$/.test(id) || typeof value !== "string" || !/^data:image\/(jpeg|png|webp|gif);base64,[A-Za-z0-9+/]+=*$/.test(value)) throw new Error("백업 사진 형식이 올바르지 않습니다.");
       images.set(id, value);
@@ -78,7 +81,7 @@ export async function exportBackup() {
   validateData(data);
   const images: Record<string, string> = {};
   for (const [id, blob] of blobs) images[id] = await blobToDataUrl(blob);
-  return { schemaVersion: 2, exportedAt: new Date().toISOString(), data, images };
+  return { schemaVersion: 3, exportedAt: new Date().toISOString(), data, images };
 }
 
 export function downloadJson(value: unknown) {

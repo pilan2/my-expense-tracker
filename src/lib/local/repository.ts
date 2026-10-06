@@ -2,6 +2,7 @@ import { currentData, transactionData } from "./database";
 import { schema, tables, normalizeRow, ConflictError, type Data, type Models, type Table } from "./models";
 
 type Joined = {
+  budgetRule: Models["budgetRule"]; monthlyBudget: Models["monthlyBudget"]; wish: Models["wish"];
   item: Models["item"] & { sales: Joined["sale"][]; shippingGroup: Joined["shippingGroup"] | null };
   sale: Models["sale"] & { item: Joined["item"] };
   genre: Models["genre"] & { characters: Joined["character"][]; makers: Joined["maker"][]; organizers: Joined["organizer"][] };
@@ -138,7 +139,7 @@ export function createRepository(getData: () => Data, writable = false) {
     const remove = ({ where }: { where: Where }): Joined[K] => {
       const data = write(), old = findUniqueOrThrow({ where });
       data[table].splice(data[table].findIndex(r => r.id === old.id), 1);
-      if (table === "item") { data.sale = data.sale.filter(r => r.itemId !== old.id); data.eventChecklistItem = data.eventChecklistItem.filter(r => r.itemId !== old.id); }
+      if (table === "item") { for (const wish of data.wish) if (wish.itemId === old.id) wish.itemId = null; data.sale = data.sale.filter(r => r.itemId !== old.id); data.eventChecklistItem = data.eventChecklistItem.filter(r => r.itemId !== old.id); }
       if (table === "event") data.eventChecklistItem = data.eventChecklistItem.filter(r => r.eventId !== old.id);
       if (table === "shippingGroup") for (const item of data.item) if (item.shippingGroupId === old.id) item.shippingGroupId = null;
       if (table === "genre") {

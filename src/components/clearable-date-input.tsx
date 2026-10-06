@@ -7,20 +7,23 @@ export function ClearableDateInput({
   name,
   defaultValue,
   className,
+  onValueChange,
 }: {
   name: string;
   defaultValue?: string;
   className?: string;
+  onValueChange?: (value: string) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
     <div className="flex items-center gap-2">
-      <input ref={inputRef} name={name} type="date" defaultValue={defaultValue} className={className} />
+      <input ref={inputRef} name={name} type="date" defaultValue={defaultValue} onChange={event => onValueChange?.(event.target.value)} className={className} />
       <button
         type="button"
         onClick={() => {
           if (inputRef.current) inputRef.current.value = "";
+          onValueChange?.("");
         }}
         className="shrink-0 rounded-md border border-neutral-300 px-2 py-1.5 text-xs text-neutral-500 hover:opacity-70 dark:border-neutral-700"
       >

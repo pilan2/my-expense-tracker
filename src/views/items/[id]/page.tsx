@@ -111,6 +111,7 @@ export default  function ItemDetailPage({
             genreCatalog={genreCatalog}
             itemTypeCatalog={itemTypeCatalog}
             defaultValues={defaultValues}
+            itemId={item.id}
           />
           <div className="mt-4">
             <Link href={selfHref(item.id, from)} className="text-sm underline">

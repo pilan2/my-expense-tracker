@@ -7,6 +7,7 @@ import { NavBar } from "./nav-bar";
 import { ScrollRestoration } from "./scroll-restoration";
 import { DateRefresher } from "./date-refresher";
 import { OfflineStatus } from "./offline-status";
+import Budget from "@/views/budget/page";
 import Home from "@/views/page";
 import Items from "@/views/items/page";
 import Item from "@/views/items/[id]/page";
@@ -37,7 +38,7 @@ function Route({ url }: { url: string }) {
     case "items":
       if (segments.length === 1) return <Items searchParams={searchParams} />;
       if (segments.length !== 2) break;
-      if (segments[1] === "new") return <NewItem />;
+      if (segments[1] === "new") return <NewItem searchParams={searchParams} />;
       if (segments[1] === "bulk-sale") return <BulkSale searchParams={{ itemIds: query.getAll("itemIds") }} />;
       return <Item params={{ id: decodeURIComponent(segments[1]) }} searchParams={searchParams} />;
     case "events":
@@ -65,6 +66,7 @@ function Route({ url }: { url: string }) {
       case "purchases": return <Purchases />;
       case "sales": return <Sales />;
       case "backup": return <Backup />;
+      case "budget": return <Budget searchParams={searchParams} />;
     }
   }
   return <p className="p-6">페이지를 찾을 수 없습니다.</p>;

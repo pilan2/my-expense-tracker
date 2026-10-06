@@ -216,3 +216,73 @@ test("전체 백업 왕복: 행사 2개·체크리스트 35개와 모든 데이�
     }
   } finally { await isolated.close(); }
 });
+
+test("모바일 예산: 설정·후보 비교·초과 구매·편집·백업 복원", async ({ page, context, browser }) => {
+  await importFixture(page);
+  await page.goto("/budget");
+  const month = await page.getByLabel("확인할 월").inputValue();
+  await page.getByLabel("이 달부터 적용할 기본 월 예산 (만원)").fill("10");
+  await page.getByRole("button", { name: "기본 예산 저장", exact: true }).click();
+  await expect(page.getByRole("status").filter({ hasText: "기본 예산을 저장" })).toBeVisible();
+  await expect(page.getByLabel("월별 예산 현황")).toContainText("70,000원 남음");
+  await page.getByText("예산 설정", { exact: true }).click();
+  await page.getByLabel("이 달만 사용할 예산 (만원)").fill("8");
+  await page.getByRole("button", { name: "이 달 예산 저장", exact: true }).click();
+  await expect(page.getByLabel("월별 예산 현황")).toContainText("50,000원 남음");
+  await context.setOffline(true);
+  await page.getByRole("button", { name: "후보 추가", exact: true }).click();
+  await page.getByLabel("후보 이름", { exact: true }).fill("꼭 사고 싶은 인형");
+  await page.getByLabel("예상 단가 (만원)").fill("6");
+  await page.getByLabel("사고 싶은 이유").fill("오래 기다린 디자인");
+  await page.getByLabel("우선순위").selectOption("1");
+  await page.getByRole("button", { name: "후보 저장", exact: true }).click();
+  await page.getByRole("checkbox", { name: "꼭 사고 싶은 인형" }).check();
+  await expect(page.getByText("선택한 후보를 모두 사면 10,000원 초과")).toBeVisible();
+  await expect(page.getByLabel("월별 예산 현황")).toContainText("50,000원 남음");
+  await page.getByRole("link", { name: "구매하고 품목 등록" }).click();
+  const candidateUrl = page.url();
+  await expect(page.getByLabel("물품 세부사항")).toHaveValue("꼭 사고 싶은 인형");
+  await expect(page.getByLabel("구매 후 예산")).toContainText("10,000원 초과");
+  await page.getByRole("button", { name: "장르", exact: true }).click();
+  await page.getByRole("button", { name: "캐릭터", exact: true }).click();
+  await page.getByRole("button", { name: "인형", exact: true }).click();
+  await page.getByLabel("현물로 보유 중").check();
+  await page.getByRole("button", { name: "저장", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "전체 품목", exact: true })).toBeVisible();
+  await page.goto(`/budget?month=${month}`);
+  await expect(page.getByLabel("월별 예산 현황")).toContainText("10,000원 초과");
+  await page.getByText("구매 완료한 후보 1개").click();
+  await page.getByRole("link", { name: "등록한 품목 보기" }).click();
+  const itemUrl = page.url();
+  await page.goto(`${itemUrl}?mode=edit`);
+  await expect(page.getByLabel("구매 후 예산")).toContainText("10,000원 초과");
+  await page.locator('input[name="price"]').fill("4");
+  await expect(page.getByLabel("구매 후 예산")).toContainText("10,000원 남음");
+  await page.getByRole("button", { name: "저장", exact: true }).click();
+  await page.goto(candidateUrl);
+  await expect(page.getByText("이미 품목으로 등록한 구매 후보입니다.")).toBeVisible();
+  await page.goto("/backup");
+  const pending = page.waitForEvent("download");
+  await page.getByRole("button", { name: "다운로드", exact: true }).click();
+  const stream = await (await pending).createReadStream();
+  const chunks: Buffer[] = []; for await (const chunk of stream!) chunks.push(Buffer.from(chunk));
+  const exported = JSON.parse(Buffer.concat(chunks).toString());
+  expect(exported.schemaVersion).toBe(3);
+  expect(exported.data.budgetRule).toHaveLength(1);
+  expect(exported.data.monthlyBudget).toHaveLength(1);
+  expect(exported.data.wish[0].status).toBe("purchased");
+  expect(exported.data.item).toHaveLength(2);
+  const isolated = await browser.newContext({ baseURL: "http://localhost:3100", viewport: { width: 393, height: 851 }, isMobile: true, hasTouch: true });
+  try {
+    const target = await isolated.newPage();
+    await target.goto("/backup");
+    await target.getByLabel("백업 파일").setInputFiles({ name: "budget-backup.json", mimeType: "application/json", buffer: Buffer.concat(chunks) });
+    await expect(target.getByText("예산 설정 2개 · 구매 후보 1개", { exact: true })).toBeVisible();
+    target.once("dialog", dialog => dialog.accept());
+    await target.getByRole("button", { name: "불러오기 (기존 데이터 교체)" }).click();
+    await expect(target.getByText("백업을 이 기기에 저장했습니다.")).toBeVisible();
+    await target.goto(`/budget?month=${month}`);
+    await expect(target.getByLabel("월별 예산 현황")).toContainText("10,000원 남음");
+    await expect(target.getByText("구매 완료한 후보 1개")).toBeVisible();
+  } finally { await isolated.close(); }
+});

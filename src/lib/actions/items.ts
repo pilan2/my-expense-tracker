@@ -65,11 +65,15 @@ function parseItemForm(formData: FormData) {
 
 export const createItem = localAction(async function createItem(formData: FormData) {
   const data = parseItemForm(formData);
+  const wishId = String(formData.get("wishId") ?? "");
+  const wish = wishId ? db.wish.findUniqueOrThrow({ where: { id: wishId } }) : null;
+  if (wish?.status === "purchased") throw new Error("이미 품목으로 등록한 구매 후보입니다.");
 
   const imageFile = formData.get("image");
   const imageUrl = imageFile instanceof File && imageFile.size > 0 ? await uploadItemImage(imageFile) : null;
 
   const created = await db.item.create({ data: { ...data, imageUrl } });
+  if (wish) db.wish.update({ where: { id: wish.id }, data: { status: "purchased", itemId: created.id } });
   await autoAssignShippingGroup(created);
   await ensureInCatalog({
     genre: data.genre,
