@@ -1,3 +1,5 @@
+import { itemDraftKey } from "@/lib/local/item-draft";
+import { stageItemDraftRemoval } from "@/lib/local/database";
 import { localAction } from "@/lib/local/action";
 
 import { redirect } from "@/lib/local/navigation";
@@ -83,6 +85,7 @@ export const createItem = localAction(async function createItem(formData: FormDa
     maker: data.maker,
     organizer: data.organizer,
   });
+  if (formData.has("itemDraftRevision")) stageItemDraftRemoval(itemDraftKey(wishId || undefined), Number(formData.get("itemDraftRevision")));
   redirect("/items");
 });
 

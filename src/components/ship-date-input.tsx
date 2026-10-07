@@ -13,11 +13,13 @@ export function ShipDateInput({
   defaultDate,
   defaultMonth,
   defaultApprox = false,
+  onModeChange,
 }: {
   label?: string;
   defaultDate?: string;
   defaultMonth?: string;
   defaultApprox?: boolean;
+  onModeChange?: () => void;
 }) {
   const [mode, setMode] = useState<"exact" | "month">(defaultApprox ? "month" : "exact");
 
@@ -28,7 +30,7 @@ export function ShipDateInput({
         <div className="flex gap-1 rounded-md border border-neutral-200 p-0.5 text-xs dark:border-neutral-800">
           <button
             type="button"
-            onClick={() => setMode("exact")}
+            onClick={() => { setMode("exact"); onModeChange?.(); }}
             className={`rounded px-2 py-1 ${
               mode === "exact"
                 ? "bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900"
@@ -39,7 +41,7 @@ export function ShipDateInput({
           </button>
           <button
             type="button"
-            onClick={() => setMode("month")}
+            onClick={() => { setMode("month"); onModeChange?.(); }}
             className={`rounded px-2 py-1 ${
               mode === "month"
                 ? "bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900"
@@ -50,6 +52,7 @@ export function ShipDateInput({
           </button>
         </div>
       </div>
+      <input type="hidden" name="shipDateApprox" value={String(mode === "month")} />
       {mode === "exact" ? (
         <input name="expectedShipDate" type="date" defaultValue={defaultDate} required className={inputClass} />
       ) : (

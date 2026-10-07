@@ -6,7 +6,8 @@ import { LocalImage } from "@/components/local-image";
 
 import { LocalForm } from "@/components/local-form";
 
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
+import type { ItemDraftValues } from "@/lib/local/item-draft";
 import { NumberInput } from "@/components/number-input";
 import { ClearableDateInput } from "@/components/clearable-date-input";
 import { ImageCropInput } from "@/components/image-crop-input";
@@ -119,14 +120,36 @@ export function ItemForm({
   defaultValues,
   itemId,
   wishId,
+  initialImage,
+  onDraftChange,
 }: {
-  action: (formData: FormData) => void;
+  action: (formData: FormData) => void | Promise<unknown>;
   genreCatalog: GenreCatalogEntry[];
   itemTypeCatalog: ItemTypeCatalogEntry[];
   defaultValues?: Partial<ItemFormDefaults>;
   itemId?: string;
   wishId?: string;
+  initialImage?: File | null;
+  onDraftChange?: (values: ItemDraftValues, image: File | null) => void;
 }) {
+  const formRef = useRef<HTMLFormElement>(null);
+  const [draftImage, setDraftImage] = useState<File | null>(initialImage ?? null);
+  const [, rerenderDraft] = useState(0);
+  function captureDraft() {
+    if (!onDraftChange || !formRef.current) return;
+    const form = new FormData(formRef.current);
+    const text = (name: string) => String(form.get(name) ?? "");
+    onDraftChange({
+      genre: text("genre"), character: text("character"), series: text("series"), itemType: text("itemType"),
+      detail: text("detail"), quantity: Number(text("quantity")) || 1, price: text("price"),
+      purchasedAt: text("purchasedAt"), shippingFee: text("shippingFee"),
+      hasOverseasShipping: form.get("hasOverseasShipping") === "on", maker: text("maker"), organizer: text("organizer"),
+      isPhysical: form.get("isPhysical") === "on", expectedShipDate: text("expectedShipDate"), expectedShipMonth: text("expectedShipMonth"),
+      shipDateApprox: text("shipDateApprox") === "true", purchaseLink: text("purchaseLink"), memo: text("memo"),
+    }, draftImage);
+  }
+  // React로 바뀐 숨김 필드와 수량 버튼도 DOM 갱신 후의 값을 저장한다.
+  useLayoutEffect(() => { captureDraft(); });
   const [price, setPrice] = useState(defaultValues?.price ?? "");
   const [shippingFee, setShippingFee] = useState(defaultValues?.shippingFee ?? "0");
   const [purchasedAt, setPurchasedAt] = useState(defaultValues?.purchasedAt ?? todayString());
@@ -169,7 +192,10 @@ export function ItemForm({
   }
 
   return (
-    <LocalForm action={action} onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <LocalForm formRef={formRef} onInput={captureDraft} action={async form => {
+      if (draftImage) form.set("image", draftImage);
+      await action(form);
+    }} onSubmit={handleSubmit} className="flex flex-col gap-4">
       {wishId && <input type="hidden" name="wishId" value={wishId} />}
       <div className="flex flex-col gap-2 text-sm">
         <span className="font-medium">사진 (선택)</span>
@@ -182,7 +208,7 @@ export function ItemForm({
             </label>
           </div>
         )}
-        <ImageCropInput name="image" />
+        <ImageCropInput name="image" initialFile={initialImage} onFileChange={setDraftImage} />
       </div>
 
       <PickerField label="장르" name="genre" options={genreOptions} value={genre} onChange={handleGenreChange} />
@@ -332,6 +358,7 @@ export function ItemForm({
           defaultDate={defaultValues?.expectedShipDate}
           defaultMonth={defaultValues?.expectedShipMonth}
           defaultApprox={defaultValues?.shipDateApprox}
+          onModeChange={() => rerenderDraft(value => value + 1)}
         />
       )}
 

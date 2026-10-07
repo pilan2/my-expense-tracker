@@ -5,6 +5,7 @@ let connection: Promise<IDBDatabase> | undefined;
 let snapshot: Snapshot | undefined;
 let draft: Data | undefined;
 let stagedImages = new Map<string, Blob>();
+let stagedDraftRemoval: { key: string; revision: number } | undefined;
 let queue: Promise<unknown> = Promise.resolve();
 let channel: BroadcastChannel | undefined;
 const listeners = new Set<() => void>();
@@ -16,7 +17,7 @@ export function notifyChange() { version++; for (const listener of listeners) li
 export function currentData() { if (!snapshot) throw new Error("기기 저장소를 불러오는 중입니다."); return snapshot.data; }
 export function transactionData() { if (!draft) throw new Error("저장 작업 밖에서는 데이터를 수정할 수 없습니다."); return draft; }
 
-function openDatabase(): Promise<IDBDatabase> {
+export function openDatabase(): Promise<IDBDatabase> {
   if (connection) return connection;
   connection = new Promise((resolve, reject) => {
     if (typeof indexedDB === "undefined") { reject(new Error("이 브라우저에서는 기기 저장소를 사용할 수 없습니다.")); return; }
@@ -90,6 +91,18 @@ async function commit(previous: Snapshot, data: Data, images: Map<string, Blob>)
       for (const [id, blob] of images) if (referenced.has(id)) photos.put(blob, id);
       for (const id of imageIds(previous.data)) if (!referenced.has(id)) photos.delete(id);
       state.put(next, "data");
+      if (stagedDraftRemoval) {
+        const { key, revision } = stagedDraftRemoval;
+        state.get(key).onsuccess = event => {
+          const existing = (event.target as IDBRequest).result;
+          if ((existing?.revision ?? 0) !== revision) {
+            failure = new Error("다른 탭에서 임시저장이 변경됐습니다. 현재 입력을 복사해 두고 화면을 다시 열어주세요.");
+            tx.abort(); return;
+          }
+          state.put({ revision: revision + 1, values: null }, key);
+          state.delete(`${key}:image`);
+        };
+      }
     };
     tx.oncomplete = () => resolve();
     tx.onabort = () => reject(failure ?? new Error(tx.error?.name === "QuotaExceededError" ? "기기 저장 공간이 부족해 저장하지 못했습니다. 기존 데이터는 유지됩니다." : "기기에 저장하지 못했습니다. 기존 데이터는 유지됩니다."));
@@ -107,12 +120,13 @@ export function transaction<T>(run: () => Promise<T>): Promise<T> {
       validateData(previous.data);
       draft = structuredClone(previous.data);
       stagedImages = new Map();
+      stagedDraftRemoval = undefined;
       try {
         const result = await run();
         validateData(draft);
         await commit(previous, draft, stagedImages);
         return result;
-      } finally { draft = undefined; stagedImages = new Map(); }
+      } finally { draft = undefined; stagedImages = new Map(); stagedDraftRemoval = undefined; }
     };
     return typeof navigator !== "undefined" && navigator.locks
       ? navigator.locks.request("expense-tracker-write", execute)
@@ -153,4 +167,11 @@ export async function readBackupSnapshot(): Promise<{ data: Data; images: Map<st
     tx.oncomplete = () => missing ? reject(new Error("사진이 누락되어 백업을 만들 수 없습니다.")) : resolve({ data, images });
     tx.onabort = () => reject(tx.error);
   });
+}
+
+// 품목 저장과 임시저장 삭제를 같은 트랜잭션으로 처리한다. 저장 실패 시 둘 다 보존된다.
+export function stageItemDraftRemoval(key: string, revision: number) {
+  transactionData();
+  if (!Number.isSafeInteger(revision) || revision < 0) throw new Error("임시저장 버전을 확인해주세요.");
+  stagedDraftRemoval = { key, revision };
 }

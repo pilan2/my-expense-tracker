@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ReactCrop, { centerCrop, type Crop, type PercentCrop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import { rotateImage, cropImageByPercent } from "@/lib/image-crop";
@@ -10,7 +10,7 @@ type Stage = "closed" | "rotate" | "crop";
 // 사진을 고르면 바로 폼에 붙지 않고, 먼저 회전 각도를 정한 뒤(1단계), 그 결과물 위에서
 // 자유 비율로 자른다(2단계). "적용"을 누르면 최종 결과를 hidden 파일 입력(name={name})에
 // 넣어서, 폼 제출 시 이 결과물이 올라간다.
-export function ImageCropInput({ name, className }: { name: string; className?: string }) {
+export function ImageCropInput({ name, className, initialFile, onFileChange }: { name: string; className?: string; initialFile?: File | null; onFileChange?: (file: File | null) => void }) {
   const hiddenInputRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
@@ -21,6 +21,19 @@ export function ImageCropInput({ name, className }: { name: string; className?: 
   const [crop, setCrop] = useState<Crop>();
   const [completedCrop, setCompletedCrop] = useState<PercentCrop>();
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [initialCleared, setInitialCleared] = useState(false);
+  const previewRef = useRef<HTMLImageElement>(null);
+  const hasPreview = Boolean(previewUrl || (initialFile && !initialCleared));
+
+  useEffect(() => {
+    if (!initialFile || initialCleared || previewUrl || !previewRef.current) return;
+    const url = URL.createObjectURL(initialFile);
+    previewRef.current.src = url;
+    return () => URL.revokeObjectURL(url);
+  }, [initialFile, initialCleared, previewUrl]);
+  useEffect(() => () => { if (previewUrl) URL.revokeObjectURL(previewUrl); }, [previewUrl]);
+  useEffect(() => () => { if (rawImageSrc) URL.revokeObjectURL(rawImageSrc); }, [rawImageSrc]);
+  useEffect(() => () => { if (flatImageSrc) URL.revokeObjectURL(flatImageSrc); }, [flatImageSrc]);
 
   function handlePick(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -44,7 +57,9 @@ export function ImageCropInput({ name, className }: { name: string; className?: 
 
   function handleImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
     const { width, height } = e.currentTarget;
-    setCrop(centerCrop({ unit: "%", width: 90, height: 90 }, width, height));
+    const initialCrop = centerCrop({ unit: "%", width: 90, height: 90 }, width, height);
+    setCrop(initialCrop);
+    setCompletedCrop(initialCrop as PercentCrop);
   }
 
   async function applyCrop() {
@@ -57,6 +72,7 @@ export function ImageCropInput({ name, className }: { name: string; className?: 
     if (hiddenInputRef.current) hiddenInputRef.current.files = transfer.files;
 
     setPreviewUrl(URL.createObjectURL(blob));
+    onFileChange?.(file);
     closeDialog();
   }
 
@@ -70,9 +86,9 @@ export function ImageCropInput({ name, className }: { name: string; className?: 
       <input ref={hiddenInputRef} type="file" name={name} className="hidden" />
 
       <div className="flex items-center gap-3">
-        {previewUrl && (
+        {hasPreview && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={previewUrl} alt="" className="h-24 w-24 rounded-md object-cover" />
+          <img ref={previewRef} src={previewUrl ?? undefined} alt="선택한 사진" className="h-24 w-24 rounded-md object-cover" />
         )}
         <label
           className={
@@ -80,9 +96,13 @@ export function ImageCropInput({ name, className }: { name: string; className?: 
             "inline-block w-fit cursor-pointer rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700"
           }
         >
-          {previewUrl ? "다시 선택" : "사진 선택"}
+          {hasPreview ? "다시 선택" : "사진 선택"}
           <input type="file" accept="image/*" onChange={handlePick} className="hidden" />
         </label>
+        {hasPreview && <button type="button" className="text-sm underline" onClick={() => {
+          if (hiddenInputRef.current) hiddenInputRef.current.value = "";
+          setPreviewUrl(null); setInitialCleared(true); onFileChange?.(null);
+        }}>선택한 사진 지우기</button>}
       </div>
 
       <dialog

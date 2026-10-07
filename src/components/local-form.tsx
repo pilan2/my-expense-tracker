@@ -1,11 +1,11 @@
 "use client";
-import { useRef, useState, type FormHTMLAttributes } from "react";
+import { useRef, useState, type Ref, type FormHTMLAttributes } from "react";
 import { navigate } from "@/lib/local/navigation";
-export function LocalForm({ action, onSubmit, children, ...props }: Omit<FormHTMLAttributes<HTMLFormElement>, "action"> & { action?: string | ((data: FormData) => void | Promise<unknown>) }) {
+export function LocalForm({ action, onSubmit, children, formRef, ...props }: Omit<FormHTMLAttributes<HTMLFormElement>, "action"> & { formRef?: Ref<HTMLFormElement>; action?: string | ((data: FormData) => void | Promise<unknown>) }) {
   const busy = useRef(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
-  return <form {...props} aria-busy={pending} onSubmit={async event => {
+  return <form {...props} ref={formRef} aria-busy={pending} onSubmit={async event => {
     onSubmit?.(event);
     if (event.defaultPrevented) return;
     event.preventDefault();
