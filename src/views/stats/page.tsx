@@ -8,7 +8,7 @@ import { shiftMonth } from "@/lib/calendar";
 import { BackButton } from "@/components/back-button";
 import { TrendLineChart } from "@/components/trend-chart";
 import { GenreComparisonChart } from "@/components/genre-comparison-chart";
-import { ItemCardContent } from "@/components/item-card";
+import { ItemCardWithDelivery } from "@/components/item-card-with-delivery";
 import { itemHref } from "@/lib/nav";
 
 function monthHref(year: number, month: number) {
@@ -201,12 +201,8 @@ export default  function StatsPage({
                                 <ul className="mb-2 flex flex-col gap-2">
                                   {subgroup.purchases.map((item) => (
                                     <li key={item.id}>
-                                      <Link
-                                        href={itemHref(item.id, from)}
-                                        className="block rounded-md border border-neutral-200 border-l-4 border-l-blue-400 p-3 hover:opacity-70 dark:border-neutral-800 dark:border-l-blue-500"
-                                      >
-                                        <ItemCardContent {...item} showGenreCharacter={false} />
-                                      </Link>
+                                      <ItemCardWithDelivery {...item} href={itemHref(item.id, from)}
+                                        className="block rounded-md border border-neutral-200 border-l-4 border-l-blue-400 p-3 dark:border-neutral-800 dark:border-l-blue-500" showGenreCharacter={false}  />
                                     </li>
                                   ))}
                                 </ul>

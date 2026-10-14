@@ -3,7 +3,7 @@ import { getShipmentsInMonth, getUpcomingShipments, getShipmentsOnDate } from "@
 import { getMonthGrid, shiftMonth } from "@/lib/calendar";
 import { parseMonthParam, monthParamString } from "@/lib/month";
 import { BackButton } from "@/components/back-button";
-import { ItemCardContent } from "@/components/item-card";
+import { ItemCardWithDelivery } from "@/components/item-card-with-delivery";
 import { itemHref } from "@/lib/nav";
 import { formatShipDateLabel } from "@/lib/dday";
 
@@ -175,12 +175,8 @@ export default  function ShipmentsPage({
           <ul className="flex flex-col gap-2">
             {approxItems.map((item) => (
               <li key={item.id}>
-                <Link
-                  href={itemHref(item.id, monthHref(year, month))}
-                  className="block rounded-md border border-neutral-200 p-3 hover:opacity-70 dark:border-neutral-800"
-                >
-                  <ItemCardContent {...item} />
-                </Link>
+                <ItemCardWithDelivery {...item} href={itemHref(item.id, monthHref(year, month))}
+                  className="block rounded-md border border-neutral-200 p-3 dark:border-neutral-800" />
               </li>
             ))}
           </ul>
@@ -222,12 +218,8 @@ export default  function ShipmentsPage({
           <ul className="flex flex-col gap-2">
             {groupItems.map((item) => (
               <li key={item.id}>
-                <Link
-                  href={itemHref(item.id, "/shipments?view=list")}
-                  className="block rounded-md border border-neutral-200 p-3 hover:opacity-70 dark:border-neutral-800"
-                >
-                  <ItemCardContent {...item} />
-                </Link>
+                <ItemCardWithDelivery {...item} href={itemHref(item.id, "/shipments?view=list")}
+                  className="block rounded-md border border-neutral-200 p-3 dark:border-neutral-800" />
               </li>
             ))}
           </ul>
@@ -250,12 +242,8 @@ export default  function ShipmentsPage({
         <ul className="flex flex-col gap-2">
           {items.map((item) => (
             <li key={item.id}>
-              <Link
-                href={itemHref(item.id, from)}
-                className="block rounded-md border border-neutral-200 p-3 hover:opacity-70 dark:border-neutral-800"
-              >
-                <ItemCardContent {...item} />
-              </Link>
+              <ItemCardWithDelivery {...item} href={itemHref(item.id, from)}
+                className="block rounded-md border border-neutral-200 p-3 dark:border-neutral-800" />
             </li>
           ))}
         </ul>

@@ -1,8 +1,7 @@
-import Link from "@/lib/local/navigation";
 import { getItemsByCategory } from "@/lib/items";
 import { getCatalogOrderMaps, compareNameByCatalogOrder } from "@/lib/catalog";
 import { BackButton } from "@/components/back-button";
-import { ItemCardContent } from "@/components/item-card";
+import { ItemCardWithDelivery } from "@/components/item-card-with-delivery";
 import { itemHref } from "@/lib/nav";
 
 function groupByItemType<T extends { itemType: string }>(items: T[], itemTypeOrder: Map<string, number>) {
@@ -66,12 +65,8 @@ export default  function BrowseItemsPage({
               <ul className="flex flex-col gap-2">
                 {itemTypeGroup.items.map((item) => (
                   <li key={item.id}>
-                    <Link
-                      href={itemHref(item.id, from)}
-                      className="block rounded-md border border-neutral-200 p-3 hover:opacity-70 dark:border-neutral-800"
-                    >
-                      <ItemCardContent {...item} showGenreCharacter={false} showItemType={false} />
-                    </Link>
+                    <ItemCardWithDelivery {...item} href={itemHref(item.id, from)}
+                      className="block rounded-md border border-neutral-200 p-3 dark:border-neutral-800" showGenreCharacter={false} showItemType={false}  />
                   </li>
                 ))}
               </ul>
@@ -88,12 +83,8 @@ export default  function BrowseItemsPage({
                     <ul className="flex flex-col gap-2">
                       {itemTypeGroup.items.map((item) => (
                         <li key={item.id}>
-                          <Link
-                            href={itemHref(item.id, from)}
-                            className="block rounded-md border border-neutral-200 p-3 hover:opacity-70 dark:border-neutral-800"
-                          >
-                            <ItemCardContent {...item} showGenreCharacter={false} showItemType={false} />
-                          </Link>
+                          <ItemCardWithDelivery {...item} href={itemHref(item.id, from)}
+                            className="block rounded-md border border-neutral-200 p-3 dark:border-neutral-800" showGenreCharacter={false} showItemType={false}  />
                         </li>
                       ))}
                     </ul>

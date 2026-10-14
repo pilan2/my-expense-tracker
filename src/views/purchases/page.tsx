@@ -1,7 +1,6 @@
-import Link from "@/lib/local/navigation";
 import { getRecentPurchases } from "@/lib/items";
 import { BackButton } from "@/components/back-button";
-import { ItemCardContent } from "@/components/item-card";
+import { ItemCardWithDelivery } from "@/components/item-card-with-delivery";
 import { itemHref } from "@/lib/nav";
 
 export default  function PurchasesPage() {
@@ -35,12 +34,8 @@ export default  function PurchasesPage() {
               <ul className="flex flex-col gap-2">
                 {groupItems.map((item) => (
                   <li key={item.id}>
-                    <Link
-                      href={itemHref(item.id, "/purchases")}
-                      className="block rounded-md border border-neutral-200 p-3 hover:opacity-70 dark:border-neutral-800"
-                    >
-                      <ItemCardContent {...item} />
-                    </Link>
+                    <ItemCardWithDelivery {...item} href={itemHref(item.id, "/purchases")}
+                      className="block rounded-md border border-neutral-200 p-3 dark:border-neutral-800" />
                   </li>
                 ))}
               </ul>
@@ -53,12 +48,8 @@ export default  function PurchasesPage() {
               <ul className="flex flex-col gap-2">
                 {unknownItems.map((item) => (
                   <li key={item.id}>
-                    <Link
-                      href={itemHref(item.id, "/purchases")}
-                      className="block rounded-md border border-neutral-200 p-3 hover:opacity-70 dark:border-neutral-800"
-                    >
-                      <ItemCardContent {...item} />
-                    </Link>
+                    <ItemCardWithDelivery {...item} href={itemHref(item.id, "/purchases")}
+                      className="block rounded-md border border-neutral-200 p-3 dark:border-neutral-800" />
                   </li>
                 ))}
               </ul>

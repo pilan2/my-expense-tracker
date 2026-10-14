@@ -1,9 +1,8 @@
-import Link from "@/lib/local/navigation";
 import { notFound } from "@/lib/local/navigation";
 import { getItemsByMaker } from "@/lib/items";
 import { getCatalogOrderMaps, compareNameByCatalogOrder } from "@/lib/catalog";
 import { BackButton } from "@/components/back-button";
-import { ItemCardContent } from "@/components/item-card";
+import { ItemCardWithDelivery } from "@/components/item-card-with-delivery";
 import { itemHref } from "@/lib/nav";
 
 // 물품 종류(itemType)는 전역 카탈로그 순서를 그대로 쓴다.
@@ -60,12 +59,8 @@ export default  function BrowseMakerItemsPage({
                   <ul className="flex flex-col gap-2">
                     {itemTypeGroup.items.map((item) => (
                       <li key={item.id}>
-                        <Link
-                          href={itemHref(item.id, from)}
-                          className="block rounded-md border border-neutral-200 p-3 hover:opacity-70 dark:border-neutral-800"
-                        >
-                          <ItemCardContent {...item} showGenreCharacter={false} showItemType={false} />
-                        </Link>
+                        <ItemCardWithDelivery {...item} href={itemHref(item.id, from)}
+                          className="block rounded-md border border-neutral-200 p-3 dark:border-neutral-800" showGenreCharacter={false} showItemType={false}  />
                       </li>
                     ))}
                   </ul>

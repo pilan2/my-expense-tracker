@@ -259,6 +259,7 @@ test("모바일 예산: 설정·후보 비교·초과 구매·편집·백업 복
   await page.locator('input[name="price"]').fill("4");
   await expect(page.getByLabel("구매 후 예산")).toContainText("10,000원 남음");
   await page.getByRole("button", { name: "저장", exact: true }).click();
+  await expect(page).not.toHaveURL(/mode=edit/);
   await page.goto(candidateUrl);
   await expect(page.getByText("이미 품목으로 등록한 구매 후보입니다.")).toBeVisible();
   await page.goto("/backup");
@@ -342,4 +343,42 @@ test("새 품목 임시저장: 입력·사진 복원, 실패 시 보존, 성공�
   await expect(page.getByLabel("물품 세부사항")).toHaveValue("");
   await page.reload();
   await expect(page.getByLabel("물품 세부사항")).toHaveValue("");
+});
+
+test("목록 수령 확인: 상세 이동·외부 폼 제출 없이 저장, 실패 후 재시도와 재시작", async ({ page, context }) => {
+  await importFixture(page);
+  await context.setOffline(true);
+  await page.goto("/items?pending=1");
+  const receipt = page.getByRole("button", { name: "원래 품목 수령 확인", exact: true });
+  await expect(receipt).toBeVisible();
+  expect(await receipt.evaluate(button => button.closest("a") === null)).toBe(true);
+  await page.getByRole("button", { name: "배송비 나누기", exact: true }).click();
+  await expect(receipt).toHaveCount(0);
+  await page.getByRole("button", { name: "취소", exact: true }).click();
+  await expect(receipt).toBeVisible();
+  await page.evaluate(() => {
+    const original = IDBDatabase.prototype.transaction;
+    IDBDatabase.prototype.transaction = function (...args: Parameters<typeof original>) {
+      if (args[1] === "readwrite") {
+        IDBDatabase.prototype.transaction = original;
+        throw new DOMException("테스트 저장 실패", "QuotaExceededError");
+      }
+      return original.apply(this, args);
+    };
+  });
+  await receipt.click();
+  await expect(page.getByRole("alert").filter({ hasText: "테스트 저장 실패" })).toBeVisible();
+  await expect(receipt).toBeEnabled();
+  await expect(page).toHaveURL(/\/items\?pending=1$/);
+  await receipt.click();
+  await expect(receipt).toHaveCount(0);
+  await expect(page).toHaveURL(/\/items\?pending=1$/);
+  await expect(page.getByText("배송 완료 (발송일 2030년 10월)", { exact: true })).toBeVisible();
+  await expect(page.getByText("배송비 미정", { exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByText("배송 완료 (발송일 2030년 10월)", { exact: true })).toBeVisible();
+  await expect(receipt).toHaveCount(0);
+  await page.getByRole("link").filter({ hasText: "원래 품목" }).click();
+  await expect(page).toHaveURL(/\/items\/item-1/);
+  await expect.poll(() => page.locator('img').first().evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(1);
 });

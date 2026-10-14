@@ -1,12 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import Link from "@/lib/local/navigation";
 import { NumberInput } from "@/components/number-input";
-import { ItemCardContent } from "@/components/item-card";
+import { ItemCardWithDelivery } from "@/components/item-card-with-delivery";
 import { itemHref } from "@/lib/nav";
 
-type Item = Parameters<typeof ItemCardContent>[0] & { id: string };
+type Item = Omit<Parameters<typeof ItemCardWithDelivery>[0], "href">;
 type Subgroup = { character: string; series: string | null; items: Item[] };
 type GenreGroup = { genre: string; subgroups: Subgroup[] };
 
@@ -114,12 +113,8 @@ export function ItemsSelectableList({
                           {selectMode && (
                             <input type="checkbox" name="itemIds" value={item.id} className="mt-1 h-6 w-6" />
                           )}
-                          <Link
-                            href={itemHref(item.id, pendingOnly ? "/items?pending=1" : "/items")}
-                            className="flex-1 hover:opacity-70"
-                          >
-                            <ItemCardContent {...item} showGenreCharacter={false} />
-                          </Link>
+                          <ItemCardWithDelivery {...item} href={itemHref(item.id, pendingOnly ? "/items?pending=1" : "/items")}
+                            className="flex-1" showGenreCharacter={false} showDeliveryAction={!selectMode} />
                         </li>
                       ))}
                     </ul>
