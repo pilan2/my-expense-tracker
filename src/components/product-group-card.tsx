@@ -3,13 +3,12 @@ import { LocalImage } from "@/components/local-image";
 import { ItemCardWithDelivery } from "@/components/item-card-with-delivery";
 import { purchaseSourceLabel, summarizeProductGroup } from "@/lib/product-groups";
 import { itemHref } from "@/lib/nav";
+import { won } from "@/lib/money";
 
 type Purchase = Omit<ComponentProps<typeof ItemCardWithDelivery>, "href" | "price" | "shippingFee"> & {
   price: number; shippingFee: number; maker: string | null; organizer: string | null;
   purchaseLink: string | null; purchasedAt: Date | null;
 };
-
-const won = (value: number) => `${value.toLocaleString("ko-KR")}원`;
 
 // 같은 물품의 여러 구매 건을 카드 하나로 접고, 펼치면 구매 건별 카드(수령 확인 포함)를 보여준다.
 export function ProductGroupCard({ purchases, from, className, showGenreCharacter, showItemType }: {

@@ -6,6 +6,7 @@ import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 import { EditableName } from "@/components/editable-name";
 import { DragHandle, SortableList } from "@/components/sortable-list";
 import type { GenreCatalogEntry } from "@/lib/catalog";
+import { buttonClass, inputClass, EmptyState } from "@/components/ui";
 
 type CatalogActions = Pick<
   typeof import("@/lib/actions/catalog"),
@@ -32,7 +33,7 @@ type CatalogActions = Pick<
 // 중첩된 SortableList 두 개로 구성한다.
 export function GenreList({ genres, actions }: { genres: GenreCatalogEntry[]; actions: CatalogActions }) {
   if (genres.length === 0) {
-    return <p className="py-10 text-center text-neutral-500">등록된 장르가 없습니다.</p>;
+    return <EmptyState>등록된 장르가 없습니다.</EmptyState>;
   }
 
   return (
@@ -53,7 +54,7 @@ export function GenreList({ genres, actions }: { genres: GenreCatalogEntry[]; ac
             <LocalForm action={actions.deleteGenre.bind(null, genre.id)}>
               <ConfirmSubmitButton
                 confirmMessage={`"${genre.name}" 장르를 삭제하시겠습니까? 이 장르에 속한 캐릭터/시리즈/제작자/공구자 목록도 함께 삭제됩니다.`}
-                className="text-sm text-red-600 hover:underline"
+                className="text-sm text-red-600 dark:text-red-400 hover:underline"
               >
                 장르 삭제
               </ConfirmSubmitButton>
@@ -85,7 +86,7 @@ export function GenreList({ genres, actions }: { genres: GenreCatalogEntry[]; ac
                         <LocalForm action={actions.deleteCharacter.bind(null, character.id)}>
                           <ConfirmSubmitButton
                             confirmMessage={`"${character.name}" 캐릭터를 삭제하시겠습니까? 이 캐릭터의 시리즈 목록도 함께 삭제됩니다.`}
-                            className="text-xs text-red-600 hover:underline"
+                            className="text-xs text-red-600 dark:text-red-400 hover:underline"
                           >
                             캐릭터 삭제
                           </ConfirmSubmitButton>
@@ -138,11 +139,11 @@ export function GenreList({ genres, actions }: { genres: GenreCatalogEntry[]; ac
                   name="name"
                   placeholder="새 캐릭터 이름"
                   required
-                  className="flex-1 rounded-md border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+                  className={`flex-1 ${inputClass}`}
                 />
                 <button
                   type="submit"
-                  className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm hover:opacity-70 dark:border-neutral-700"
+                  className={buttonClass("secondary")}
                 >
                   캐릭터 추가
                 </button>
@@ -175,11 +176,11 @@ export function GenreList({ genres, actions }: { genres: GenreCatalogEntry[]; ac
                   name="name"
                   placeholder="새 제작자 이름"
                   required
-                  className="flex-1 rounded-md border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+                  className={`flex-1 ${inputClass}`}
                 />
                 <button
                   type="submit"
-                  className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm hover:opacity-70 dark:border-neutral-700"
+                  className={buttonClass("secondary")}
                 >
                   제작자 추가
                 </button>
@@ -212,11 +213,11 @@ export function GenreList({ genres, actions }: { genres: GenreCatalogEntry[]; ac
                   name="name"
                   placeholder="새 공구자 이름"
                   required
-                  className="flex-1 rounded-md border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+                  className={`flex-1 ${inputClass}`}
                 />
                 <button
                   type="submit"
-                  className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm hover:opacity-70 dark:border-neutral-700"
+                  className={buttonClass("secondary")}
                 >
                   공구자 추가
                 </button>

@@ -5,6 +5,7 @@ import { ItemCardWithDelivery } from "@/components/item-card-with-delivery";
 import { itemHref } from "@/lib/nav";
 import { ProductGroupCard } from "@/components/product-group-card";
 import { collapseProductGroups } from "@/lib/product-groups";
+import { EmptyState, PageHeader } from "@/components/ui";
 
 function groupByItemType<T extends { itemType: string }>(items: T[], itemTypeOrder: Map<string, number>) {
   const map = new Map<string, T[]>();
@@ -75,10 +76,10 @@ export default  function BrowseItemsPage({
   return (
     <div className="box-border mx-auto w-full max-w-3xl overflow-x-hidden p-6">
       <BackButton href={parentHref} />
-      <h1 className="mb-6 text-xl font-semibold">{genre === character ? genre : `${genre} · ${character}`}</h1>
+      <PageHeader title={genre === character ? genre : `${genre} · ${character}`} />
 
       {items.length === 0 ? (
-        <p className="py-10 text-center text-neutral-500">해당하는 품목이 없습니다.</p>
+        <EmptyState>해당하는 품목이 없습니다.</EmptyState>
       ) : (
         <div className="flex flex-col gap-6">
           {withoutSeriesItemTypeGroups.map((itemTypeGroup) => (

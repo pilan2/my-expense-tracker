@@ -8,6 +8,8 @@ import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 import { ChecklistItemForm } from "@/components/checklist-item-form";
 import { EditBoothForm } from "@/components/edit-booth-form";
 import { itemHref } from "@/lib/nav";
+import { won } from "@/lib/money";
+import { EmptyState } from "@/components/ui";
 
 export default  function EventDetailPage({ params }: { params: { id: string } }) {
   const { id } = params;
@@ -38,7 +40,7 @@ export default  function EventDetailPage({ params }: { params: { id: string } })
       />
 
       {boothGroups.length === 0 ? (
-        <p className="py-10 text-center text-neutral-500">아직 등록한 항목이 없습니다.</p>
+        <EmptyState>아직 등록한 항목이 없습니다.</EmptyState>
       ) : (
         <div className="flex flex-col gap-4">
           {boothGroups.map(([booth, entries]) => {
@@ -54,9 +56,9 @@ export default  function EventDetailPage({ params }: { params: { id: string } })
               </div>
               {(boothTotal > 0 || boothDue > 0) && (
                 <p className="mb-2 text-xs text-neutral-500">
-                  {boothTotal > 0 && `부스 합계 ${boothTotal.toLocaleString("ko-KR")}원`}
+                  {boothTotal > 0 && `부스 합계 ${won(boothTotal)}`}
                   {boothTotal > 0 && boothDue > 0 && " · "}
-                  {boothDue > 0 && `낼 돈 ${boothDue.toLocaleString("ko-KR")}원`}
+                  {boothDue > 0 && `낼 돈 ${won(boothDue)}`}
                 </p>
               )}
               <ul className="flex flex-col gap-2">
@@ -107,15 +109,15 @@ export default  function EventDetailPage({ params }: { params: { id: string } })
                       <p className={`mt-1 text-sm ${entry.checked ? "line-through" : ""}`}>{label}</p>
                       {price > 0 && (
                         <p className="mt-0.5 text-xs text-neutral-500">
-                          {price.toLocaleString("ko-KR")}원 × {quantity}개 ={" "}
-                          {(price * quantity).toLocaleString("ko-KR")}원
+                          {won(price)} × {quantity}개 ={" "}
+                          {won(price * quantity)}
                         </p>
                       )}
                     </div>
                     <LocalForm action={deleteChecklistItem.bind(null, entry.id)}>
                       <ConfirmSubmitButton
                         confirmMessage="이 항목을 삭제하시겠습니까?"
-                        className="text-xs text-red-600 hover:underline"
+                        className="text-xs text-red-600 dark:text-red-400 hover:underline"
                       >
                         삭제
                       </ConfirmSubmitButton>

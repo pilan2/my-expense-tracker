@@ -5,6 +5,7 @@ import { createBulkSale } from "@/lib/actions/sales";
 import { BackButton } from "@/components/back-button";
 import { NumberInput } from "@/components/number-input";
 import { ClearableDateInput } from "@/components/clearable-date-input";
+import { buttonClass, inputClass, PageHeader } from "@/components/ui";
 
 export default  function BulkSalePage({
   searchParams,
@@ -36,7 +37,7 @@ export default  function BulkSalePage({
   return (
     <div className="box-border mx-auto w-full max-w-xl overflow-x-hidden p-6">
       <BackButton href="/items" />
-      <h1 className="mb-6 text-xl font-semibold">묶음 판매</h1>
+      <PageHeader title="묶음 판매" />
       <LocalForm action={createBulkSale} className="flex flex-col gap-4">
         <div className="flex flex-col gap-3 rounded-md border border-neutral-200 p-4 dark:border-neutral-800">
           {sellable.map((item) => (
@@ -64,7 +65,7 @@ export default  function BulkSalePage({
             min={0}
             step={0.01}
             required
-            className="rounded-md border border-neutral-300 px-3 py-2 dark:border-neutral-700 dark:bg-neutral-900"
+            className={inputClass}
           />
         </label>
 
@@ -73,13 +74,13 @@ export default  function BulkSalePage({
           <ClearableDateInput
             name="saleDate"
             defaultValue={today}
-            className="rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+            className={inputClass}
           />
         </label>
 
         <button
           type="submit"
-          className="mt-2 rounded-md bg-neutral-900 px-4 py-2 text-white hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900"
+          className={`mt-2 ${buttonClass()}`}
         >
           판매 등록
         </button>

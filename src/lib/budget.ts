@@ -1,4 +1,7 @@
 import { isBudgetMonth, type Data, type Wish } from "./local/models";
+import { won } from "./money";
+
+export { won };
 
 export function todayString(now = new Date()) {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
@@ -20,5 +23,4 @@ export function monthBudget(data: Data, month: string, excludeItemId?: string) {
     pendingShipping: items.filter(row => row.hasOverseasShipping).length };
 }
 export function wishCost(wish: Pick<Wish, "price" | "quantity" | "shippingFee">) { return wish.price * wish.quantity + wish.shippingFee; }
-export function won(value: number) { return `${value.toLocaleString("ko-KR")}원`; }
 export function remainingText(value: number) { return value < 0 ? `${won(-value)} 초과` : `${won(value)} 남음`; }

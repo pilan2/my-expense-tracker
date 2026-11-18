@@ -71,7 +71,7 @@ export function EditableName({
               취소
             </button>
           </div>
-          {state.error && <p className="max-w-[220px] text-xs text-red-600">{state.error}</p>}
+          {state.error && <p className="max-w-[220px] text-xs text-red-600 dark:text-red-400">{state.error}</p>}
         </form>
       )}
     </span>

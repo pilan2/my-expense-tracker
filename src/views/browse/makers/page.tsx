@@ -2,6 +2,7 @@ import Link from "@/lib/local/navigation";
 import { getMakerSummary } from "@/lib/spending";
 import { BackButton } from "@/components/back-button";
 import { CategoryStatRow } from "@/components/category-stat-row";
+import { EmptyState, PageHeader } from "@/components/ui";
 
 export default  function BrowseMakersPage() {
   const makers = getMakerSummary();
@@ -9,10 +10,10 @@ export default  function BrowseMakersPage() {
   return (
     <div className="box-border mx-auto w-full max-w-3xl overflow-x-hidden p-6">
       <BackButton href="/" />
-      <h1 className="mb-6 text-xl font-semibold">제작자별로 보기</h1>
+      <PageHeader title="제작자별로 보기" />
 
       {makers.length === 0 ? (
-        <p className="py-10 text-center text-neutral-500">제작한 사람이 등록된 품목이 없습니다.</p>
+        <EmptyState>제작한 사람이 등록된 품목이 없습니다.</EmptyState>
       ) : (
         <ul className="flex flex-col gap-2">
           {makers.map((maker) => (

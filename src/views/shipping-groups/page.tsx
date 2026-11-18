@@ -4,6 +4,7 @@ import { getShippingGroups } from "@/lib/shipping-groups";
 import { backfillShippingGroups } from "@/lib/actions/shipping-groups";
 import { formatShipDateLabel } from "@/lib/dday";
 import { BackButton } from "@/components/back-button";
+import { buttonClass, EmptyState, PageHeader } from "@/components/ui";
 
 function summarizeGroupDate(
   items: { isPhysical: boolean; expectedShipDate: Date | null; shipDateApprox: boolean }[],
@@ -26,16 +27,15 @@ export default  function ShippingGroupsPage() {
   return (
     <div className="box-border mx-auto w-full max-w-3xl overflow-x-hidden p-6">
       <BackButton href="/shipments" />
-      <h1 className="mb-2 text-xl font-semibold">발송 그룹</h1>
-      <p className="mb-4 text-sm text-neutral-500">
-        같은 날 구매하고 제작자/공구자가 같은 품목은 자동으로 묶여요. 발송일이 밀리면 그룹
-        전체를 한 번에 수정할 수 있어요.
-      </p>
+      <PageHeader
+        title="발송 그룹"
+        description="같은 날 구매하고 제작자/공구자가 같은 품목은 자동으로 묶여요. 발송일이 밀리면 그룹 전체를 한 번에 수정할 수 있어요."
+      />
 
       <LocalForm action={backfillShippingGroups} className="mb-6">
         <button
           type="submit"
-          className="rounded-md border border-neutral-300 px-4 py-2 text-sm hover:opacity-70 dark:border-neutral-700"
+          className={buttonClass("secondary")}
         >
           자동 그룹화 다시 실행
         </button>
@@ -45,7 +45,7 @@ export default  function ShippingGroupsPage() {
       </LocalForm>
 
       {groups.length === 0 ? (
-        <p className="py-10 text-center text-neutral-500">아직 발송 그룹이 없습니다.</p>
+        <EmptyState>아직 발송 그룹이 없습니다.</EmptyState>
       ) : (
         <ul className="flex flex-col gap-2">
           {groups.map((group) => {

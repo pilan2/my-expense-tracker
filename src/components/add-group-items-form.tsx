@@ -3,6 +3,7 @@
 import { LocalForm } from "@/components/local-form";
 
 import { useMemo, useState } from "react";
+import { inputClass, buttonClass } from "@/components/ui";
 
 type ItemOption = { id: string; genre: string; character: string; detail: string };
 
@@ -43,7 +44,7 @@ export function AddGroupItemsForm({
         value={filter}
         onChange={(e) => setFilter(e.target.value)}
         placeholder="품목 검색"
-        className="rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+        className={inputClass}
       />
       <div className="max-h-40 overflow-y-auto rounded-md border border-neutral-200 dark:border-neutral-800">
         {filteredOptions.length === 0 ? (
@@ -72,7 +73,7 @@ export function AddGroupItemsForm({
       <button
         type="submit"
         disabled={selectedIds.length === 0}
-        className="self-start rounded-md border border-neutral-300 px-4 py-2 text-sm hover:opacity-70 disabled:opacity-40 dark:border-neutral-700"
+        className={`self-start ${buttonClass("secondary")}`}
       >
         선택한 품목 추가
       </button>

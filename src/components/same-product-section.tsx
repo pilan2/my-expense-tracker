@@ -6,10 +6,10 @@ import { purchaseSourceLabel, summarizeProductGroup } from "@/lib/product-groups
 import { isShipmentOverdue } from "@/lib/dday";
 import type { Item } from "@/lib/local/models";
 import { itemHref } from "@/lib/nav";
+import { won } from "@/lib/money";
+import { buttonClass } from "@/components/ui";
 
 type Purchase = Item & { remainingQuantity: number };
-
-const won = (value: number) => `${value.toLocaleString("ko-KR")}원`;
 
 function statusLabel(item: Purchase) {
   if (item.remainingQuantity === 0) return "판매 완료";
@@ -22,7 +22,7 @@ export function SameProductSection({ item, purchases, candidates, from }: {
   item: Item; purchases: Purchase[]; candidates: Item[]; from: string;
 }) {
   const summary = purchases.length > 1 ? summarizeProductGroup(purchases) : null;
-  const linkClass = "rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700";
+  const linkClass = buttonClass("secondary");
 
   return (
     <div className="mt-8 border-t pt-6 dark:border-neutral-800">

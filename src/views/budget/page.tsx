@@ -9,9 +9,10 @@ import { saveBudget, resetMonthlyBudget, saveWish, deleteWish } from "@/lib/acti
 import { BudgetSummary } from "@/components/budget-summary";
 import { LocalForm } from "@/components/local-form";
 import { BackButton } from "@/components/back-button";
+import { buttonClass, inputClass } from "@/components/ui";
 
-const input = "min-w-0 w-full rounded border border-neutral-300 p-2 dark:border-neutral-700 dark:bg-neutral-900";
-const button = "rounded bg-neutral-900 px-4 py-2 text-sm text-white dark:bg-neutral-100 dark:text-neutral-900";
+const input = `${inputClass} w-full`;
+const button = buttonClass();
 
 function WishForm({ wish, month, done }: { wish?: Wish; month: string; done: () => void }) {
   return <LocalForm action={async form => { await saveWish(wish?.id ?? null, form); done(); }} className="grid gap-3 text-sm">
@@ -83,7 +84,7 @@ export default function BudgetPage({ searchParams }: { searchParams: { month?: s
         <div className="flex flex-wrap items-center gap-4 text-sm">
           <Link href={`/items/new?wish=${encodeURIComponent(wish.id)}`} className="underline">구매하고 품목 등록</Link>
           <button onClick={() => setEditing(editing === wish.id ? null : wish.id)} className="underline">{editing === wish.id ? "수정 닫기" : "수정"}</button>
-          <LocalForm action={async () => { if (window.confirm(`"${wish.title}" 후보를 삭제할까요?`)) await deleteWish(wish.id); }}><button className="text-red-600">후보 삭제</button></LocalForm>
+          <LocalForm action={async () => { if (window.confirm(`"${wish.title}" 후보를 삭제할까요?`)) await deleteWish(wish.id); }}><button className="text-red-600 dark:text-red-400">후보 삭제</button></LocalForm>
         </div>
         {editing === wish.id && <WishForm wish={wish} month={month} done={() => { setEditing(null); setMessage("구매 후보를 수정했습니다."); }} />}
       </article>)}

@@ -9,3 +9,6 @@ export function manwonToWon(manwon: string): string {
 export function wonToManwon(won: number | string): string {
   return (Number(won) / WON_PER_MANWON).toString();
 }
+
+export function won(value: number) { return `${value.toLocaleString("ko-KR")}원`; }
+export function signedWon(value: number) { return `${value >= 0 ? "+" : ""}${won(value)}`; }

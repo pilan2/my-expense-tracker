@@ -3,6 +3,7 @@
 import { LocalForm } from "@/components/local-form";
 
 import { useMemo, useState } from "react";
+import { buttonClass, inputClass } from "@/components/ui";
 
 type ItemOption = {
   id: string;
@@ -57,12 +58,12 @@ export function ChecklistItemForm({
           name="booth"
           placeholder="부스 (예: A-12)"
           required
-          className="flex-1 rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+          className={`flex-1 ${inputClass}`}
         />
         <select
           name="type"
           defaultValue="PICKUP"
-          className="rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+          className={inputClass}
         >
           <option value="PICKUP">수령</option>
           <option value="PURCHASE">구매</option>
@@ -74,7 +75,7 @@ export function ChecklistItemForm({
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
           placeholder="품목과 연결 (검색해서 여러 개 선택 가능)"
-          className="rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+          className={inputClass}
         />
         <div className="max-h-40 overflow-y-auto rounded-md border border-neutral-200 dark:border-neutral-800">
           {filteredOptions.length === 0 ? (
@@ -114,7 +115,7 @@ export function ChecklistItemForm({
             value={label}
             onChange={(e) => setLabel(e.target.value)}
             placeholder="품목 이름 (품목을 연결하지 않을 때만 직접 입력)"
-            className="rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+            className={inputClass}
           />
           <div className="flex gap-2">
             <input
@@ -124,7 +125,7 @@ export function ChecklistItemForm({
               value={price}
               onChange={(e) => setPrice(e.target.value)}
               placeholder="가격 (만원 단위)"
-              className="flex-1 rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+              className={`flex-1 ${inputClass}`}
             />
             <input
               name="quantity"
@@ -133,7 +134,7 @@ export function ChecklistItemForm({
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
               placeholder="수량"
-              className="w-24 rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+              className={`w-24 ${inputClass}`}
             />
           </div>
         </>
@@ -141,7 +142,7 @@ export function ChecklistItemForm({
 
       <button
         type="submit"
-        className="self-start rounded-md bg-neutral-900 px-4 py-2 text-sm text-white hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900"
+        className={`self-start ${buttonClass()}`}
       >
         체크리스트에 추가
       </button>

@@ -7,6 +7,7 @@ import { BackButton } from "@/components/back-button";
 import { ItemsSelectableList } from "@/components/items-selectable-list";
 import { db } from "@/lib/local/repository";
 import { countProductGroups } from "@/lib/product-groups";
+import { buttonClass, EmptyState } from "@/components/ui";
 
 // 캐릭터 안에서 시리즈가 있는 품목은 "캐릭터 (시리즈)"로, 없는 품목은 "캐릭터"만으로
 // 한 줄 제목을 만든다. 같은 캐릭터라도 시리즈가 여러 개면 그만큼 제목이 나뉘어 반복된다.
@@ -89,7 +90,7 @@ export default  function ItemsPage({
         <h1 className="text-xl font-semibold">{pendingOnly ? "배송비 미정 품목" : "전체 품목"}</h1>
         <Link
           href="/items/new"
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm text-white hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900"
+          className={buttonClass()}
         >
           + 품목 등록
         </Link>
@@ -104,9 +105,9 @@ export default  function ItemsPage({
       </div>
 
       {items.length === 0 ? (
-        <p className="py-10 text-center text-neutral-500">
+        <EmptyState>
           {pendingOnly ? "배송비 미정인 품목이 없습니다." : "등록된 품목이 없습니다."}
-        </p>
+        </EmptyState>
       ) : (
         <LocalForm action={assignShippingFee}>
           <ItemsSelectableList groups={groups} pendingOnly={pendingOnly} />

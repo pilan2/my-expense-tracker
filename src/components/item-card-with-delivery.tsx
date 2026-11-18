@@ -25,6 +25,6 @@ export function ItemCardWithDelivery({ id, href, className, showDeliveryAction =
           finally { busy.current = false; setPending(false); }
         }}>{pending ? "저장 중…" : "수령 확인"}</button>
     </div>}
-    {error && <p role="alert" className="mt-2 text-sm text-red-600">{error}</p>}
+    {error && <p role="alert" className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>}
   </div>;
 }

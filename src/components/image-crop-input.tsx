@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import ReactCrop, { centerCrop, type Crop, type PercentCrop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import { rotateImage, cropImageByPercent } from "@/lib/image-crop";
+import { buttonClass } from "@/components/ui";
 
 type Stage = "closed" | "rotate" | "crop";
 
@@ -93,7 +94,7 @@ export function ImageCropInput({ name, className, initialFile, onFileChange }: {
         <label
           className={
             className ??
-            "inline-block w-fit cursor-pointer rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700"
+            `w-fit cursor-pointer ${buttonClass("secondary")}`
           }
         >
           {hasPreview ? "다시 선택" : "사진 선택"}
@@ -136,7 +137,7 @@ export function ImageCropInput({ name, className, initialFile, onFileChange }: {
               <button
                 type="button"
                 onClick={closeDialog}
-                className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700"
+                className={buttonClass("secondary")}
               >
                 취소
               </button>
@@ -180,7 +181,7 @@ export function ImageCropInput({ name, className, initialFile, onFileChange }: {
                 <button
                   type="button"
                   onClick={closeDialog}
-                  className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700"
+                  className={buttonClass("secondary")}
                 >
                   취소
                 </button>

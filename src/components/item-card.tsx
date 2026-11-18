@@ -2,6 +2,8 @@
 import { LocalImage } from "@/components/local-image";
 import { formatShipDDay, formatShipDateLabel, isShipmentOverdue } from "@/lib/dday";
 import { calcProfit } from "@/lib/profit";
+import { won, signedWon } from "@/lib/money";
+import { profitColor } from "@/components/ui";
 
 // Prisma Decimal도 그대로 받을 수 있도록 toString()만 요구한다.
 type DecimalLike = number | string | { toString(): string };
@@ -89,8 +91,8 @@ export function ItemCardContent({
           수량 {quantity}
           {remainingQuantity !== quantity ? ` (잔여 ${remainingQuantity})` : ""}
           {" · "}
-          {Number(price).toLocaleString("ko-KR")}원
-          {Number(shippingFee) > 0 ? ` (+배송비 ${Number(shippingFee).toLocaleString("ko-KR")}원)` : ""}
+          {won(Number(price))}
+          {Number(shippingFee) > 0 ? ` (+배송비 ${won(Number(shippingFee))})` : ""}
         </p>
         <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
           {remainingQuantity === 0 ? (
@@ -115,7 +117,7 @@ export function ItemCardContent({
                 <span className="text-neutral-500">
                   발송예정 {formatShipDateLabel(expectedShipDate, shipDateApprox)}{" "}
                 </span>
-                <span className="whitespace-nowrap font-medium text-blue-600">
+                <span className="whitespace-nowrap font-medium text-blue-600 dark:text-blue-400">
                   {formatShipDDay(expectedShipDate, shipDateApprox)}
                 </span>
               </>
@@ -128,9 +130,8 @@ export function ItemCardContent({
           )}
         </p>
         {profit !== null && (
-          <p className={`text-sm font-medium ${profit >= 0 ? "text-blue-600" : "text-red-600"}`}>
-            손익 {profit >= 0 ? "+" : ""}
-            {profit.toLocaleString("ko-KR")}원
+          <p className={`text-sm font-medium ${profitColor(profit)}`}>
+            손익 {signedWon(profit)}
           </p>
         )}
       </div>

@@ -13,6 +13,7 @@ import { ClearableDateInput } from "@/components/clearable-date-input";
 import { ImageCropInput } from "@/components/image-crop-input";
 import { ShipDateInput } from "@/components/ship-date-input";
 import type { GenreCatalogEntry, ItemTypeCatalogEntry } from "@/lib/catalog";
+import { buttonClass, inputClass } from "@/components/ui";
 
 export type ItemFormDefaults = {
   genre: string;
@@ -36,8 +37,6 @@ export type ItemFormDefaults = {
   imageUrl: string | null;
 };
 
-const inputClass =
-  "rounded-md border border-neutral-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-400 dark:border-neutral-700 dark:bg-neutral-900";
 
 const pickerButtonClass = (selected: boolean) =>
   `rounded-full border px-3 py-1.5 text-sm ${
@@ -378,7 +377,7 @@ export function ItemForm({
 
       <button
         type="submit"
-        className="mt-2 rounded-md bg-neutral-900 px-4 py-2 text-white hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900"
+        className={`mt-2 ${buttonClass()}`}
       >
         저장
       </button>

@@ -10,6 +10,8 @@ import { TrendLineChart } from "@/components/trend-chart";
 import { GenreComparisonChart } from "@/components/genre-comparison-chart";
 import { ItemCardWithDelivery } from "@/components/item-card-with-delivery";
 import { itemHref } from "@/lib/nav";
+import { won, signedWon } from "@/lib/money";
+import { profitColor, EmptyState, PageHeader } from "@/components/ui";
 
 function monthHref(year: number, month: number) {
   return `/stats?month=${monthParamString(year, month)}`;
@@ -124,10 +126,10 @@ export default  function StatsPage({
   return (
     <div className="box-border mx-auto w-full max-w-3xl overflow-x-hidden p-6">
       <BackButton href="/" />
-      <h1 className="mb-6 text-xl font-semibold">통계</h1>
+      <PageHeader title="통계" />
 
       {overall.length === 0 ? (
-        <p className="py-10 text-center text-neutral-500">구매/판매 기록이 없습니다.</p>
+        <EmptyState>구매/판매 기록이 없습니다.</EmptyState>
       ) : (
         <div className="flex flex-col gap-8">
           <div>
@@ -160,8 +162,8 @@ export default  function StatsPage({
             ) : (
               <>
                 <p className="mb-3 text-sm font-medium">
-                  합계: 구매 {monthTotals.purchaseTotal.toLocaleString("ko-KR")}원 · 판매{" "}
-                  {monthTotals.saleTotal.toLocaleString("ko-KR")}원
+                  합계: 구매 {won(monthTotals.purchaseTotal)} · 판매{" "}
+                  {won(monthTotals.saleTotal)}
                 </p>
 
                 <ul className="mb-4 flex flex-col gap-2">
@@ -172,8 +174,8 @@ export default  function StatsPage({
                     >
                       <span className="font-medium">{genreGroup.genre}</span>
                       <span className="text-neutral-500">
-                        구매 {genreGroup.purchaseTotal.toLocaleString("ko-KR")}원 · 판매{" "}
-                        {genreGroup.saleTotal.toLocaleString("ko-KR")}원
+                        구매 {won(genreGroup.purchaseTotal)} · 판매{" "}
+                        {won(genreGroup.saleTotal)}
                       </span>
                     </li>
                   ))}
@@ -229,13 +231,12 @@ export default  function StatsPage({
                                         >
                                           <p className="text-sm">{sale.item.detail}</p>
                                           <p className="text-sm text-neutral-500">
-                                            {sale.quantitySold}개 · {Number(sale.saleAmount).toLocaleString("ko-KR")}원
+                                            {sale.quantitySold}개 · {won(Number(sale.saleAmount))}
                                             · 손익{" "}
                                             <span
-                                              className={`font-medium ${profit >= 0 ? "text-blue-600" : "text-red-600"}`}
+                                              className={`font-medium ${profitColor(profit)}`}
                                             >
-                                              {profit >= 0 ? "+" : ""}
-                                              {profit.toLocaleString("ko-KR")}원
+                                              {signedWon(profit)}
                                             </span>
                                           </p>
                                         </Link>

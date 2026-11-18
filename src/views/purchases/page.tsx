@@ -2,6 +2,7 @@ import { getRecentPurchases } from "@/lib/items";
 import { BackButton } from "@/components/back-button";
 import { ItemCardWithDelivery } from "@/components/item-card-with-delivery";
 import { itemHref } from "@/lib/nav";
+import { EmptyState, PageHeader } from "@/components/ui";
 
 export default  function PurchasesPage() {
   const items = getRecentPurchases();
@@ -20,10 +21,10 @@ export default  function PurchasesPage() {
   return (
     <div className="box-border mx-auto w-full max-w-3xl overflow-x-hidden p-6">
       <BackButton href="/" />
-      <h1 className="mb-6 text-xl font-semibold">구매 내역 (최신순)</h1>
+      <PageHeader title="구매 내역 (최신순)" />
 
       {items.length === 0 ? (
-        <p className="py-10 text-center text-neutral-500">구매 기록이 없습니다.</p>
+        <EmptyState>구매 기록이 없습니다.</EmptyState>
       ) : (
         <div className="flex flex-col gap-6">
           {dateGroups.map(([dateStr, groupItems]) => (

@@ -7,6 +7,7 @@ import { db } from "@/lib/local/repository";
 import { notFound } from "@/lib/local/navigation";
 import { wonToManwon } from "@/lib/money";
 import { itemHref } from "@/lib/nav";
+import { PageHeader } from "@/components/ui";
 
 export default function NewItemPage({ searchParams }: { searchParams: { wish?: string; sameAs?: string } }) {
   const wish = searchParams.wish ? db.wish.findUnique({ where: { id: searchParams.wish } }) : null;
@@ -19,7 +20,7 @@ export default function NewItemPage({ searchParams }: { searchParams: { wish?: s
   return (
     <div className="box-border mx-auto w-full max-w-xl overflow-x-hidden p-6">
       <BackButton href={sameAs ? itemHref(sameAs.id, "/items") : "/items"} />
-      <h1 className="mb-6 text-xl font-semibold">{sameAs ? "같은 물품 추가 구매" : "품목 등록"}</h1>
+      <PageHeader title={sameAs ? "같은 물품 추가 구매" : "품목 등록"} />
       {wish && <p className="mb-4 text-sm">구매 후보: {wish.title}. 실제 구매 금액과 구매일을 확인해주세요. 저장 후 구매 완료로 표시됩니다.</p>}
       {sameAs && <p className="mb-4 text-sm">{sameAs.detail}의 물품 정보를 가져왔습니다. 이번 구매의 가격·수량·구매처·배송 정보를 입력해주세요. 저장하면 기존 구매와 같은 물품으로 묶입니다.</p>}
       <NewItemDraftForm wishId={wish?.id} sameAsItemId={sameAs?.id} defaultValues={wish ? { detail: wish.title, price: wonToManwon(wish.price), quantity: wish.quantity, shippingFee: wonToManwon(wish.shippingFee), purchaseLink: wish.purchaseLink ?? "", memo: wish.reason ?? "" }

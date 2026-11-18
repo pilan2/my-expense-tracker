@@ -4,6 +4,7 @@ import { useState } from "react";
 import { NumberInput } from "@/components/number-input";
 import { ItemCardWithDelivery } from "@/components/item-card-with-delivery";
 import { itemHref } from "@/lib/nav";
+import { buttonClass, inputClass } from "@/components/ui";
 
 type Item = Omit<Parameters<typeof ItemCardWithDelivery>[0], "href">;
 type Subgroup = { character: string; series: string | null; items: Item[] };
@@ -33,7 +34,7 @@ export function ItemsSelectableList({
                   name="totalShippingFee"
                   min={0}
                   step={0.0001}
-                  className="rounded-md border border-neutral-300 px-3 py-2 dark:border-neutral-700 dark:bg-neutral-900"
+                  className={inputClass}
                 />
               </label>
             )}
@@ -41,7 +42,7 @@ export function ItemsSelectableList({
               {pendingOnly ? (
                 <button
                   type="submit"
-                  className="rounded-md bg-neutral-900 px-4 py-2 text-white hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900"
+                  className={buttonClass()}
                 >
                   배송비 나누기
                 </button>
@@ -50,7 +51,7 @@ export function ItemsSelectableList({
                   type="submit"
                   formMethod="get"
                   formAction="/items/bulk-sale"
-                  className="rounded-md bg-neutral-900 px-4 py-2 text-white hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900"
+                  className={buttonClass()}
                 >
                   선택 완료 →
                 </button>
@@ -58,7 +59,7 @@ export function ItemsSelectableList({
               <button
                 type="button"
                 onClick={() => setSelectMode(false)}
-                className="rounded-md border border-neutral-300 px-4 py-2 hover:opacity-70 dark:border-neutral-700"
+                className={buttonClass("secondary")}
               >
                 취소
               </button>
@@ -68,7 +69,7 @@ export function ItemsSelectableList({
           <button
             type="button"
             onClick={() => setSelectMode(true)}
-            className="self-start rounded-md border border-neutral-300 px-4 py-2 hover:opacity-70 dark:border-neutral-700"
+            className={`self-start ${buttonClass("secondary")}`}
           >
             {pendingOnly ? "배송비 나누기" : "묶음 판매"}
           </button>

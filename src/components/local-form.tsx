@@ -24,6 +24,6 @@ export function LocalForm({ action, onSubmit, children, formRef, ...props }: Omi
   }}>
     {children}
     {pending && <p role="status" className="text-sm text-neutral-500">기기에 저장 중…</p>}
-    {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
+    {error && <p role="alert" className="text-sm text-red-600 dark:text-red-400">{error}</p>}
   </form>;
 }

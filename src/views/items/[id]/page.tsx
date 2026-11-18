@@ -14,9 +14,10 @@ import { BackButton } from "@/components/back-button";
 import { NumberInput } from "@/components/number-input";
 import { ClearableDateInput } from "@/components/clearable-date-input";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
-import { wonToManwon } from "@/lib/money";
+import { wonToManwon, won, signedWon } from "@/lib/money";
 import { formatShipDDay, formatShipDateLabel, isShipmentOverdue } from "@/lib/dday";
 import { safeRedirectTarget } from "@/lib/nav";
+import { profitColor, buttonClass, inputClass } from "@/components/ui";
 
 function selfHref(id: string, from: string, mode?: "edit") {
   const params = new URLSearchParams({ from });
@@ -100,7 +101,7 @@ export default  function ItemDetailPage({
               ) : (
                 <>
                   발송예정 {formatShipDateLabel(item.expectedShipDate, item.shipDateApprox)} ·{" "}
-                  <span className="font-medium text-blue-600">
+                  <span className="font-medium text-blue-600 dark:text-blue-400">
                     {formatShipDDay(item.expectedShipDate, item.shipDateApprox)}
                   </span>
                 </>
@@ -133,7 +134,7 @@ export default  function ItemDetailPage({
             <h1 className="text-xl font-semibold">품목 정보</h1>
             <Link
               href={selfHref(item.id, from, "edit")}
-              className="rounded-md bg-neutral-900 px-4 py-2 text-sm text-white hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900"
+              className={buttonClass()}
             >
               수정
             </Link>
@@ -151,13 +152,13 @@ export default  function ItemDetailPage({
               label="수량"
               value={remaining !== item.quantity ? `${item.quantity} (잔여 ${remaining})` : item.quantity}
             />
-            <DetailRow label="가격" value={`${Number(item.price).toLocaleString("ko-KR")}원`} />
+            <DetailRow label="가격" value={`${won(Number(item.price))}`} />
             <DetailRow
               label="구매일"
               value={item.purchasedAt ? item.purchasedAt.toLocaleDateString("ko-KR") : "모름"}
             />
             {Number(item.shippingFee) > 0 && (
-              <DetailRow label="배송비" value={`${Number(item.shippingFee).toLocaleString("ko-KR")}원`} />
+              <DetailRow label="배송비" value={`${won(Number(item.shippingFee))}`} />
             )}
             {item.hasOverseasShipping && <DetailRow label="배송비" value="이후 계산 필요" />}
             {item.maker && <DetailRow label="제작한 사람" value={item.maker} />}
@@ -184,7 +185,7 @@ export default  function ItemDetailPage({
                 ) : item.expectedShipDate ? (
                   <>
                     발송예정 {formatShipDateLabel(item.expectedShipDate, item.shipDateApprox)}{" "}
-                    <span className="font-medium text-blue-600">
+                    <span className="font-medium text-blue-600 dark:text-blue-400">
                       {formatShipDDay(item.expectedShipDate, item.shipDateApprox)}
                     </span>
                   </>
@@ -226,9 +227,8 @@ export default  function ItemDetailPage({
               <DetailRow
                 label="판매 손익"
                 value={
-                  <span className={`font-medium ${profit >= 0 ? "text-blue-600" : "text-red-600"}`}>
-                    {profit >= 0 ? "+" : ""}
-                    {profit.toLocaleString("ko-KR")}원
+                  <span className={`font-medium ${profitColor(profit)}`}>
+                    {signedWon(profit)}
                   </span>
                 }
               />
@@ -242,7 +242,7 @@ export default  function ItemDetailPage({
       <LocalForm action={deleteItem.bind(null, item.id, from)} className="mt-8 border-t pt-6 dark:border-neutral-800">
         <ConfirmSubmitButton
           confirmMessage="이 품목을 삭제하시겠습니까? 연결된 판매 이력과 행사 체크리스트 항목도 함께 삭제됩니다."
-          className="text-sm text-red-600 hover:underline"
+          className="text-sm text-red-600 dark:text-red-400 hover:underline"
         >
           이 품목 삭제
         </ConfirmSubmitButton>
@@ -258,9 +258,8 @@ export default  function ItemDetailPage({
           {sales.length > 0 && (
             <p>
               판매 손익:{" "}
-              <span className={`font-medium ${profit >= 0 ? "text-blue-600" : "text-red-600"}`}>
-                {profit >= 0 ? "+" : ""}
-                {profit.toLocaleString("ko-KR")}원
+              <span className={`font-medium ${profitColor(profit)}`}>
+                {signedWon(profit)}
               </span>
             </p>
           )}
@@ -276,7 +275,7 @@ export default  function ItemDetailPage({
                 max={remaining}
                 defaultValue={1}
                 required
-                className="rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+                className={inputClass}
               />
             </label>
             <label className="flex flex-col gap-1 text-sm">
@@ -286,7 +285,7 @@ export default  function ItemDetailPage({
                 min={0}
                 step={0.01}
                 required
-                className="rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+                className={inputClass}
               />
             </label>
             <label className="flex flex-col gap-1 text-sm">
@@ -294,12 +293,12 @@ export default  function ItemDetailPage({
               <ClearableDateInput
                 name="saleDate"
                 defaultValue={today}
-                className="rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+                className={inputClass}
               />
             </label>
             <button
               type="submit"
-              className="mt-1 rounded-md bg-neutral-900 px-4 py-2 text-sm text-white hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900"
+              className={`mt-1 ${buttonClass()}`}
             >
               판매 등록
             </button>
@@ -314,12 +313,12 @@ export default  function ItemDetailPage({
               <li key={sale.id} className="flex items-center justify-between py-2">
                 <span>
                   {sale.saleDate ? sale.saleDate.toLocaleDateString("ko-KR") : "날짜 모름"} · {sale.quantitySold}개 ·{" "}
-                  {Number(sale.saleAmount).toLocaleString("ko-KR")}원
+                  {won(Number(sale.saleAmount))}
                 </span>
                 <LocalForm action={deleteSale.bind(null, sale.id)}>
                   <ConfirmSubmitButton
                     confirmMessage="이 판매 기록을 삭제하시겠습니까?"
-                    className="text-red-600 hover:underline"
+                    className="text-red-600 dark:text-red-400 hover:underline"
                   >
                     삭제
                   </ConfirmSubmitButton>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import { buttonClass } from "@/components/ui";
 
 export function ConfirmSubmitButton({
   confirmMessage,
@@ -36,7 +37,7 @@ export function ConfirmSubmitButton({
           <button
             type="button"
             onClick={() => dialogRef.current?.close()}
-            className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700"
+            className={buttonClass("secondary")}
           >
             취소
           </button>
@@ -46,7 +47,7 @@ export function ConfirmSubmitButton({
               dialogRef.current?.close();
               formRef.current?.requestSubmit();
             }}
-            className="rounded-md bg-red-600 px-3 py-1.5 text-sm text-white hover:bg-red-700"
+            className={buttonClass("danger")}
           >
             확인
           </button>

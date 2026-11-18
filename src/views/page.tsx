@@ -6,6 +6,8 @@ import { getRecentSales, calcSaleProfit } from "@/lib/sales";
 import { getCurrentMonthTotals } from "@/lib/trends";
 import { formatShipDDay } from "@/lib/dday";
 import { itemHref } from "@/lib/nav";
+import { won, signedWon } from "@/lib/money";
+import { profitColor, buttonClass } from "@/components/ui";
 
 export default  function Home() {
   const [summary, upcomingShipments, recentPurchases, recentSales, currentMonth] = [
@@ -41,13 +43,13 @@ export default  function Home() {
       <div className="flex justify-end gap-2">
         <Link
           href="/items"
-          className="inline-block rounded-md bg-neutral-900 px-4 py-2 text-sm text-white dark:bg-neutral-100 dark:text-neutral-900"
+          className={buttonClass()}
         >
           전체 품목 보기
         </Link>
         <Link
           href="/items/new"
-          className="inline-block rounded-md border border-neutral-300 px-4 py-2 text-sm hover:opacity-70 dark:border-neutral-700"
+          className={buttonClass("secondary")}
         >
           + 품목 등록
         </Link>
@@ -58,21 +60,20 @@ export default  function Home() {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
         <div className="rounded-lg border border-neutral-200 p-4 sm:p-6 dark:border-neutral-800">
           <p className="text-sm text-neutral-500">총 소비 금액</p>
-          <p className="text-xl font-semibold text-blue-600 dark:text-blue-400 sm:text-2xl">
-            {summary.totalPurchase.toLocaleString("ko-KR")}원
+          <p className="text-xl font-semibold sm:text-2xl">
+            {won(summary.totalPurchase)}
           </p>
         </div>
         <div className="rounded-lg border border-neutral-200 p-4 sm:p-6 dark:border-neutral-800">
           <p className="text-sm text-neutral-500">총 판매 금액</p>
           <p className="text-xl font-semibold text-green-600 dark:text-green-400 sm:text-2xl">
-            {summary.totalSale.toLocaleString("ko-KR")}원
+            {won(summary.totalSale)}
           </p>
         </div>
         <div className="col-span-2 rounded-lg border border-neutral-200 p-4 sm:col-span-1 sm:p-6 dark:border-neutral-800">
           <p className="text-sm text-neutral-500">총 손익</p>
-          <p className={`text-xl font-semibold sm:text-2xl ${summary.totalProfit >= 0 ? "text-blue-600" : "text-red-600"}`}>
-            {summary.totalProfit >= 0 ? "+" : ""}
-            {summary.totalProfit.toLocaleString("ko-KR")}원
+          <p className={`text-xl font-semibold sm:text-2xl ${profitColor(summary.totalProfit)}`}>
+            {signedWon(summary.totalProfit)}
           </p>
         </div>
       </div>
@@ -80,14 +81,14 @@ export default  function Home() {
       <div className="grid grid-cols-2 gap-3 sm:gap-4">
         <div className="rounded-lg border border-neutral-200 p-4 sm:p-6 dark:border-neutral-800">
           <p className="text-sm text-neutral-500">이번 달 소비 금액</p>
-          <p className="text-xl font-semibold text-blue-600 dark:text-blue-400 sm:text-2xl">
-            {currentMonth.purchaseTotal.toLocaleString("ko-KR")}원
+          <p className="text-xl font-semibold sm:text-2xl">
+            {won(currentMonth.purchaseTotal)}
           </p>
         </div>
         <div className="rounded-lg border border-neutral-200 p-4 sm:p-6 dark:border-neutral-800">
           <p className="text-sm text-neutral-500">이번 달 판매 금액</p>
           <p className="text-xl font-semibold text-green-600 dark:text-green-400 sm:text-2xl">
-            {currentMonth.saleTotal.toLocaleString("ko-KR")}원
+            {won(currentMonth.saleTotal)}
           </p>
         </div>
       </div>
@@ -120,7 +121,7 @@ export default  function Home() {
                       .join(", ")}
                     {items.length > 2 ? ` 외 ${items.length - 2}개` : ""}
                   </span>
-                  <span className="shrink-0 font-medium text-blue-600">
+                  <span className="shrink-0 font-medium text-blue-600 dark:text-blue-400">
                     {formatShipDDay(items[0].expectedShipDate!, items[0].shipDateApprox)}
                   </span>
                 </Link>
@@ -197,10 +198,9 @@ export default  function Home() {
                         {sale.item.character} · {sale.item.detail}
                       </span>
                       <span
-                        className={`shrink-0 font-medium ${profit >= 0 ? "text-blue-600" : "text-red-600"}`}
+                        className={`shrink-0 font-medium ${profitColor(profit)}`}
                       >
-                        {profit >= 0 ? "+" : ""}
-                        {profit.toLocaleString("ko-KR")}원
+                        {signedWon(profit)}
                       </span>
                     </Link>
                   </li>
@@ -227,14 +227,13 @@ export default  function Home() {
               >
                 <span className="font-medium">{genre.name}</span>
                 <span className="text-neutral-500">
-                  구매 {genre.purchaseTotal.toLocaleString("ko-KR")}원 · 판매{" "}
-                  {genre.saleTotal.toLocaleString("ko-KR")}원
+                  구매 {won(genre.purchaseTotal)} · 판매{" "}
+                  {won(genre.saleTotal)}
                   {genre.saleTotal > 0 && (
                     <>
                       {" · 손익 "}
-                      <span className={`font-medium ${genre.profit >= 0 ? "text-blue-600" : "text-red-600"}`}>
-                        {genre.profit >= 0 ? "+" : ""}
-                        {genre.profit.toLocaleString("ko-KR")}원
+                      <span className={`font-medium ${profitColor(genre.profit)}`}>
+                        {signedWon(genre.profit)}
                       </span>
                     </>
                   )}

@@ -77,7 +77,7 @@ function DraftEditor({ draftKey, loaded, reset, ...props }: Props & { draftKey: 
   return <>
     <div className="mb-4 space-y-2 rounded border border-neutral-300 p-3 text-sm dark:border-neutral-700">
       {status && <p role="status">{status}</p>}
-      {error && <p role="alert" className="text-red-600">{error}</p>}
+      {error && <p role="alert" className="text-red-600 dark:text-red-400">{error}</p>}
       <p className="text-neutral-500">등록 전 내용은 통계와 전체 백업에 포함되지 않습니다.</p>
       <button type="button" disabled={busy} onClick={() => void discard()} className="underline disabled:opacity-40">임시저장 지우고 새로 작성</button>
     </div>

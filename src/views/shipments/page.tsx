@@ -6,6 +6,7 @@ import { BackButton } from "@/components/back-button";
 import { ItemCardWithDelivery } from "@/components/item-card-with-delivery";
 import { itemHref } from "@/lib/nav";
 import { formatShipDateLabel } from "@/lib/dday";
+import { EmptyState } from "@/components/ui";
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
@@ -190,7 +191,7 @@ export default  function ShipmentsPage({
   const items = getUpcomingShipments();
 
   if (items.length === 0) {
-    return <p className="py-10 text-center text-neutral-500">발송 예정인 품목이 없습니다.</p>;
+    return <EmptyState>발송 예정인 품목이 없습니다.</EmptyState>;
   }
 
   // 월 단위로만 아는 품목은 같은 날(그 달 1일)에 잡힌 특정일 품목과 한 그룹으로 묶이지 않도록
@@ -237,7 +238,7 @@ export default  function ShipmentsPage({
     <>
       <p className="mb-4 font-medium">{dateStr}</p>
       {items.length === 0 ? (
-        <p className="py-10 text-center text-neutral-500">이 날짜에 발송 예정인 품목이 없습니다.</p>
+        <EmptyState>이 날짜에 발송 예정인 품목이 없습니다.</EmptyState>
       ) : (
         <ul className="flex flex-col gap-2">
           {items.map((item) => (

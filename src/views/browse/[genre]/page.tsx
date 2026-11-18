@@ -3,6 +3,7 @@ import { notFound, redirect } from "@/lib/local/navigation";
 import { getCategorySummary } from "@/lib/spending";
 import { BackButton } from "@/components/back-button";
 import { CategoryStatRow } from "@/components/category-stat-row";
+import { PageHeader } from "@/components/ui";
 
 export default  function BrowseCharactersPage({
   params,
@@ -25,7 +26,7 @@ export default  function BrowseCharactersPage({
   return (
     <div className="box-border mx-auto w-full max-w-3xl overflow-x-hidden p-6">
       <BackButton href="/" />
-      <h1 className="mb-6 text-xl font-semibold">{genre}</h1>
+      <PageHeader title={genre} />
 
       <ul className="flex flex-col gap-2">
         {genreSummary.characters.map((character) => (

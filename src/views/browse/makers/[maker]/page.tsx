@@ -4,6 +4,7 @@ import { getCatalogOrderMaps, compareNameByCatalogOrder } from "@/lib/catalog";
 import { BackButton } from "@/components/back-button";
 import { ItemCardWithDelivery } from "@/components/item-card-with-delivery";
 import { itemHref } from "@/lib/nav";
+import { PageHeader } from "@/components/ui";
 
 // 물품 종류(itemType)는 전역 카탈로그 순서를 그대로 쓴다.
 function groupByItemType<T extends { itemType: string }>(items: T[], itemTypeOrder: Map<string, number>) {
@@ -46,7 +47,7 @@ export default  function BrowseMakerItemsPage({
   return (
     <div className="box-border mx-auto w-full max-w-3xl overflow-x-hidden p-6">
       <BackButton href="/browse/makers" />
-      <h1 className="mb-6 text-xl font-semibold">{maker}</h1>
+      <PageHeader title={maker} />
 
       <div className="flex flex-col gap-6">
         {groups.map((group) => (

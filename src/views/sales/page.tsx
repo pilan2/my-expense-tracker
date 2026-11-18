@@ -2,6 +2,8 @@ import Link from "@/lib/local/navigation";
 import { getRecentSales, calcSaleProfit } from "@/lib/sales";
 import { BackButton } from "@/components/back-button";
 import { itemHref } from "@/lib/nav";
+import { won, signedWon } from "@/lib/money";
+import { profitColor, EmptyState, PageHeader } from "@/components/ui";
 
 export default  function SalesPage() {
   const sales = getRecentSales();
@@ -9,10 +11,10 @@ export default  function SalesPage() {
   return (
     <div className="box-border mx-auto w-full max-w-3xl overflow-x-hidden p-6">
       <BackButton href="/" />
-      <h1 className="mb-6 text-xl font-semibold">판매 내역 (최신순)</h1>
+      <PageHeader title="판매 내역 (최신순)" />
 
       {sales.length === 0 ? (
-        <p className="py-10 text-center text-neutral-500">판매 기록이 없습니다.</p>
+        <EmptyState>판매 기록이 없습니다.</EmptyState>
       ) : (
         <ul className="flex flex-col gap-2">
           {sales.map((sale) => {
@@ -41,10 +43,9 @@ export default  function SalesPage() {
                       {sale.item.detail}
                     </p>
                     <p className="text-sm text-neutral-500">
-                      {sale.quantitySold}개 · {Number(sale.saleAmount).toLocaleString("ko-KR")}원 · 손익{" "}
-                      <span className={`font-medium ${profit >= 0 ? "text-blue-600" : "text-red-600"}`}>
-                        {profit >= 0 ? "+" : ""}
-                        {profit.toLocaleString("ko-KR")}원
+                      {sale.quantitySold}개 · {won(Number(sale.saleAmount))} · 손익{" "}
+                      <span className={`font-medium ${profitColor(profit)}`}>
+                        {signedWon(profit)}
                       </span>
                     </p>
                   </div>
