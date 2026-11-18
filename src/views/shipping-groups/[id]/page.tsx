@@ -85,8 +85,8 @@ export default  function ShippingGroupDetailPage({
                   </div>
                   <LocalForm action={removeFromShippingGroup.bind(null, item.id)}>
                     <ConfirmSubmitButton
-                      confirmMessage="이 품목을 그룹에서 빼시겠습니까?"
-                      className="shrink-0 text-xs text-red-600 dark:text-red-400 hover:underline"
+                      confirmMessage="이 품목을 그룹에서 뺄까요?"
+                      className={`shrink-0 ${buttonClass("dangerGhost")}`}
                     >
                       그룹에서 빼기
                     </ConfirmSubmitButton>
@@ -111,8 +111,8 @@ export default  function ShippingGroupDetailPage({
                   </Link>
                   <LocalForm action={removeFromShippingGroup.bind(null, item.id)}>
                     <ConfirmSubmitButton
-                      confirmMessage="이 품목을 그룹에서 빼시겠습니까?"
-                      className="shrink-0 text-xs text-red-600 dark:text-red-400 hover:underline"
+                      confirmMessage="이 품목을 그룹에서 뺄까요?"
+                      className={`shrink-0 ${buttonClass("dangerGhost")}`}
                     >
                       그룹에서 빼기
                     </ConfirmSubmitButton>

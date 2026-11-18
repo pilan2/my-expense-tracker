@@ -75,8 +75,8 @@ export default  function EventsPage() {
                   />
                   <LocalForm action={deleteEvent.bind(null, event.id)}>
                     <ConfirmSubmitButton
-                      confirmMessage={`"${event.name}" 행사를 삭제하시겠습니까? 체크리스트도 함께 삭제됩니다.`}
-                      className="text-sm text-red-600 dark:text-red-400 hover:underline"
+                      confirmMessage={`"${event.name}" 행사를 삭제할까요? 체크리스트도 함께 삭제됩니다.`}
+                      className={buttonClass("dangerGhost")}
                     >
                       삭제
                     </ConfirmSubmitButton>

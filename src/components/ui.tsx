@@ -8,6 +8,8 @@ const buttonVariants = {
   secondary: "border border-neutral-300 hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800",
   danger: "bg-red-600 text-white hover:bg-red-700",
   ghost: "px-2 text-neutral-600 underline hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100",
+  // 같은 요소에 글자색 클래스를 두 개 붙이면 CSS 순서에 따라 결과가 달라지므로 삭제용은 따로 둔다.
+  dangerGhost: "px-2 text-red-600 underline hover:text-red-700 dark:text-red-400 dark:hover:text-red-300",
 };
 export function buttonClass(variant: keyof typeof buttonVariants = "primary") {
   return `${buttonBase} ${buttonVariants[variant]}`;

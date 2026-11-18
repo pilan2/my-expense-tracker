@@ -11,7 +11,7 @@ const PADDING = { top: 16, right: 12, bottom: 8, left: 12 };
 // 팔레트 고정 순서(8색) — 슬롯 순서는 항상 동일하게, 개별 장르에 배정만 다르게 한다.
 const STROKE_CLASSES = [
   "stroke-[#2a78d6] dark:stroke-[#3987e5]",
-  "stroke-[#008300]",
+  "stroke-[#008300] dark:stroke-[#2fae45]",
   "stroke-[#e87ba4] dark:stroke-[#d55181]",
   "stroke-[#eda100] dark:stroke-[#c98500]",
   "stroke-[#1baf7a] dark:stroke-[#199e70]",
@@ -21,7 +21,7 @@ const STROKE_CLASSES = [
 ];
 const FILL_CLASSES = [
   "fill-[#2a78d6] dark:fill-[#3987e5]",
-  "fill-[#008300]",
+  "fill-[#008300] dark:fill-[#2fae45]",
   "fill-[#e87ba4] dark:fill-[#d55181]",
   "fill-[#eda100] dark:fill-[#c98500]",
   "fill-[#1baf7a] dark:fill-[#199e70]",
@@ -31,7 +31,7 @@ const FILL_CLASSES = [
 ];
 const BG_CLASSES = [
   "bg-[#2a78d6] dark:bg-[#3987e5]",
-  "bg-[#008300]",
+  "bg-[#008300] dark:bg-[#2fae45]",
   "bg-[#e87ba4] dark:bg-[#d55181]",
   "bg-[#eda100] dark:bg-[#c98500]",
   "bg-[#1baf7a] dark:bg-[#199e70]",

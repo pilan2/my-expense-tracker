@@ -1,13 +1,14 @@
 import Link from "@/lib/local/navigation";
 import { currentData } from "@/lib/local/database";
 import { currentMonth, monthBudget, remainingText, won } from "@/lib/budget";
+import { linkClass } from "@/components/ui";
 
 export function BudgetSummary({ month = currentMonth(), link = true }: { month?: string; link?: boolean }) {
   const budget = monthBudget(currentData(), month);
   const ratio = budget.amount === null || budget.amount === 0 ? null : budget.spent / budget.amount;
   const exceeded = budget.remaining !== null && budget.remaining < 0;
   return <section aria-label="월별 예산 현황" className="space-y-3 rounded-lg border border-neutral-300 p-4 dark:border-neutral-700">
-    <div className="flex items-center justify-between gap-3"><h2 className="font-semibold">{month} 예산</h2>{link && <Link href={`/budget?month=${month}`} className="text-sm underline">예산·구매 후보 관리</Link>}</div>
+    <div className="flex items-center justify-between gap-3"><h2 className="font-semibold">{month} 예산</h2>{link && <Link href={`/budget?month=${month}`} className={linkClass}>예산·구매 후보 관리</Link>}</div>
     {budget.amount === null ? <p>예산을 설정하면 남은 금액을 확인할 수 있어요.</p> : <>
       <p className="text-sm">예산 {won(budget.amount)} · 사용 {won(budget.spent)}</p>
       <p className={`text-lg font-semibold ${exceeded ? "text-red-600 dark:text-red-400" : ""}`}>{remainingText(budget.remaining!)}</p>

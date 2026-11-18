@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import ReactCrop, { centerCrop, type Crop, type PercentCrop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import { rotateImage, cropImageByPercent } from "@/lib/image-crop";
-import { buttonClass } from "@/components/ui";
+import { buttonClass, linkClass } from "@/components/ui";
 
 type Stage = "closed" | "rotate" | "crop";
 
@@ -100,7 +100,7 @@ export function ImageCropInput({ name, className, initialFile, onFileChange }: {
           {hasPreview ? "다시 선택" : "사진 선택"}
           <input type="file" accept="image/*" onChange={handlePick} className="hidden" />
         </label>
-        {hasPreview && <button type="button" className="text-sm underline" onClick={() => {
+        {hasPreview && <button type="button" className={linkClass} onClick={() => {
           if (hiddenInputRef.current) hiddenInputRef.current.value = "";
           setPreviewUrl(null); setInitialCleared(true); onFileChange?.(null);
         }}>선택한 사진 지우기</button>}
@@ -173,7 +173,7 @@ export function ImageCropInput({ name, className, initialFile, onFileChange }: {
               <button
                 type="button"
                 onClick={() => setStage("rotate")}
-                className="text-sm text-neutral-500 hover:underline"
+                className={buttonClass("ghost")}
               >
                 ← 회전 다시
               </button>

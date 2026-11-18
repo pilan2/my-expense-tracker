@@ -9,7 +9,7 @@ import { ChecklistItemForm } from "@/components/checklist-item-form";
 import { EditBoothForm } from "@/components/edit-booth-form";
 import { itemHref } from "@/lib/nav";
 import { won } from "@/lib/money";
-import { EmptyState } from "@/components/ui";
+import { EmptyState, buttonClass } from "@/components/ui";
 
 export default  function EventDetailPage({ params }: { params: { id: string } }) {
   const { id } = params;
@@ -100,7 +100,7 @@ export default  function EventDetailPage({ params }: { params: { id: string } })
                         {entry.item && (
                           <Link
                             href={itemHref(entry.item.id, from)}
-                            className="shrink-0 text-xs text-blue-600 underline dark:text-blue-400"
+                            className="inline-flex min-h-11 shrink-0 items-center text-xs text-blue-600 underline dark:text-blue-400"
                           >
                             상세보기 →
                           </Link>
@@ -116,8 +116,8 @@ export default  function EventDetailPage({ params }: { params: { id: string } })
                     </div>
                     <LocalForm action={deleteChecklistItem.bind(null, entry.id)}>
                       <ConfirmSubmitButton
-                        confirmMessage="이 항목을 삭제하시겠습니까?"
-                        className="text-xs text-red-600 dark:text-red-400 hover:underline"
+                        confirmMessage="이 항목을 삭제할까요?"
+                        className={buttonClass("dangerGhost")}
                       >
                         삭제
                       </ConfirmSubmitButton>

@@ -81,7 +81,7 @@ export function TrendLineChart({ points: data }: { points: MonthlyPoint[] }) {
           strokeLinejoin="round"
           className="stroke-[#2a78d6] dark:stroke-[#3987e5]"
         />
-        <path d={salePath} fill="none" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="stroke-[#008300]" />
+        <path d={salePath} fill="none" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="stroke-[#008300] dark:stroke-[#2fae45]" />
 
         <circle
           cx={x(activeIndex)}
@@ -95,7 +95,7 @@ export function TrendLineChart({ points: data }: { points: MonthlyPoint[] }) {
           cy={y(activePoint.saleTotal)}
           r={4}
           strokeWidth={2}
-          className="fill-[#008300] stroke-white dark:stroke-neutral-900"
+          className="fill-[#008300] stroke-white dark:fill-[#2fae45] dark:stroke-neutral-900"
         />
       </svg>
 
@@ -115,7 +115,7 @@ export function TrendLineChart({ points: data }: { points: MonthlyPoint[] }) {
             <span className="font-medium text-neutral-900 dark:text-neutral-100">{formatWon(hovered.purchaseTotal)}</span>
           </p>
           <p className="flex items-center gap-1.5">
-            <span className="inline-block h-0.5 w-3 shrink-0 rounded-full bg-[#008300]" />
+            <span className="inline-block h-0.5 w-3 shrink-0 rounded-full bg-[#008300] dark:bg-[#2fae45]" />
             <span className="text-neutral-500">판매</span>
             <span className="font-medium text-neutral-900 dark:text-neutral-100">{formatWon(hovered.saleTotal)}</span>
           </p>
@@ -133,7 +133,7 @@ export function TrendLineChart({ points: data }: { points: MonthlyPoint[] }) {
           <span className="text-neutral-500">구매</span>
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-0.5 w-3 rounded-full bg-[#008300]" />
+          <span className="inline-block h-0.5 w-3 rounded-full bg-[#008300] dark:bg-[#2fae45]" />
           <span className="text-neutral-500">판매</span>
         </span>
       </div>

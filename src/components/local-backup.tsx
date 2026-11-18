@@ -5,7 +5,7 @@ import { EventRecovery } from "./event-recovery";
 import { BackButton } from "./back-button";
 import { LocalForm } from "./local-form";
 import { parseBackup, restoreParsedBackup, exportBackup, downloadJson } from "@/lib/local/backup";
-import { buttonClass } from "@/components/ui";
+import { buttonClass, linkClass } from "@/components/ui";
 
 export default function LocalBackup() {
   const data = currentData();
@@ -58,7 +58,7 @@ export default function LocalBackup() {
     </LocalForm>
     <EventRecovery />
     {message && <p role="status" className="text-sm">{message}</p>}
-    <div className="text-sm"><button className="underline" onClick={async () => {
+    <div className="text-sm"><button className={linkClass} onClick={async () => {
       try { setPersistent(await navigator.storage?.persist?.() ? "브라우저의 지속 저장이 허용됐습니다. 별도 백업도 계속 보관해주세요." : "브라우저가 지속 저장을 허용하지 않았습니다. 정기적으로 백업해주세요."); }
       catch { setPersistent("지속 저장을 요청하지 못했습니다. 정기적으로 백업해주세요."); }
     }}>기기 데이터 지속 저장 요청</button><p role="status" className="mt-2">{persistent}</p></div>

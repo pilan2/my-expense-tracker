@@ -77,7 +77,7 @@ export function SameProductSection({ item, purchases, candidates, from }: {
           <p className="mb-3 text-sm text-neutral-500">판매는 실제로 판 구매 건의 화면에서 기록해야 손익이 정확합니다.</p>
           <LocalForm action={unlinkSameProduct.bind(null, item.id)}>
             <ConfirmSubmitButton confirmMessage="이 구매 건을 같은 물품 묶음에서 뺄까요? 품목과 판매 기록은 그대로 남습니다."
-              className="text-sm text-neutral-500 underline">
+              className={buttonClass("ghost")}>
               이 구매 건을 묶음에서 빼기
             </ConfirmSubmitButton>
           </LocalForm>

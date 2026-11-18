@@ -11,7 +11,7 @@ import { GenreComparisonChart } from "@/components/genre-comparison-chart";
 import { ItemCardWithDelivery } from "@/components/item-card-with-delivery";
 import { itemHref } from "@/lib/nav";
 import { won, signedWon } from "@/lib/money";
-import { profitColor, EmptyState, PageHeader } from "@/components/ui";
+import { profitColor, EmptyState, PageHeader, linkClass } from "@/components/ui";
 
 function monthHref(year: number, month: number) {
   return `/stats?month=${monthParamString(year, month)}`;
@@ -142,7 +142,7 @@ export default  function StatsPage({
           <div>
             <h2 className="mb-4 text-lg font-semibold">월별 구매/판매 내역</h2>
             <div className="mb-4 flex items-center justify-between text-sm">
-              <Link href={monthHref(prev.year, prev.month)} className="underline">
+              <Link href={monthHref(prev.year, prev.month)} className={linkClass}>
                 ← 이전달
               </Link>
               <p className="font-medium">
@@ -151,7 +151,7 @@ export default  function StatsPage({
               {isNextMonthInFuture ? (
                 <span className="text-neutral-300 dark:text-neutral-700">다음달 →</span>
               ) : (
-                <Link href={monthHref(next.year, next.month)} className="underline">
+                <Link href={monthHref(next.year, next.month)} className={linkClass}>
                   다음달 →
                 </Link>
               )}
@@ -182,7 +182,7 @@ export default  function StatsPage({
                 </ul>
 
                 <details>
-                  <summary className="cursor-pointer text-sm underline">자세히 보기</summary>
+                  <summary className="flex min-h-11 cursor-pointer items-center text-sm underline">자세히 보기</summary>
                   <div className="mt-4 flex flex-col gap-4">
                     {monthGroups.map((genreGroup) => (
                       <div

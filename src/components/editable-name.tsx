@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import type { RenameState } from "@/lib/actions/catalog";
+import { buttonClass } from "@/components/ui";
 
 // 이름을 눌러서 수정 모드로 바꾸면, 저장 시 로컬 액션이 카탈로그 항목뿐 아니라
 // 그 이름을 쓰던 품목들도 함께 바꿔준다. 이름 충돌 등 에러는 throw 대신 상태값으로
@@ -60,13 +61,13 @@ export function EditableName({
                 "w-28 rounded border border-neutral-300 px-1.5 py-0.5 text-sm dark:border-neutral-700 dark:bg-neutral-900"
               }
             />
-            <button type="submit" disabled={isPending} className="text-xs underline">
+            <button type="submit" disabled={isPending} className={buttonClass("ghost")}>
               저장
             </button>
             <button
               type="button"
               onClick={() => setEditing(false)}
-              className="text-xs text-neutral-400 hover:underline"
+              className={buttonClass("ghost")}
             >
               취소
             </button>

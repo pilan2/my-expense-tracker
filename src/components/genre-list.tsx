@@ -53,8 +53,8 @@ export function GenreList({ genres, actions }: { genres: GenreCatalogEntry[]; ac
             </div>
             <LocalForm action={actions.deleteGenre.bind(null, genre.id)}>
               <ConfirmSubmitButton
-                confirmMessage={`"${genre.name}" 장르를 삭제하시겠습니까? 이 장르에 속한 캐릭터/시리즈/제작자/공구자 목록도 함께 삭제됩니다.`}
-                className="text-sm text-red-600 dark:text-red-400 hover:underline"
+                confirmMessage={`"${genre.name}" 장르를 삭제할까요? 이 장르에 속한 캐릭터/시리즈/제작자/공구자 목록도 함께 삭제됩니다.`}
+                className={buttonClass("dangerGhost")}
               >
                 장르 삭제
               </ConfirmSubmitButton>
@@ -62,7 +62,7 @@ export function GenreList({ genres, actions }: { genres: GenreCatalogEntry[]; ac
           </div>
 
           <details>
-            <summary className="mb-4 cursor-pointer text-sm underline">자세히 보기</summary>
+            <summary className="mb-4 flex min-h-11 cursor-pointer items-center text-sm underline">자세히 보기</summary>
 
             <div className="mb-4">
               <h3 className="mb-2 text-sm font-medium text-neutral-500">캐릭터</h3>
@@ -85,8 +85,8 @@ export function GenreList({ genres, actions }: { genres: GenreCatalogEntry[]; ac
                         </div>
                         <LocalForm action={actions.deleteCharacter.bind(null, character.id)}>
                           <ConfirmSubmitButton
-                            confirmMessage={`"${character.name}" 캐릭터를 삭제하시겠습니까? 이 캐릭터의 시리즈 목록도 함께 삭제됩니다.`}
-                            className="text-xs text-red-600 dark:text-red-400 hover:underline"
+                            confirmMessage={`"${character.name}" 캐릭터를 삭제할까요? 이 캐릭터의 시리즈 목록도 함께 삭제됩니다.`}
+                            className={buttonClass("dangerGhost")}
                           >
                             캐릭터 삭제
                           </ConfirmSubmitButton>
@@ -102,7 +102,7 @@ export function GenreList({ genres, actions }: { genres: GenreCatalogEntry[]; ac
                             <EditableName name={series.name} action={actions.renameSeries.bind(null, series.id)} />
                             <LocalForm action={actions.deleteSeries.bind(null, series.id)}>
                               <ConfirmSubmitButton
-                                confirmMessage={`"${series.name}" 시리즈를 삭제하시겠습니까?`}
+                                confirmMessage={`"${series.name}" 시리즈를 삭제할까요?`}
                                 className="flex h-4 w-4 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
                               >
                                 ×
@@ -161,7 +161,7 @@ export function GenreList({ genres, actions }: { genres: GenreCatalogEntry[]; ac
                     <EditableName name={maker.name} action={actions.renameMaker.bind(null, maker.id)} />
                     <LocalForm action={actions.deleteMaker.bind(null, maker.id)}>
                       <ConfirmSubmitButton
-                        confirmMessage={`"${maker.name}"을(를) 삭제하시겠습니까?`}
+                        confirmMessage={`"${maker.name}"을(를) 삭제할까요?`}
                         className="flex h-5 w-5 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
                       >
                         ×
@@ -198,7 +198,7 @@ export function GenreList({ genres, actions }: { genres: GenreCatalogEntry[]; ac
                     <EditableName name={organizer.name} action={actions.renameOrganizer.bind(null, organizer.id)} />
                     <LocalForm action={actions.deleteOrganizer.bind(null, organizer.id)}>
                       <ConfirmSubmitButton
-                        confirmMessage={`"${organizer.name}"을(를) 삭제하시겠습니까?`}
+                        confirmMessage={`"${organizer.name}"을(를) 삭제할까요?`}
                         className="flex h-5 w-5 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
                       >
                         ×

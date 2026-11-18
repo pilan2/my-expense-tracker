@@ -37,7 +37,7 @@ export function ItemTypeList({
           <EditableName name={itemType.name} action={actions.renameItemType.bind(null, itemType.id)} />
           <LocalForm action={actions.deleteItemType.bind(null, itemType.id)}>
             <ConfirmSubmitButton
-              confirmMessage={`"${itemType.name}"을(를) 삭제하시겠습니까?`}
+              confirmMessage={`"${itemType.name}"을(를) 삭제할까요?`}
               className="flex h-5 w-5 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
             >
               ×

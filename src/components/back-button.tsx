@@ -7,7 +7,7 @@ export function BackButton({ href }: { href: string }) {
     <Link
       href={href}
       scroll={false}
-      className="mb-4 inline-block text-sm text-neutral-500 hover:underline"
+      className="mb-2 inline-flex min-h-11 items-center text-sm text-neutral-500 hover:underline"
     >
       ← 뒤로가기
     </Link>

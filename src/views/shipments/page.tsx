@@ -6,7 +6,7 @@ import { BackButton } from "@/components/back-button";
 import { ItemCardWithDelivery } from "@/components/item-card-with-delivery";
 import { itemHref } from "@/lib/nav";
 import { formatShipDateLabel } from "@/lib/dday";
-import { EmptyState } from "@/components/ui";
+import { EmptyState, linkClass } from "@/components/ui";
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
@@ -33,7 +33,7 @@ export default  function ShipmentsPage({
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-xl font-semibold">발송 예정</h1>
         {view === "day" ? (
-          <Link href={monthHref(backYear, backMonth)} className="text-sm underline">
+          <Link href={monthHref(backYear, backMonth)} className={linkClass}>
             ← 달력으로
           </Link>
         ) : (
@@ -56,7 +56,7 @@ export default  function ShipmentsPage({
 
       {view !== "day" && (
         <div className="mb-4 text-right text-sm">
-          <Link href="/shipping-groups" className="underline">
+          <Link href="/shipping-groups" className={linkClass}>
             발송 그룹 관리 →
           </Link>
         </div>
@@ -106,14 +106,14 @@ export default  function ShipmentsPage({
         {isPrevMonthInPast ? (
           <span className="text-sm text-neutral-300 dark:text-neutral-700">← 이전달</span>
         ) : (
-          <Link href={monthHref(prev.year, prev.month)} className="text-sm underline">
+          <Link href={monthHref(prev.year, prev.month)} className={linkClass}>
             ← 이전달
           </Link>
         )}
         <p className="font-medium">
           {year}년 {month}월
         </p>
-        <Link href={monthHref(next.year, next.month)} className="text-sm underline">
+        <Link href={monthHref(next.year, next.month)} className={linkClass}>
           다음달 →
         </Link>
       </div>

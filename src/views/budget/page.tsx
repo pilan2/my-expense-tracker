@@ -9,7 +9,7 @@ import { saveBudget, resetMonthlyBudget, saveWish, deleteWish } from "@/lib/acti
 import { BudgetSummary } from "@/components/budget-summary";
 import { LocalForm } from "@/components/local-form";
 import { BackButton } from "@/components/back-button";
-import { buttonClass, inputClass } from "@/components/ui";
+import { buttonClass, inputClass, linkClass } from "@/components/ui";
 import { ManwonInput } from "@/components/manwon-input";
 
 const input = `${inputClass} w-full`;
@@ -56,7 +56,7 @@ export default function BudgetPage({ searchParams }: { searchParams: { month?: s
           <label className="block">이 달만 사용할 예산 (만원)<ManwonInput name="amount" required defaultValue={summary.amount === null ? "" : wonToManwon(summary.amount)} className={input} /></label>
           <button className={button}>이 달 예산 저장</button>
         </LocalForm>
-        {override && <LocalForm action={async () => { await resetMonthlyBudget(month); setMessage("이 달의 별도 예산을 해제했습니다."); }}><button className="text-sm underline">이 달 별도 예산 해제</button></LocalForm>}
+        {override && <LocalForm action={async () => { await resetMonthlyBudget(month); setMessage("이 달의 별도 예산을 해제했습니다."); }}><button className={linkClass}>이 달 별도 예산 해제</button></LocalForm>}
         {month >= currentMonth() && <LocalForm key={`default-${month}-${rule?.amount}`} action={async form => { await saveBudget(form); setMessage(`${month}부터 적용할 기본 예산을 저장했습니다.`); }} className="space-y-2 text-sm">
           <input type="hidden" name="month" value={month} /><input type="hidden" name="mode" value="default" />
           <label className="block">이 달부터 적용할 기본 월 예산 (만원)<ManwonInput name="amount" required defaultValue={rule ? wonToManwon(rule.amount) : ""} className={input} /></label>
@@ -68,7 +68,7 @@ export default function BudgetPage({ searchParams }: { searchParams: { month?: s
     </details>
     {message && <p role="status" className="text-sm">{message}</p>}
     <section className="space-y-4" aria-label="구매 후보">
-      <div className="flex items-center justify-between"><h2 className="font-semibold">구매 후보</h2><button className="text-sm underline" onClick={() => setCreating(!creating)}>{creating ? "입력 닫기" : "후보 추가"}</button></div>
+      <div className="flex items-center justify-between"><h2 className="font-semibold">구매 후보</h2><button className={linkClass} onClick={() => setCreating(!creating)}>{creating ? "입력 닫기" : "후보 추가"}</button></div>
       <p className="text-sm">사기 전에 이유와 우선순위를 적어보세요. 구매 후보는 아직 지출에 포함되지 않습니다.</p>
       {creating && <WishForm month={month} done={() => { setCreating(false); setMessage("구매 후보를 저장했습니다."); }} />}
       <div className="rounded bg-neutral-100 p-3 text-sm dark:bg-neutral-800" aria-live="polite">
@@ -81,15 +81,15 @@ export default function BudgetPage({ searchParams }: { searchParams: { month?: s
         <p className="text-sm">우선순위 {wish.priority} · 예상 {won(wishCost(wish))} ({wish.quantity}개, 배송비 포함)</p>
         {wish.reason && <p className="whitespace-pre-wrap text-sm">사고 싶은 이유: {wish.reason}</p>}
         {wish.deadline && <p className="text-sm">판매 마감 {wish.deadline.toISOString().slice(0, 10)}</p>}
-        {wish.purchaseLink && <a href={wish.purchaseLink} target="_blank" rel="noreferrer" className="text-sm underline">구매처 열기</a>}
+        {wish.purchaseLink && <a href={wish.purchaseLink} target="_blank" rel="noreferrer" className={linkClass}>구매처 열기</a>}
         <div className="flex flex-wrap items-center gap-4 text-sm">
-          <Link href={`/items/new?wish=${encodeURIComponent(wish.id)}`} className="underline">구매하고 품목 등록</Link>
-          <button onClick={() => setEditing(editing === wish.id ? null : wish.id)} className="underline">{editing === wish.id ? "수정 닫기" : "수정"}</button>
-          <LocalForm action={async () => { if (window.confirm(`"${wish.title}" 후보를 삭제할까요?`)) await deleteWish(wish.id); }}><button className="text-red-600 dark:text-red-400">후보 삭제</button></LocalForm>
+          <Link href={`/items/new?wish=${encodeURIComponent(wish.id)}`} className={linkClass}>구매하고 품목 등록</Link>
+          <button onClick={() => setEditing(editing === wish.id ? null : wish.id)} className={linkClass}>{editing === wish.id ? "수정 닫기" : "수정"}</button>
+          <LocalForm action={async () => { if (window.confirm(`"${wish.title}" 후보를 삭제할까요?`)) await deleteWish(wish.id); }}><button className={buttonClass("dangerGhost")}>후보 삭제</button></LocalForm>
         </div>
         {editing === wish.id && <WishForm wish={wish} month={month} done={() => { setEditing(null); setMessage("구매 후보를 수정했습니다."); }} />}
       </article>)}
-      {purchased.length > 0 && <details><summary>구매 완료한 후보 {purchased.length}개</summary><ul className="mt-2 space-y-2 text-sm">{purchased.map(wish => <li key={wish.id}>{wish.title} · {wish.itemId ? <Link className="underline" href={`/items/${wish.itemId}`}>등록한 품목 보기</Link> : "등록한 품목 삭제됨"}</li>)}</ul></details>}
+      {purchased.length > 0 && <details><summary>구매 완료한 후보 {purchased.length}개</summary><ul className="mt-2 space-y-2 text-sm">{purchased.map(wish => <li key={wish.id}>{wish.title} · {wish.itemId ? <Link className={linkClass} href={`/items/${wish.itemId}`}>등록한 품목 보기</Link> : "등록한 품목 삭제됨"}</li>)}</ul></details>}
     </section>
   </div>;
 }

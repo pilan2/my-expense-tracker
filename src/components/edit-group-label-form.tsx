@@ -3,6 +3,7 @@
 import { LocalForm } from "@/components/local-form";
 
 import { useState } from "react";
+import { buttonClass } from "@/components/ui";
 
 export function EditGroupLabelForm({
   currentLabel,
@@ -18,7 +19,7 @@ export function EditGroupLabelForm({
       <button
         type="button"
         onClick={() => setEditing(true)}
-        className="text-sm text-neutral-500 hover:underline"
+        className={buttonClass("ghost")}
       >
         수정
       </button>
@@ -42,13 +43,13 @@ export function EditGroupLabelForm({
         }}
         className="w-40 rounded border border-neutral-300 px-1.5 py-0.5 text-sm dark:border-neutral-700 dark:bg-neutral-900"
       />
-      <button type="submit" className="text-xs underline">
+      <button type="submit" className={buttonClass("ghost")}>
         저장
       </button>
       <button
         type="button"
         onClick={() => setEditing(false)}
-        className="text-xs text-neutral-400 hover:underline"
+        className={buttonClass("ghost")}
       >
         취소
       </button>

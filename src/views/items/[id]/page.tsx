@@ -79,8 +79,8 @@ export default  function ItemDetailPage({
   const deleteForm = (
     <LocalForm action={deleteItem.bind(null, item.id, from)} className="mt-10 border-t border-neutral-200 pt-6 dark:border-neutral-800">
       <ConfirmSubmitButton
-        confirmMessage="이 품목을 삭제하시겠습니까? 연결된 판매 이력과 행사 체크리스트 항목도 함께 삭제됩니다."
-        className={`${buttonClass("ghost")} text-red-600 dark:text-red-400`}
+        confirmMessage="이 품목을 삭제할까요? 연결된 판매 이력과 행사 체크리스트 항목도 함께 삭제됩니다."
+        className={buttonClass("dangerGhost")}
       >
         이 품목 삭제
       </ConfirmSubmitButton>
@@ -181,7 +181,7 @@ export default  function ItemDetailPage({
                   {won(Number(sale.saleAmount))}
                 </span>
                 <LocalForm action={deleteSale.bind(null, sale.id)}>
-                  <ConfirmSubmitButton confirmMessage="이 판매 기록을 삭제하시겠습니까?" className={`${buttonClass("ghost")} text-red-600 dark:text-red-400`}>
+                  <ConfirmSubmitButton confirmMessage="이 판매 기록을 삭제할까요?" className={buttonClass("dangerGhost")}>
                     삭제
                   </ConfirmSubmitButton>
                 </LocalForm>
