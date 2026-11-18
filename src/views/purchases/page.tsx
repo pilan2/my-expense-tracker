@@ -29,7 +29,7 @@ export default  function PurchasesPage() {
         <div className="flex flex-col gap-6">
           {dateGroups.map(([dateStr, groupItems]) => (
             <div key={dateStr}>
-              <h2 className="mb-2 text-base font-medium text-neutral-500">
+              <h2 id={`d-${dateStr}`} className="mb-2 scroll-mt-4 text-base font-medium text-neutral-500">
                 {groupItems[0].purchasedAt!.toLocaleDateString("ko-KR")}
               </h2>
               <ul className="flex flex-col gap-2">

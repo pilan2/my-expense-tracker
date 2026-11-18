@@ -7,7 +7,9 @@ import { getCurrentMonthTotals } from "@/lib/trends";
 import { formatShipDDay } from "@/lib/dday";
 import { itemHref } from "@/lib/nav";
 import { won, signedWon } from "@/lib/money";
-import { profitColor, buttonClass } from "@/components/ui";
+import { profitColor, buttonClass, cardClass, linkClass, saleColor, SectionHeader } from "@/components/ui";
+
+const rowClass = "flex min-h-11 items-start justify-between gap-2 rounded-md border border-neutral-200 px-3 py-2 text-sm hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-900";
 
 export default  function Home() {
   const [summary, upcomingShipments, recentPurchases, recentSales, currentMonth] = [
@@ -40,79 +42,47 @@ export default  function Home() {
 
   return (
     <div className="box-border mx-auto w-full max-w-3xl space-y-8 overflow-x-hidden p-6">
-      <div className="flex justify-end gap-2">
-        <Link
-          href="/items"
-          className={buttonClass()}
-        >
-          전체 품목 보기
-        </Link>
-        <Link
-          href="/items/new"
-          className={buttonClass("secondary")}
-        >
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-xl font-semibold">홈</h1>
+        <Link href="/items/new" className={buttonClass()}>
           + 품목 등록
         </Link>
       </div>
 
       <BudgetSummary />
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-        <div className="rounded-lg border border-neutral-200 p-4 sm:p-6 dark:border-neutral-800">
-          <p className="text-sm text-neutral-500">총 소비 금액</p>
-          <p className="text-xl font-semibold sm:text-2xl">
-            {won(summary.totalPurchase)}
-          </p>
+      <section aria-label="이번 달 금액" className="grid grid-cols-2 gap-3 sm:gap-4">
+        <div className={cardClass}>
+          <p className="text-sm text-neutral-500">이번 달 소비</p>
+          <p className="text-xl font-semibold sm:text-2xl">{won(currentMonth.purchaseTotal)}</p>
         </div>
-        <div className="rounded-lg border border-neutral-200 p-4 sm:p-6 dark:border-neutral-800">
-          <p className="text-sm text-neutral-500">총 판매 금액</p>
-          <p className="text-xl font-semibold text-green-600 dark:text-green-400 sm:text-2xl">
-            {won(summary.totalSale)}
-          </p>
+        <div className={cardClass}>
+          <p className="text-sm text-neutral-500">이번 달 판매</p>
+          <p className={`text-xl font-semibold sm:text-2xl ${saleColor}`}>{won(currentMonth.saleTotal)}</p>
         </div>
-        <div className="col-span-2 rounded-lg border border-neutral-200 p-4 sm:col-span-1 sm:p-6 dark:border-neutral-800">
-          <p className="text-sm text-neutral-500">총 손익</p>
-          <p className={`text-xl font-semibold sm:text-2xl ${profitColor(summary.totalProfit)}`}>
-            {signedWon(summary.totalProfit)}
-          </p>
-        </div>
-      </div>
+      </section>
 
-      <div className="grid grid-cols-2 gap-3 sm:gap-4">
-        <div className="rounded-lg border border-neutral-200 p-4 sm:p-6 dark:border-neutral-800">
-          <p className="text-sm text-neutral-500">이번 달 소비 금액</p>
-          <p className="text-xl font-semibold sm:text-2xl">
-            {won(currentMonth.purchaseTotal)}
-          </p>
-        </div>
-        <div className="rounded-lg border border-neutral-200 p-4 sm:p-6 dark:border-neutral-800">
-          <p className="text-sm text-neutral-500">이번 달 판매 금액</p>
-          <p className="text-xl font-semibold text-green-600 dark:text-green-400 sm:text-2xl">
-            {won(currentMonth.saleTotal)}
-          </p>
-        </div>
-      </div>
+      <section aria-label="전체 누적" className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-sm">
+        <p className="text-neutral-500">
+          전체 누적 · 소비 <span className="font-medium text-neutral-900 dark:text-neutral-100">{won(summary.totalPurchase)}</span>
+          {" "}· 판매 <span className={`font-medium ${saleColor}`}>{won(summary.totalSale)}</span>
+          {" "}· 손익 <span className={`font-medium ${profitColor(summary.totalProfit)}`}>{signedWon(summary.totalProfit)}</span>
+        </p>
+        <Link href="/stats" className={linkClass}>통계 자세히 보기 →</Link>
+      </section>
 
-      <div className="text-right text-sm">
-        <Link href="/stats" className="underline">
-          통계 자세히 보기 →
-        </Link>
-      </div>
-
-      {upcomingShipments.length > 0 && (
-        <div>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold">발송 예정</h2>
-            <Link href="/shipments" className="text-sm underline">
-              전체보기 →
-            </Link>
-          </div>
+      <section>
+        <SectionHeader title="발송 예정" action={<Link href="/shipments" className={linkClass}>발송 일정 보기 →</Link>} />
+        {shipmentDateGroups.length === 0 ? (
+          <p className="text-sm text-neutral-500">발송을 기다리는 품목이 없습니다.</p>
+        ) : (
           <ul className="flex flex-col gap-2">
             {shipmentDateGroups.map(([dateStr, items]) => (
               <li key={dateStr}>
                 <Link
-                  href={`/shipments?view=day&date=${dateStr}`}
-                  className="flex items-start justify-between gap-2 rounded-md border border-neutral-200 px-3 py-2 text-sm hover:opacity-70 dark:border-neutral-800"
+                  // 월 단위 발송일은 날짜별 보기에 나오지 않으므로 그 달 달력으로 보낸다.
+                  href={items[0].shipDateApprox ? `/shipments?view=calendar&month=${dateStr.slice(0, 7)}` : `/shipments?view=day&date=${dateStr}`}
+                  className={rowClass}
                 >
                   <span>
                     {items
@@ -128,17 +98,12 @@ export default  function Home() {
               </li>
             ))}
           </ul>
-        </div>
-      )}
+        )}
+      </section>
 
       <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
         <div>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold">최근 구매</h2>
-            <Link href="/purchases" className="text-sm underline">
-              전체보기 →
-            </Link>
-          </div>
+          <SectionHeader title="최근 구매" action={<Link href="/purchases" className={linkClass}>전체보기 →</Link>} />
           {purchaseDateGroups.length === 0 ? (
             <p className="text-sm text-neutral-500">구매 기록이 없습니다.</p>
           ) : (
@@ -146,8 +111,8 @@ export default  function Home() {
               {purchaseDateGroups.map(([dateStr, items]) => (
                 <li key={dateStr}>
                   <Link
-                    href="/purchases"
-                    className="flex items-start justify-between gap-2 rounded-md border border-neutral-200 px-3 py-2 text-sm hover:opacity-70 dark:border-neutral-800"
+                    href={`/purchases#d-${dateStr}`}
+                    className={rowClass}
                   >
                     <span>
                       {items
@@ -167,12 +132,7 @@ export default  function Home() {
         </div>
 
         <div>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold">최근 판매</h2>
-            <Link href="/sales" className="text-sm underline">
-              전체보기 →
-            </Link>
-          </div>
+          <SectionHeader title="최근 판매" action={<Link href="/sales" className={linkClass}>전체보기 →</Link>} />
           {recentSales.length === 0 ? (
             <p className="text-sm text-neutral-500">판매 기록이 없습니다.</p>
           ) : (
@@ -192,7 +152,7 @@ export default  function Home() {
                   <li key={sale.id}>
                     <Link
                       href={itemHref(sale.itemId, "/")}
-                      className="flex flex-col gap-1 rounded-md border border-neutral-200 px-3 py-2 text-sm hover:opacity-70 sm:flex-row sm:items-center sm:justify-between dark:border-neutral-800"
+                      className={`${rowClass} flex-col sm:flex-row sm:items-center`}
                     >
                       <span className="min-w-0 truncate">
                         {sale.item.character} · {sale.item.detail}
@@ -212,18 +172,13 @@ export default  function Home() {
       </div>
 
       <div>
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">장르별로 보기</h2>
-          <Link href="/browse/makers" className="text-sm underline">
-            제작자별로 보기 →
-          </Link>
-        </div>
+        <SectionHeader title="장르별로 보기" action={<Link href="/browse/makers" className={linkClass}>제작자별로 보기 →</Link>} />
         <ul className="flex flex-col gap-2">
           {summary.genres.map((genre) => (
             <li key={genre.name}>
               <Link
                 href={`/browse/${encodeURIComponent(genre.name)}`}
-                className="flex flex-col gap-1 rounded-md border border-neutral-200 px-4 py-2 text-sm hover:opacity-70 sm:flex-row sm:items-center sm:justify-between dark:border-neutral-800"
+                className={`${rowClass} flex-col sm:flex-row sm:items-center`}
               >
                 <span className="font-medium">{genre.name}</span>
                 <span className="text-neutral-500">

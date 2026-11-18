@@ -17,6 +17,9 @@ export function buttonClass(variant: keyof typeof buttonVariants = "primary") {
 export const inputClass =
   "min-h-11 rounded-md border border-neutral-300 bg-white px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-neutral-400 dark:border-neutral-700 dark:bg-neutral-900";
 
+// 이동용 텍스트 링크도 터치하기 쉽도록 높이를 확보한다.
+export const linkClass = "inline-flex min-h-11 items-center text-sm underline underline-offset-2";
+
 export const cardClass = "rounded-lg border border-neutral-200 p-4 dark:border-neutral-800";
 
 // 금액 색 규칙: 소비는 기본 글자색, 판매는 초록, 손익은 +파랑/−빨강, 주의는 주황.

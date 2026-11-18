@@ -14,7 +14,13 @@ export function ScrollRestoration() {
   useEffect(() => {
     // 새 품목 등록은 이전 입력 위치와 관계없이 항상 맨 위에서 시작한다.
     const saved = pathname === "/items/new" ? null : sessionStorage.getItem(key);
-    const target = saved ? Number(saved) : 0;
+    // 주소에 #앵커가 있으면(대시보드 → 구매 내역의 특정 날짜) 기억한 위치보다 앵커를 우선한다.
+    const anchor = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
+    // 목록 끝 근처 앵커는 끝까지만 스크롤되므로 최대 위치로 제한해야 복원 루프가 바로 끝난다.
+    const anchorTarget = () => anchor
+      ? Math.min(anchor.getBoundingClientRect().top + window.scrollY - 16, document.documentElement.scrollHeight - window.innerHeight)
+      : null;
+    let target = saved ? Number(saved) : 0;
 
     let cancelled = false;
     let frame: number;
@@ -34,6 +40,7 @@ export function ScrollRestoration() {
 
     function tryScroll() {
       if (cancelled) return;
+      target = anchorTarget() ?? target;
       window.scrollTo(0, target);
       const reached = Math.abs(window.scrollY - target) < 2;
       const timedOut = performance.now() - start > 2000;

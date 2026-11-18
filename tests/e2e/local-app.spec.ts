@@ -437,3 +437,16 @@ test("하단 탭바: 탭 이동·현재 탭 표시·더보기 메뉴·하위 화
   const box = await page.getByRole("navigation", { name: "주 메뉴" }).boundingBox();
   expect(box!.y + box!.height).toBeLessThanOrEqual(page.viewportSize()!.height + 1);
 });
+
+test("홈: 이번 달·누적 요약, 발송 예정 빈 상태, 최근 구매 날짜로 바로 이동", async ({ page }) => {
+  await importFixture(page);
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "홈", exact: true })).toBeVisible();
+  await expect(page.getByRole("region", { name: "전체 누적" })).toContainText("30,000원");
+  await expect(page.getByRole("link", { name: "발송 일정 보기 →" })).toBeVisible();
+  const recent = page.locator("a[href^='/purchases#d-']").first();
+  const href = await recent.getAttribute("href");
+  await recent.click();
+  await expect(page.getByRole("heading", { name: "구매 내역 (최신순)" })).toBeVisible();
+  await expect(page.locator(`[id='${href!.split("#")[1]}']`)).toBeInViewport();
+});
