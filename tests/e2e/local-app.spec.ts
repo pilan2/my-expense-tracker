@@ -14,6 +14,7 @@ function fixture() {
   db.eventChecklistItem.create({ data: { eventId: event.id, itemId: "item-1", booth: "A-01", label: "수령", type: "PICKUP" } });
   return { schemaVersion: 2, exportedAt: new Date().toISOString(), data, images: { "local-image:photo-1": photo } };
 }
+const tab = (page: Page, name: string) => page.getByRole("navigation", { name: "주 메뉴" }).getByRole("link", { name, exact: true });
 async function importFixture(page: Page) {
   await page.goto("/backup");
   await page.getByLabel("백업 파일").setInputFiles({ name: "backup.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(fixture())) });
@@ -31,7 +32,7 @@ test("모바일: 전체 백업 복원 후 오프라인 조회·등록·판매·�
   await context.setOffline(true);
   const dataRequests: string[] = [];
   page.on("request", request => { if (request.method() !== "GET" || request.url().includes("/api/")) dataRequests.push(request.url()); });
-  await page.getByRole("link", { name: "🏠 대시보드" }).click();
+  await tab(page, "홈").click();
   await page.getByRole("link", { name: "+ 품목 등록" }).click();
   await page.getByRole("button", { name: "장르", exact: true }).click();
   await page.getByRole("button", { name: "캐릭터", exact: true }).click();
@@ -47,7 +48,7 @@ test("모바일: 전체 백업 복원 후 오프라인 조회·등록·판매·�
   await expect(page.getByText("모두 판매되었습니다.")).toBeVisible();
   await page.reload();
   await expect(page.getByText("모두 판매되었습니다.")).toBeVisible();
-  await page.getByRole("link", { name: "행사", exact: true }).click();
+  await tab(page, "행사").click();
   await page.getByRole("link").filter({ hasText: "테스트 행사" }).click();
   await page.getByRole("button", { name: "완료 체크" }).click();
   await expect(page.getByRole("button", { name: "완료 체크" })).toHaveText("☑");
@@ -56,11 +57,12 @@ test("모바일: 전체 백업 복원 후 오프라인 조회·등록·판매·�
   await expect.poll(() => page.locator('img').first().evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(1);
   await page.getByRole("link", { name: "함께 발송 →" }).click();
   await expect(page.getByRole("heading", { name: "함께 발송" })).toBeVisible();
-  await page.getByRole("link", { name: "🏠 대시보드" }).click();
+  await tab(page, "홈").click();
   await expect(page.getByText("55,000원", { exact: true }).first()).toBeVisible();
   await page.getByRole("link", { name: "통계 자세히 보기 →" }).click();
   await expect(page.getByRole("heading", { name: "전체 월별 추이" })).toBeVisible();
-  await page.getByRole("link", { name: "백업", exact: true }).click();
+  await tab(page, "더보기").click();
+  await page.getByRole("link").filter({ hasText: "백업 및 기기 저장" }).click();
   const downloading = page.waitForEvent("download");
   await page.getByRole("button", { name: "다운로드", exact: true }).click();
   const download = await downloading;
@@ -154,7 +156,7 @@ test("행사만 복구: 모바일 기존 품목·사진 유지, 재선택 시 �
   await page.getByLabel("행사 복구 파일").setInputFiles(input);
   await expect(page.getByText("추가할 행사 0개 · 체크리스트 0개 · 이미 있는 행사 1개")).toBeVisible();
   await expect(page.getByRole("button", { name: "행사만 추가", exact: true })).toBeDisabled();
-  await page.getByRole("link", { name: "행사", exact: true }).click();
+  await tab(page, "행사").click();
   await expect(page.getByText("복구된 행사", { exact: true })).toBeVisible();
   await expect(page.getByText("테스트 행사", { exact: true })).toBeVisible();
   await page.reload();
@@ -312,7 +314,7 @@ test("새 품목 임시저장: 입력·사진 복원, 실패 시 보존, 성공�
   await page.getByRole("button", { name: "적용", exact: true }).click();
   await expect(page.getByRole("status").filter({ hasText: "임시저장 완료" })).toBeVisible();
   await context.setOffline(true);
-  await page.getByRole("link", { name: "🏠 대시보드" }).click();
+  await tab(page, "홈").click();
   await page.getByRole("link", { name: "+ 품목 등록", exact: true }).click();
   await expect(page.getByLabel("물품 세부사항")).toHaveValue("임시저장 테스트 인형");
   await page.reload();
@@ -414,4 +416,24 @@ test("같은 물품 추가 구매: 정보·사진 이어받기, 구매 건 비�
   await page.getByRole("button", { name: "연결", exact: true }).click();
   await expect(page.getByText(/구매 2건 · 총 수량 4/)).toBeVisible();
   expect(errors).toEqual([]);
+});
+
+test("하단 탭바: 탭 이동·현재 탭 표시·더보기 메뉴·하위 화면의 탭 유지", async ({ page }) => {
+  await importFixture(page);
+  await page.goto("/");
+  await expect(tab(page, "홈")).toHaveAttribute("aria-current", "page");
+  await tab(page, "품목").click();
+  await expect(page.getByRole("heading", { name: "전체 품목", exact: true })).toBeVisible();
+  await page.getByRole("link").filter({ hasText: "원래 품목" }).click();
+  await expect(tab(page, "품목")).toHaveAttribute("aria-current", "page");
+  await tab(page, "발송").click();
+  await expect(page.getByRole("heading", { name: "발송 예정" })).toBeVisible();
+  await tab(page, "더보기").click();
+  for (const label of ["통계", "구매 내역", "판매 내역", "제작자별 보기", "예산·구매 후보", "장르/캐릭터 관리", "발송 그룹", "백업 및 기기 저장"]) {
+    await expect(page.getByRole("link").filter({ hasText: label })).toBeVisible();
+  }
+  await page.getByRole("link").filter({ hasText: "통계" }).click();
+  await expect(tab(page, "더보기")).toHaveAttribute("aria-current", "page");
+  const box = await page.getByRole("navigation", { name: "주 메뉴" }).boundingBox();
+  expect(box!.y + box!.height).toBeLessThanOrEqual(page.viewportSize()!.height + 1);
 });

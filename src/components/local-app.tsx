@@ -27,6 +27,7 @@ import Characters from "@/views/browse/[genre]/[character]/page";
 import Makers from "@/views/browse/makers/page";
 import Maker from "@/views/browse/makers/[maker]/page";
 import Backup from "./local-backup";
+import More from "@/views/more/page";
 
 function Route({ url }: { url: string }) {
   const [pathname, search = ""] = url.split("?");
@@ -67,6 +68,7 @@ function Route({ url }: { url: string }) {
       case "sales": return <Sales />;
       case "backup": return <Backup />;
       case "budget": return <Budget searchParams={searchParams} />;
+      case "more": return <More />;
     }
   }
   return <p className="p-6">페이지를 찾을 수 없습니다.</p>;
@@ -104,8 +106,12 @@ export default function LocalApp() {
   if (error) return <div role="alert" className="p-6"><p>{error}</p><p>브라우저의 사이트 데이터 저장 설정을 확인해주세요.</p><button className="mt-3 underline" onClick={() => location.reload()}>다시 시도</button></div>;
   if (!ready) return <p role="status" className="p-6">기기 데이터를 불러오는 중…</p>;
   return <LocationContext value={url}>
-    <NavBar /><OfflineStatus /><DateRefresher />
-    <PageBoundary key={url}><Route url={url} /></PageBoundary>
+    <OfflineStatus /><DateRefresher />
+    {/* 하단 탭바에 마지막 내용이 가리지 않도록 탭바 높이만큼 여백을 둔다. */}
+    <main className="pb-[calc(4.5rem+env(safe-area-inset-bottom))]">
+      <PageBoundary key={url}><Route url={url} /></PageBoundary>
+    </main>
+    <NavBar />
     <ScrollRestoration />
   </LocationContext>;
 }

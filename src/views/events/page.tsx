@@ -2,7 +2,6 @@ import { LocalForm } from "@/components/local-form";
 import Link from "@/lib/local/navigation";
 import { getEvents, effectiveChecklistAmount } from "@/lib/events";
 import { createEvent, deleteEvent, updateEvent } from "@/lib/actions/events";
-import { BackButton } from "@/components/back-button";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 import { EditEventForm } from "@/components/edit-event-form";
 import { won } from "@/lib/money";
@@ -13,7 +12,6 @@ export default  function EventsPage() {
 
   return (
     <div className="box-border mx-auto w-full max-w-3xl overflow-x-hidden p-6">
-      <BackButton href="/" />
       <PageHeader
         title="행사 체크리스트"
         description="행사 당일 부스별로 수령/구매할 것을 미리 적어두고, 현장에서 부스별로 묶어서 확인할 수 있어요."

@@ -16,7 +16,7 @@ export default function LocalBackup() {
   const [reading, setReading] = useState(false);
   const [persistent, setPersistent] = useState("");
   return <div className="mx-auto max-w-xl space-y-6 p-6">
-    <BackButton href="/" /><h1 className="text-xl font-semibold">백업 및 기기 저장</h1>
+    <BackButton href="/more" /><h1 className="text-xl font-semibold">백업 및 기기 저장</h1>
     <p className="text-sm text-neutral-500">데이터와 사진은 이 기기의 현재 브라우저에만 저장됩니다. 브라우저 데이터 삭제나 기기 변경에 대비해 백업 파일을 앱 밖에 보관해주세요.</p>
     <LocalForm action={async () => {
       setMessage("");
