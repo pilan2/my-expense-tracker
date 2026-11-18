@@ -1,13 +1,11 @@
-import { LocalForm } from "@/components/local-form";
 import Link from "@/lib/local/navigation";
 import { getItems } from "@/lib/items";
 import { getCatalogOrderMaps, compareNameByCatalogOrder, compareCharacterByCatalogOrder } from "@/lib/catalog";
-import { assignShippingFee } from "@/lib/actions/shipping";
-import { BackButton } from "@/components/back-button";
+import { parseItemFilter } from "@/lib/item-filter";
 import { ItemsSelectableList } from "@/components/items-selectable-list";
 import { db } from "@/lib/local/repository";
 import { countProductGroups } from "@/lib/product-groups";
-import { buttonClass, EmptyState } from "@/components/ui";
+import { buttonClass, linkClass } from "@/components/ui";
 
 // 캐릭터 안에서 시리즈가 있는 품목은 "캐릭터 (시리즈)"로, 없는 품목은 "캐릭터"만으로
 // 한 줄 제목을 만든다. 같은 캐릭터라도 시리즈가 여러 개면 그만큼 제목이 나뉘어 반복된다.
@@ -47,13 +45,12 @@ function groupByCharacterAndSeries<T extends { character: string; series: string
 export default  function ItemsPage({
   searchParams,
 }: {
-  searchParams: { pending?: string };
+  searchParams: { q?: string; status?: string; pending?: string };
 }) {
-  const { pending } = searchParams;
-  const pendingOnly = pending === "1";
+  const filter = parseItemFilter(searchParams);
 
   const [rawItems, orderMaps] = [
-    getItems({ pendingShippingOnly: pendingOnly }),
+    getItems(),
     getCatalogOrderMaps(),
   ] as const;
 
@@ -85,34 +82,18 @@ export default  function ItemsPage({
 
   return (
     <div className="box-border mx-auto w-full max-w-3xl overflow-x-hidden p-6">
-      {pendingOnly && <BackButton href="/items" />}
       <div className="mb-2 flex items-center justify-between">
-        <h1 className="text-xl font-semibold">{pendingOnly ? "배송비 미정 품목" : "전체 품목"}</h1>
-        <Link
-          href="/items/new"
-          className={buttonClass()}
-        >
+        <h1 className="text-xl font-semibold">전체 품목</h1>
+        <Link href="/items/new" className={buttonClass()}>
           + 품목 등록
         </Link>
       </div>
-      <div className="mb-6 flex gap-4 text-sm">
-        <Link href={pendingOnly ? "/items" : "/items?pending=1"} className="underline">
-          {pendingOnly ? "전체보기" : "배송비 미정만 보기"} →
-        </Link>
-        <Link href="/catalog" className="underline">
+      <div className="mb-4">
+        <Link href="/catalog" className={linkClass}>
           장르/캐릭터 관리 →
         </Link>
       </div>
-
-      {items.length === 0 ? (
-        <EmptyState>
-          {pendingOnly ? "배송비 미정인 품목이 없습니다." : "등록된 품목이 없습니다."}
-        </EmptyState>
-      ) : (
-        <LocalForm action={assignShippingFee}>
-          <ItemsSelectableList groups={groups} pendingOnly={pendingOnly} />
-        </LocalForm>
-      )}
+      <ItemsSelectableList groups={groups} initialQuery={filter.q} initialStatus={filter.status} />
     </div>
   );
 }

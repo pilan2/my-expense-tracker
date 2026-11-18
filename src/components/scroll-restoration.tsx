@@ -35,7 +35,10 @@ export function ScrollRestoration() {
     function save(source: string) {
       if (restoring) return;
       if (leaving && source === "scroll") return;
-      sessionStorage.setItem(key, String(window.scrollY));
+      // 품목 검색처럼 화면을 다시 열지 않고 주소의 쿼리만 바꾸는 경우가 있어 현재 쿼리로 저장한다.
+      // 다른 화면으로 넘어가는 중(경로가 달라진 뒤)의 scroll은 새 화면 키를 덮어쓰지 않게 원래 키를 쓴다.
+      const liveKey = location.pathname === pathname ? `scroll:${pathname}?${new URLSearchParams(location.search).toString()}` : key;
+      sessionStorage.setItem(liveKey, String(window.scrollY));
     }
 
     function tryScroll() {

@@ -2,25 +2,91 @@
 
 import { useState } from "react";
 import { NumberInput } from "@/components/number-input";
+import { LocalForm } from "@/components/local-form";
+import { assignShippingFee } from "@/lib/actions/shipping";
+import { itemFilterHref, itemStatusFilters, matchesItemFilter, type ItemStatusFilter } from "@/lib/item-filter";
 import { ItemCardWithDelivery } from "@/components/item-card-with-delivery";
 import { itemHref } from "@/lib/nav";
-import { buttonClass, inputClass } from "@/components/ui";
+import { buttonClass, inputClass, EmptyState } from "@/components/ui";
 
-type Item = Omit<Parameters<typeof ItemCardWithDelivery>[0], "href">;
+type Item = Omit<Parameters<typeof ItemCardWithDelivery>[0], "href"> & {
+  maker: string | null; organizer: string | null; memo: string | null;
+};
 type Subgroup = { character: string; series: string | null; items: Item[] };
 type GenreGroup = { genre: string; subgroups: Subgroup[] };
 
 export function ItemsSelectableList({
   groups,
-  pendingOnly,
+  initialQuery,
+  initialStatus,
 }: {
   groups: GenreGroup[];
-  pendingOnly: boolean;
+  initialQuery: string;
+  initialStatus: ItemStatusFilter;
 }) {
   const [selectMode, setSelectMode] = useState(false);
+  const [query, setQuery] = useState(initialQuery);
+  const [status, setStatus] = useState(initialStatus);
+  const pendingOnly = status === "shipping-fee";
+  const from = itemFilterHref(query, status);
+
+  // 입력할 때마다 화면을 다시 열면 검색창 포커스가 사라지므로, 주소만 조용히 바꿔서
+  // 상세에서 돌아왔을 때와 새로고침 때 같은 검색 결과를 다시 보여준다.
+  function update(nextQuery: string, nextStatus: ItemStatusFilter) {
+    setQuery(nextQuery); setStatus(nextStatus);
+    if (nextStatus !== status) setSelectMode(false);
+    try { history.replaceState(history.state, "", itemFilterHref(nextQuery, nextStatus)); } catch {}
+  }
+
+  const filteredGroups = groups
+    .map((genreGroup) => ({
+      ...genreGroup,
+      subgroups: genreGroup.subgroups
+        .map((subgroup) => ({ ...subgroup, items: subgroup.items.filter((item) => matchesItemFilter(item, query, status)) }))
+        .filter((subgroup) => subgroup.items.length > 0),
+    }))
+    .filter((genreGroup) => genreGroup.subgroups.length > 0);
+  const resultCount = filteredGroups.reduce((sum, g) => sum + g.subgroups.reduce((n, sg) => n + sg.items.length, 0), 0);
 
   return (
     <>
+      <div className="mb-4 flex flex-col gap-3">
+        <input
+          type="search"
+          aria-label="품목 검색"
+          placeholder="세부사항·캐릭터·제작자·메모 검색"
+          value={query}
+          onChange={(event) => update(event.target.value, status)}
+          // 모바일 키보드의 검색 버튼은 키보드만 닫는다.
+          onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); event.currentTarget.blur(); } }}
+          className={`${inputClass} w-full`}
+        />
+        <div role="group" aria-label="상태 필터" className="flex flex-wrap gap-2">
+          {itemStatusFilters.map((filter) => (
+            <button
+              key={filter.id}
+              type="button"
+              aria-pressed={status === filter.id}
+              onClick={() => update(query, filter.id)}
+              className={`min-h-11 rounded-full border px-4 text-sm ${
+                status === filter.id
+                  ? "border-neutral-900 bg-neutral-900 text-white dark:border-neutral-100 dark:bg-neutral-100 dark:text-neutral-900"
+                  : "border-neutral-300 dark:border-neutral-700"
+              }`}
+            >
+              {filter.label}
+            </button>
+          ))}
+        </div>
+        <p role="status" className="text-sm text-neutral-500">{resultCount}개 품목</p>
+      </div>
+
+      {resultCount === 0 ? (
+        <EmptyState>
+          {groups.length === 0 ? "등록된 품목이 없습니다." : pendingOnly && !query.trim() ? "배송비 미정인 품목이 없습니다." : "조건에 맞는 품목이 없습니다."}
+        </EmptyState>
+      ) : (
+      <LocalForm action={assignShippingFee}>
       <div className="mb-4 flex flex-col gap-3 rounded-md border border-neutral-200 p-4 text-sm sm:flex-row sm:items-end dark:border-neutral-800">
         {selectMode ? (
           <>
@@ -77,7 +143,7 @@ export function ItemsSelectableList({
       </div>
 
       <div className="flex flex-col gap-6">
-        {groups.map((genreGroup) => {
+        {filteredGroups.map((genreGroup) => {
           // 묶음 판매(배송비 나누기가 아닐 때) 선택 중에는 이미 다 팔린 품목은 더 팔 수 없으니
           // 목록 자체에서 뺀다. 그 결과 캐릭터/장르에 남는 품목이 없으면 그 제목도 같이 숨긴다.
           const visibleSubgroups = genreGroup.subgroups
@@ -114,7 +180,7 @@ export function ItemsSelectableList({
                           {selectMode && (
                             <input type="checkbox" name="itemIds" value={item.id} className="mt-1 h-6 w-6" />
                           )}
-                          <ItemCardWithDelivery {...item} href={itemHref(item.id, pendingOnly ? "/items?pending=1" : "/items")}
+                          <ItemCardWithDelivery {...item} href={itemHref(item.id, from)}
                             className="flex-1" showGenreCharacter={false} showDeliveryAction={!selectMode} />
                         </li>
                       ))}
@@ -126,6 +192,8 @@ export function ItemsSelectableList({
           );
         })}
       </div>
+      </LocalForm>
+      )}
     </>
   );
 }
