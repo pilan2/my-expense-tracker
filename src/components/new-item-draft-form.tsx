@@ -6,7 +6,7 @@ import { itemDraftKey, readItemDraft, writeItemDraft, queueItemDraftWrite, type 
 type Props = ComponentProps<typeof ItemForm>;
 
 export function NewItemDraftForm(props: Props) {
-  const key = itemDraftKey(props.wishId);
+  const key = itemDraftKey(props.wishId, props.sameAsItemId);
   const [loaded, setLoaded] = useState<ItemDraft>();
   const [error, setError] = useState("");
   const [attempt, setAttempt] = useState(0);
@@ -82,7 +82,7 @@ function DraftEditor({ draftKey, loaded, reset, ...props }: Props & { draftKey: 
       <button type="button" disabled={busy} onClick={() => void discard()} className="underline disabled:opacity-40">임시저장 지우고 새로 작성</button>
     </div>
     <fieldset disabled={busy} className="min-w-0">
-      <ItemForm {...props} defaultValues={loaded.values ?? props.defaultValues} initialImage={initialImage} onDraftChange={save} action={submit} />
+      <ItemForm {...props} defaultValues={loaded.values ? { ...props.defaultValues, ...loaded.values } : props.defaultValues} initialImage={initialImage} onDraftChange={save} action={submit} />
     </fieldset>
   </>;
 }

@@ -382,3 +382,36 @@ test("목록 수령 확인: 상세 이동·외부 폼 제출 없이 저장, 실�
   await expect(page).toHaveURL(/\/items\/item-1/);
   await expect.poll(() => page.locator('img').first().evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(1);
 });
+
+test("같은 물품 추가 구매: 정보·사진 이어받기, 구매 건 비교, 목록 묶음과 묶음 해제", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await importFixture(page);
+  await page.goto("/items/item-1?from=%2Fitems");
+  await page.getByRole("link", { name: "+ 같은 물품 추가 구매" }).click();
+  await expect(page.getByRole("heading", { name: "같은 물품 추가 구매" })).toBeVisible();
+  await expect(page.getByLabel("물품 세부사항")).toHaveValue("원래 품목");
+  await page.locator('input[name="price"]').fill("0.8");
+  await page.getByLabel("현물로 보유 중").check();
+  await page.getByRole("button", { name: "저장", exact: true }).click();
+  await expect(page.getByText("현재 보고 있는 구매")).toBeVisible();
+  await expect(page.getByText(/구매 2건 · 총 수량 4 · 평균 단가 9,500원 \(8,000원~10,000원\)/)).toBeVisible();
+  await expect.poll(() => page.locator("img").first().evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(1);
+
+  await page.goto("/items");
+  await expect(page.getByText("같은 물품 2건")).toHaveCount(2);
+  await page.goto(`/browse/${encodeURIComponent("장르")}/${encodeURIComponent("캐릭터")}`);
+  const group = page.locator("details").filter({ hasText: "구매 2건" });
+  await expect(group).toBeVisible();
+  await group.locator("summary").click();
+  await expect(group.getByRole("link")).toHaveCount(2);
+
+  await page.goto("/items/item-1?from=%2Fitems");
+  await page.getByRole("button", { name: "이 구매 건을 묶음에서 빼기" }).click();
+  await page.getByRole("dialog").getByRole("button").last().click();
+  await expect(page.getByText("다른 구매처나 다른 가격으로 같은 물품을 또 샀다면")).toBeVisible();
+  await page.getByText("이미 등록한 품목과 같은 물품으로 연결").click();
+  await page.getByRole("button", { name: "연결", exact: true }).click();
+  await expect(page.getByText(/구매 2건 · 총 수량 4/)).toBeVisible();
+  expect(errors).toEqual([]);
+});

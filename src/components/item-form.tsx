@@ -120,6 +120,7 @@ export function ItemForm({
   defaultValues,
   itemId,
   wishId,
+  sameAsItemId,
   initialImage,
   onDraftChange,
 }: {
@@ -129,6 +130,7 @@ export function ItemForm({
   defaultValues?: Partial<ItemFormDefaults>;
   itemId?: string;
   wishId?: string;
+  sameAsItemId?: string;
   initialImage?: File | null;
   onDraftChange?: (values: ItemDraftValues, image: File | null) => void;
 }) {
@@ -197,6 +199,7 @@ export function ItemForm({
       await action(form);
     }} onSubmit={handleSubmit} className="flex flex-col gap-4">
       {wishId && <input type="hidden" name="wishId" value={wishId} />}
+      {sameAsItemId && <input type="hidden" name="sameAsItemId" value={sameAsItemId} />}
       <div className="flex flex-col gap-2 text-sm">
         <span className="font-medium">사진 (선택)</span>
         {defaultValues?.imageUrl && (
@@ -204,7 +207,7 @@ export function ItemForm({
                         <LocalImage src={defaultValues.imageUrl} alt="" className="h-24 w-24 rounded-md object-cover" />
             <label className="flex items-center gap-2 text-neutral-500">
               <input type="checkbox" name="removeImage" className="h-5 w-5" />
-              사진 삭제
+              {sameAsItemId ? "이 사진 사용 안 함" : "사진 삭제"}
             </label>
           </div>
         )}

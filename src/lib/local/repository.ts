@@ -139,6 +139,12 @@ export function createRepository(getData: () => Data, writable = false) {
     const remove = ({ where }: { where: Where }): Joined[K] => {
       const data = write(), old = findUniqueOrThrow({ where });
       data[table].splice(data[table].findIndex(r => r.id === old.id), 1);
+      const productGroupId = table === "item" ? (old as Joined["item"]).productGroupId : null;
+      if (productGroupId) {
+        // 혼자 남은 품목은 비교할 대상이 없으므로 묶음을 푼다.
+        const rest = data.item.filter(r => r.productGroupId === productGroupId);
+        if (rest.length === 1) rest[0].productGroupId = null;
+      }
       if (table === "item") { for (const wish of data.wish) if (wish.itemId === old.id) wish.itemId = null; data.sale = data.sale.filter(r => r.itemId !== old.id); data.eventChecklistItem = data.eventChecklistItem.filter(r => r.itemId !== old.id); }
       if (table === "event") data.eventChecklistItem = data.eventChecklistItem.filter(r => r.eventId !== old.id);
       if (table === "shippingGroup") for (const item of data.item) if (item.shippingGroupId === old.id) item.shippingGroupId = null;

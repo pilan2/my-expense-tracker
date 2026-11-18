@@ -3,7 +3,8 @@ import { LocalImage } from "@/components/local-image";
 import { LocalForm } from "@/components/local-form";
 import Link from "@/lib/local/navigation";
 import { notFound } from "@/lib/local/navigation";
-import { getItem } from "@/lib/items";
+import { getItem, getSameProductItems, getSameProductCandidates } from "@/lib/items";
+import { SameProductSection } from "@/components/same-product-section";
 import { getGenreCatalog, getItemTypeCatalog } from "@/lib/catalog";
 import { getSalesForItem, calcRemainingQuantity, calcProfit } from "@/lib/sales";
 import { updateItem, deleteItem, confirmDelivery } from "@/lib/actions/items";
@@ -233,6 +234,8 @@ export default  function ItemDetailPage({
               />
             )}
           </div>
+          <SameProductSection item={item} purchases={getSameProductItems(item.productGroupId)}
+            candidates={getSameProductCandidates(item)} from={from} />
         </>
       )}
 

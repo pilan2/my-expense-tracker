@@ -5,6 +5,8 @@ import { getCatalogOrderMaps, compareNameByCatalogOrder, compareCharacterByCatal
 import { assignShippingFee } from "@/lib/actions/shipping";
 import { BackButton } from "@/components/back-button";
 import { ItemsSelectableList } from "@/components/items-selectable-list";
+import { db } from "@/lib/local/repository";
+import { countProductGroups } from "@/lib/product-groups";
 
 // 캐릭터 안에서 시리즈가 있는 품목은 "캐릭터 (시리즈)"로, 없는 품목은 "캐릭터"만으로
 // 한 줄 제목을 만든다. 같은 캐릭터라도 시리즈가 여러 개면 그만큼 제목이 나뉘어 반복된다.
@@ -55,8 +57,11 @@ export default  function ItemsPage({
   ] as const;
 
   // Decimal은 클라이언트 컴포넌트(ItemsSelectableList)로 넘어갈 수 없는 객체라, 순수 값으로 바꿔둔다.
+  // 체크박스로 구매 건을 하나씩 골라야 하므로 접지 않고, 같은 물품 구매 건 수만 표시한다.
+  const sameProductCounts = countProductGroups(db.item.findMany());
   const items = rawItems.map((item) => ({
     ...item,
+    sameProductCount: item.productGroupId ? sameProductCounts.get(item.productGroupId) : undefined,
     price: Number(item.price),
     shippingFee: Number(item.shippingFee),
     sales: item.sales.map((sale) => ({ ...sale, saleAmount: Number(sale.saleAmount) })),

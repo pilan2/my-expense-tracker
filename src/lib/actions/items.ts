@@ -10,6 +10,7 @@ import { itemHref, safeRedirectTarget } from "@/lib/nav";
 import { ensureInCatalog } from "@/lib/catalog";
 import { uploadItemImage } from "@/lib/local/images";
 import { autoAssignShippingGroup } from "@/lib/shipping-group-matching";
+import { planProductLink } from "@/lib/product-groups";
 
 function parseItemForm(formData: FormData) {
   const isPhysical = formData.get("isPhysical") === "on";
@@ -71,11 +72,17 @@ export const createItem = localAction(async function createItem(formData: FormDa
   const wish = wishId ? db.wish.findUniqueOrThrow({ where: { id: wishId } }) : null;
   if (wish?.status === "purchased") throw new Error("이미 품목으로 등록한 구매 후보입니다.");
 
+  const sameAsId = wish ? "" : String(formData.get("sameAsItemId") ?? "");
+  const sameAs = sameAsId ? db.item.findUniqueOrThrow({ where: { id: sameAsId } }) : null;
+
   const imageFile = formData.get("image");
-  const imageUrl = imageFile instanceof File && imageFile.size > 0 ? await uploadItemImage(imageFile) : null;
+  // 같은 물품 추가 구매는 새 사진을 고르지 않으면 원래 품목의 사진을 함께 쓴다.
+  const imageUrl = imageFile instanceof File && imageFile.size > 0 ? await uploadItemImage(imageFile)
+    : sameAs && formData.get("removeImage") !== "on" ? sameAs.imageUrl : null;
 
   const created = await db.item.create({ data: { ...data, imageUrl } });
   if (wish) db.wish.update({ where: { id: wish.id }, data: { status: "purchased", itemId: created.id } });
+  if (sameAs) linkItems(sameAs.id, created.id);
   await autoAssignShippingGroup(created);
   await ensureInCatalog({
     genre: data.genre,
@@ -85,8 +92,9 @@ export const createItem = localAction(async function createItem(formData: FormDa
     maker: data.maker,
     organizer: data.organizer,
   });
-  if (formData.has("itemDraftRevision")) stageItemDraftRemoval(itemDraftKey(wishId || undefined), Number(formData.get("itemDraftRevision")));
-  redirect("/items");
+  if (formData.has("itemDraftRevision")) stageItemDraftRemoval(itemDraftKey(wishId || undefined, sameAsId || undefined), Number(formData.get("itemDraftRevision")));
+  // 추가 구매 후에는 구매 건끼리 비교할 수 있도록 새 품목 화면으로 간다.
+  redirect(sameAs ? itemHref(created.id, "/items") : "/items");
 });
 
 export const updateItem = localAction(async function updateItem(id: string, from: string, formData: FormData) {
@@ -149,4 +157,25 @@ export const confirmDelivery = localAction(async function confirmDelivery(id: st
 export const deleteItem = localAction(async function deleteItem(id: string, from: string) {
   await db.item.delete({ where: { id } });
   redirect(safeRedirectTarget(from));
+});
+
+function linkItems(sourceId: string, targetId: string) {
+  const all = db.item.findMany();
+  const source = all.find(item => item.id === sourceId), target = all.find(item => item.id === targetId);
+  if (!source || !target) throw new Error("연결할 품목을 찾을 수 없습니다.");
+  const { groupId, ids } = planProductLink(source, target, all);
+  for (const id of ids) db.item.update({ where: { id }, data: { productGroupId: groupId } });
+}
+
+export const linkSameProduct = localAction(async function linkSameProduct(id: string, targetId: string) {
+  linkItems(id, targetId);
+});
+
+export const unlinkSameProduct = localAction(async function unlinkSameProduct(id: string) {
+  const item = db.item.findUniqueOrThrow({ where: { id } });
+  if (!item.productGroupId) return;
+  db.item.update({ where: { id }, data: { productGroupId: null } });
+  // 혼자 남은 품목은 비교할 대상이 없으므로 묶음을 푼다.
+  const rest = db.item.findMany({ where: { productGroupId: item.productGroupId } });
+  if (rest.length === 1) db.item.update({ where: { id: rest[0].id }, data: { productGroupId: null } });
 });

@@ -5,6 +5,7 @@ export type Item = {
   maker: string | null; organizer: string | null; isPhysical: boolean;
   expectedShipDate: Date | null; shipDateApprox: boolean; purchaseLink: string | null;
   memo: string | null; imageUrl: string | null; shippingGroupId: string | null;
+  productGroupId: string | null;
   createdAt: Date; updatedAt: Date;
 };
 export type Sale = { id: string; itemId: string; quantitySold: number; saleAmount: number; saleDate: Date | null; createdAt: Date };
@@ -38,11 +39,15 @@ export function emptyData(): Data {
   return { item: [], sale: [], genre: [], character: [], series: [], itemType: [], maker: [], organizer: [], shippingGroup: [], event: [], eventChecklistItem: [], budgetRule: [], monthlyBudget: [], wish: [] };
 }
 
-// 이전 로컬 저장본에는 새 테이블만 빈 목록으로 보충한다. 기존 테이블은 검사 대상이다.
+// 이전 로컬 저장본에는 새 테이블과 새 품목 필드만 빈 값으로 보충한다. 기존 값은 검사 대상이다.
 export function upgradeStoredData(data: Data): Data {
-  return { ...data, budgetRule: data.budgetRule === undefined ? [] : data.budgetRule,
+  return { ...data, item: Array.isArray(data.item) ? data.item.map(withProductGroup) : data.item,
+    budgetRule: data.budgetRule === undefined ? [] : data.budgetRule,
     monthlyBudget: data.monthlyBudget === undefined ? [] : data.monthlyBudget,
     wish: data.wish === undefined ? [] : data.wish };
+}
+export function withProductGroup<T>(item: T): T {
+  return item && typeof item === "object" && !("productGroupId" in item) ? { ...item, productGroupId: null } : item;
 }
 export function isBudgetMonth(value: string) { return /^[1-9]\d{3}-(0[1-9]|1[0-2])$/.test(value); }
 
@@ -51,7 +56,7 @@ export const schema: Record<Table, Record<string, string>> = {
   budgetRule: { id: "string", amount: "money", createdAt: "date" },
   monthlyBudget: { id: "string", amount: "money", createdAt: "date" },
   wish: { id: "string", title: "string", month: "string", price: "money", quantity: "positive", shippingFee: "money", reason: "string?", priority: "positive", deadline: "date?", purchaseLink: "string?", status: "wishStatus", itemId: "string?", createdAt: "date" },
-  item: { id: "string", genre: "string", character: "string", series: "string?", itemType: "string", detail: "string", quantity: "positive", price: "money", purchasedAt: "date?", hasOverseasShipping: "boolean", shippingFee: "money", maker: "string?", organizer: "string?", isPhysical: "boolean", expectedShipDate: "date?", shipDateApprox: "boolean", purchaseLink: "string?", memo: "string?", imageUrl: "string?", shippingGroupId: "string?", createdAt: "date", updatedAt: "date" },
+  item: { id: "string", genre: "string", character: "string", series: "string?", itemType: "string", detail: "string", quantity: "positive", price: "money", purchasedAt: "date?", hasOverseasShipping: "boolean", shippingFee: "money", maker: "string?", organizer: "string?", isPhysical: "boolean", expectedShipDate: "date?", shipDateApprox: "boolean", purchaseLink: "string?", memo: "string?", imageUrl: "string?", shippingGroupId: "string?", productGroupId: "string?", createdAt: "date", updatedAt: "date" },
   sale: { id: "string", itemId: "string", quantitySold: "positive", saleAmount: "money", saleDate: "date?", createdAt: "date" },
   genre: { id: "string", name: "string", order: "integer", createdAt: "date" },
   character: { id: "string", name: "string", order: "integer", genreId: "string", createdAt: "date" },

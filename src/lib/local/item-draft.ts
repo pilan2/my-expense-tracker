@@ -8,7 +8,9 @@ export type ItemDraftValues = {
   purchaseLink: string; memo: string;
 };
 export type ItemDraft = { revision: number; values: ItemDraftValues | null; image: Blob | null };
-export function itemDraftKey(wishId?: string) { return wishId ? `item-draft:wish:${wishId}` : "item-draft:new"; }
+export function itemDraftKey(wishId?: string, sameAsItemId?: string) {
+  return wishId ? `item-draft:wish:${wishId}` : sameAsItemId ? `item-draft:same:${sameAsItemId}` : "item-draft:new";
+}
 
 const pendingWrites = new Map<string, Promise<unknown>>();
 export function queueItemDraftWrite<T>(key: string, write: () => Promise<T>): Promise<T> {

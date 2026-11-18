@@ -24,6 +24,10 @@ type ItemCardProps = {
   sales: { quantitySold: number; saleAmount: DecimalLike }[];
   /** 장르/캐릭터로 이미 필터된 화면(브라우즈 하위 목록)에서는 중복 표시를 줄이기 위해 숨긴다 */
   showGenreCharacter?: boolean;
+  /** 같은 물품 묶음 안에서 구매 건을 구분하기 위한 구매처·구매일 */
+  sourceLabel?: string;
+  /** 같은 물품으로 묶인 구매 건 수(2 이상일 때만 표시) */
+  sameProductCount?: number;
   /** 물품 종류(대분류)별로 묶어서 섹션 제목으로 이미 보여주는 화면에서는 중복 표시를 줄이기 위해 숨긴다 */
   showItemType?: boolean;
 };
@@ -44,6 +48,8 @@ export function ItemCardContent({
   shipDateApprox,
   imageUrl,
   sales,
+  sourceLabel,
+  sameProductCount,
   showGenreCharacter = true,
   showItemType = true,
 }: ItemCardProps) {
@@ -72,7 +78,13 @@ export function ItemCardContent({
             : ""}
           {showItemType ? `${itemType} · ` : ""}
           {detail}
+          {sameProductCount && sameProductCount > 1 ? (
+            <span className="ml-2 whitespace-nowrap rounded bg-neutral-100 px-1.5 py-0.5 text-xs font-medium text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
+              같은 물품 {sameProductCount}건
+            </span>
+          ) : null}
         </p>
+        {sourceLabel && <p className="break-words text-sm text-neutral-500">{sourceLabel}</p>}
         <p className="text-sm text-neutral-500">
           수량 {quantity}
           {remainingQuantity !== quantity ? ` (잔여 ${remainingQuantity})` : ""}

@@ -160,3 +160,29 @@ export  function getRecentPurchases(limit?: number) {
     remainingQuantity: calcRemainingQuantity(item.quantity, item.sales),
   }));
 }
+
+// 품목 상세에서 같은 물품으로 묶인 구매 건 전체(자기 자신 포함)를 구매일 순으로.
+export function getSameProductItems(productGroupId: string | null) {
+  if (!productGroupId) return [];
+  const items = db.item.findMany({
+    where: { productGroupId },
+    orderBy: [{ purchasedAt: { sort: "asc", nulls: "last" } }, { createdAt: "asc" }],
+    include: { sales: SALES_FOR_CARD },
+  });
+
+  return items.map((item) => ({
+    ...item,
+    remainingQuantity: calcRemainingQuantity(item.quantity, item.sales),
+  }));
+}
+
+// 직접 연결할 후보: 같은 장르·캐릭터·물품 종류이면서 아직 이 묶음이 아닌 품목. 세부사항이 같은 품목을 앞에.
+export function getSameProductCandidates(item: { id: string; genre: string; character: string; itemType: string; detail: string; productGroupId: string | null }) {
+  const items = db.item.findMany({
+    where: { genre: item.genre, character: item.character, itemType: item.itemType },
+    orderBy: { createdAt: "desc" },
+  });
+  return items
+    .filter((other) => other.id !== item.id && (!item.productGroupId || other.productGroupId !== item.productGroupId))
+    .sort((a, b) => Number(b.detail.trim() === item.detail.trim()) - Number(a.detail.trim() === item.detail.trim()));
+}

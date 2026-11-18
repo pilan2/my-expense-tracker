@@ -3,6 +3,8 @@ import { getCatalogOrderMaps, compareNameByCatalogOrder } from "@/lib/catalog";
 import { BackButton } from "@/components/back-button";
 import { ItemCardWithDelivery } from "@/components/item-card-with-delivery";
 import { itemHref } from "@/lib/nav";
+import { ProductGroupCard } from "@/components/product-group-card";
+import { collapseProductGroups } from "@/lib/product-groups";
 
 function groupByItemType<T extends { itemType: string }>(items: T[], itemTypeOrder: Map<string, number>) {
   const map = new Map<string, T[]>();
@@ -34,6 +36,26 @@ function groupBySeries<T extends { series: string | null; itemType: string }>(
   return { withoutSeriesItemTypeGroups: groupByItemType(withoutSeries, itemTypeOrder), bySeries };
 }
 
+const cardClass = "block rounded-md border border-neutral-200 p-3 dark:border-neutral-800";
+
+// 같은 물품으로 묶인 구매 건은 카드 하나로 접어서 보여준다.
+function ItemList({ items, from }: { items: ReturnType<typeof getItemsByCategory>; from: string }) {
+  return (
+    <ul className="flex flex-col gap-2">
+      {collapseProductGroups(items).map((entry) => (
+        <li key={entry.key}>
+          {entry.items.length > 1 ? (
+            <ProductGroupCard purchases={entry.items} from={from} className={cardClass} />
+          ) : (
+            <ItemCardWithDelivery {...entry.items[0]} href={itemHref(entry.items[0].id, from)}
+              className={cardClass} showGenreCharacter={false} showItemType={false} />
+          )}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export default  function BrowseItemsPage({
   params,
 }: {
@@ -62,14 +84,7 @@ export default  function BrowseItemsPage({
           {withoutSeriesItemTypeGroups.map((itemTypeGroup) => (
             <div key={itemTypeGroup.itemType}>
               <h2 className="mb-2 text-base font-medium">{itemTypeGroup.itemType}</h2>
-              <ul className="flex flex-col gap-2">
-                {itemTypeGroup.items.map((item) => (
-                  <li key={item.id}>
-                    <ItemCardWithDelivery {...item} href={itemHref(item.id, from)}
-                      className="block rounded-md border border-neutral-200 p-3 dark:border-neutral-800" showGenreCharacter={false} showItemType={false}  />
-                  </li>
-                ))}
-              </ul>
+              <ItemList items={itemTypeGroup.items} from={from} />
             </div>
           ))}
 
@@ -80,14 +95,7 @@ export default  function BrowseItemsPage({
                 {seriesGroup.itemTypeGroups.map((itemTypeGroup) => (
                   <div key={itemTypeGroup.itemType}>
                     <h3 className="mb-2 text-base font-medium">{itemTypeGroup.itemType}</h3>
-                    <ul className="flex flex-col gap-2">
-                      {itemTypeGroup.items.map((item) => (
-                        <li key={item.id}>
-                          <ItemCardWithDelivery {...item} href={itemHref(item.id, from)}
-                            className="block rounded-md border border-neutral-200 p-3 dark:border-neutral-800" showGenreCharacter={false} showItemType={false}  />
-                        </li>
-                      ))}
-                    </ul>
+                    <ItemList items={itemTypeGroup.items} from={from} />
                   </div>
                 ))}
               </div>

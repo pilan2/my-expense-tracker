@@ -2,7 +2,8 @@ import "fake-indexeddb/auto";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createRepository } from "../src/lib/local/repository";
-import { emptyData, validateData } from "../src/lib/local/models";
+import { emptyData, validateData, upgradeStoredData } from "../src/lib/local/models";
+import { planProductLink, summarizeProductGroup, collapseProductGroups } from "../src/lib/product-groups";
 import { initializeDatabase, transaction, transactionData, currentData, stageImage, readImage } from "../src/lib/local/database";
 import { parseBackup } from "../src/lib/local/backup";
 
@@ -106,4 +107,36 @@ test("카탈로그·행사 참조 검증, 삭제 전파와 중복 이름 거절"
   assert.equal(data.item[0].genre, "g");
   db.sale.create({ data: { itemId: "missing", quantitySold: 1, saleAmount: 0 } });
   assert.throws(() => validateData(data), /연결된 데이터/);
+});
+
+test("같은 물품 묶음: 연결·묶음 합치기·혼자 남으면 해제·이전 저장본과 백업 호환", () => {
+  const data = emptyData(), db = createRepository(() => data, true);
+  const [a, b, c, d] = [10000, 12000, 9000, 11000].map(price => db.item.create({ data: { ...itemInput, price } }));
+  const link = (sourceId: string, targetId: string) => {
+    const all = db.item.findMany();
+    const plan = planProductLink(all.find(i => i.id === sourceId)!, all.find(i => i.id === targetId)!, all);
+    for (const id of plan.ids) db.item.update({ where: { id }, data: { productGroupId: plan.groupId } });
+  };
+  link(a.id, b.id); link(c.id, d.id);
+  const group = (id: string) => data.item.find(i => i.id === id)!.productGroupId;
+  assert.ok(group(a.id) && group(a.id) === group(b.id) && group(c.id) === group(d.id) && group(a.id) !== group(c.id));
+  link(a.id, c.id);
+  assert.equal(new Set(data.item.map(i => i.productGroupId)).size, 1);
+  assert.throws(() => planProductLink(a, a, data.item));
+
+  const summary = summarizeProductGroup(data.item.map(i => ({ ...i, remainingQuantity: i.quantity })));
+  assert.deepEqual([summary.count, summary.quantity, summary.averagePrice, summary.minPrice, summary.maxPrice], [4, 12, 10500, 9000, 12000]);
+  const entries = collapseProductGroups([...data.item, db.item.create({ data: itemInput })]);
+  assert.deepEqual(entries.map(e => e.items.length), [4, 1]);
+
+  db.item.delete({ where: { id: a.id } }); db.item.delete({ where: { id: b.id } });
+  assert.ok(group(c.id));
+  db.item.delete({ where: { id: c.id } });
+  assert.equal(group(d.id), null);
+
+  const old = JSON.parse(JSON.stringify(data));
+  for (const item of old.item) delete item.productGroupId;
+  assert.equal(upgradeStoredData(old).item[0].productGroupId, null);
+  const parsed = parseBackup({ schemaVersion: 3, exportedAt: "", data: old, images: {} });
+  assert.ok(parsed.data.item.every(i => i.productGroupId === null));
 });

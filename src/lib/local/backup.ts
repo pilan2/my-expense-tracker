@@ -1,4 +1,4 @@
-import { emptyData, normalizeRow, tables, validateData, type Data, type Table } from "./models";
+import { emptyData, normalizeRow, tables, validateData, withProductGroup, type Data, type Table } from "./models";
 import { createRepository } from "./repository";
 import { readBackupSnapshot, replaceData, stageImage, transaction } from "./database";
 import { blobToDataUrl } from "./images";
@@ -16,13 +16,14 @@ function rows(data: JsonObject, table: string): unknown[] {
 export function parseBackup(input: unknown): { data: Data; images: Map<string, string>; legacy: boolean } {
   const root = object(input), data = emptyData(), images = new Map<string, string>();
   const legacy = root.schemaVersion === undefined && Array.isArray(root.items);
-  function setRows<K extends Table>(table: K, values: unknown[]) { data[table] = values.map(row => normalizeRow(table, row)) as Data[K]; }
+  // 같은 물품 묶음이 생기기 전 백업의 품목은 묶음 없음으로 읽는다.
+  function setRows<K extends Table>(table: K, values: unknown[]) { data[table] = values.map(row => normalizeRow(table, table === "item" ? withProductGroup(row) : row)) as Data[K]; }
   if (legacy) {
     for (const value of rows(root, "items")) {
       const item = object(value);
       const imageId = item.imageUrl ? `local-image:${crypto.randomUUID()}` : null;
       if (imageId) images.set(imageId, String(item.imageUrl));
-      data.item.push(normalizeRow("item", { series: null, shippingFee: 0, maker: null, organizer: null, purchasedAt: null, expectedShipDate: null, purchaseLink: null, memo: null, shipDateApprox: false, shippingGroupId: null, ...item, imageUrl: imageId }));
+      data.item.push(normalizeRow("item", { series: null, shippingFee: 0, maker: null, organizer: null, purchasedAt: null, expectedShipDate: null, purchaseLink: null, memo: null, shipDateApprox: false, shippingGroupId: null, productGroupId: null, ...item, imageUrl: imageId }));
       if (!Array.isArray(item.sales)) throw new Error("기존 백업에 판매 이력이 누락되어 있습니다.");
       for (const sale of item.sales) data.sale.push(normalizeRow("sale", { ...object(sale), itemId: item.id }));
     }
