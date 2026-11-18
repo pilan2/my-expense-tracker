@@ -43,6 +43,7 @@ test("모바일: 전체 백업 복원 후 오프라인 조회·등록·판매·�
   await page.getByRole("button", { name: "저장", exact: true }).click();
   await expect(page.getByRole("heading", { name: "전체 품목", exact: true })).toBeVisible();
   await page.getByRole("link").filter({ hasText: "오프라인 새 품목" }).click();
+  await page.getByText("+ 판매 기록 추가").click();
   await page.locator('input[name="saleAmount"]').fill("3");
   await page.getByRole("button", { name: "판매 등록", exact: true }).click();
   await expect(page.getByText("모두 판매되었습니다.")).toBeVisible();
@@ -477,4 +478,36 @@ test("품목 검색·상태 필터: 즉시 거르기, 주소 유지, 상세에�
   await page.goto("/items?pending=1");
   await expect(page.getByRole("button", { name: "배송비 미정", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByText("1개 품목")).toBeVisible();
+});
+
+test("품목 상세: 제목·상태 요약, 판매 입력 접기, 삭제는 맨 아래", async ({ page }) => {
+  await importFixture(page);
+  await page.goto("/items/item-1?from=%2Fitems");
+  await expect(page.getByRole("heading", { name: "원래 품목", level: 1 })).toBeVisible();
+  await expect(page.getByText("발송예정 2030년 10월")).toBeVisible();
+  await expect(page.getByText("이후 계산 필요")).toBeVisible();
+  await expect(page.getByText("30,000원", { exact: true })).toBeVisible();
+  const saleAmount = page.locator('input[name="saleAmount"]');
+  await expect(saleAmount).toBeHidden();
+  await page.getByText("+ 판매 기록 추가").click();
+  await saleAmount.fill("1.2");
+  await page.getByRole("button", { name: "판매 등록", exact: true }).click();
+  await expect(page.getByText(/1개 · 12,000원/)).toBeVisible();
+  await expect(page.getByText(/손익 \+2,000원/).first()).toBeVisible();
+  const order = await page.evaluate(() => {
+    const top = (text: string) => [...document.querySelectorAll("button, h2")].find(el => el.textContent?.trim() === text)!.getBoundingClientRect().top;
+    return { sales: top("판매 관리"), same: top("같은 물품 구매 기록"), remove: top("이 품목 삭제") };
+  });
+  expect(order.sales).toBeLessThan(order.same);
+  expect(order.same).toBeLessThan(order.remove);
+  // 맨 아래 삭제 버튼이 하단 탭바에 가리지 않아야 한다.
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  expect(await page.getByRole("button", { name: "이 품목 삭제" }).evaluate((button) => {
+    const rect = button.getBoundingClientRect();
+    return document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2) === button;
+  })).toBe(true);
+  await page.goto("/items/item-1?from=%2Fitems&mode=edit");
+  await expect(page.getByRole("heading", { name: "품목 수정" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "이 품목 삭제" })).toBeVisible();
+  await expect(page.getByText("판매 관리")).toHaveCount(0);
 });
