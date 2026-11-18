@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { NumberInput } from "@/components/number-input";
 import { LocalForm } from "@/components/local-form";
 import { assignShippingFee } from "@/lib/actions/shipping";
 import { itemFilterHref, itemStatusFilters, matchesItemFilter, type ItemStatusFilter } from "@/lib/item-filter";
 import { ItemCardWithDelivery } from "@/components/item-card-with-delivery";
 import { itemHref } from "@/lib/nav";
 import { buttonClass, inputClass, EmptyState } from "@/components/ui";
+import { ManwonInput } from "@/components/manwon-input";
 
 type Item = Omit<Parameters<typeof ItemCardWithDelivery>[0], "href"> & {
   maker: string | null; organizer: string | null; memo: string | null;
@@ -96,10 +96,8 @@ export function ItemsSelectableList({
                   아래에서 같이 배송받은 품목을 체크하고, 총 배송비(만원 단위)를 입력하면 각
                   품목의 수량 비율대로 나눠서 배정됩니다.
                 </span>
-                <NumberInput
+                <ManwonInput
                   name="totalShippingFee"
-                  min={0}
-                  step={0.0001}
                   className={inputClass}
                 />
               </label>

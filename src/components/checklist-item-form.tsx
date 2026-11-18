@@ -4,6 +4,7 @@ import { LocalForm } from "@/components/local-form";
 
 import { useMemo, useState } from "react";
 import { buttonClass, inputClass } from "@/components/ui";
+import { ManwonInput } from "@/components/manwon-input";
 
 type ItemOption = {
   id: string;
@@ -118,15 +119,16 @@ export function ChecklistItemForm({
             className={inputClass}
           />
           <div className="flex gap-2">
-            <input
-              name="price"
-              type="number"
-              step="0.01"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              placeholder="가격 (만원 단위)"
-              className={`flex-1 ${inputClass}`}
-            />
+            <div className="flex flex-1 flex-col">
+              <ManwonInput
+                name="price"
+                step={0.01}
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                placeholder="가격 (만원 단위)"
+                className={inputClass}
+              />
+            </div>
             <input
               name="quantity"
               type="number"

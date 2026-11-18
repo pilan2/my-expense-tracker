@@ -6,6 +6,7 @@ import { BackButton } from "@/components/back-button";
 import { NumberInput } from "@/components/number-input";
 import { ClearableDateInput } from "@/components/clearable-date-input";
 import { buttonClass, inputClass, PageHeader } from "@/components/ui";
+import { ManwonInput } from "@/components/manwon-input";
 
 export default  function BulkSalePage({
   searchParams,
@@ -60,9 +61,8 @@ export default  function BulkSalePage({
 
         <label className="flex flex-col gap-1 text-sm">
           <span className="font-medium">총 판매 금액 (만원 단위, 선택한 품목 전체 총액)</span>
-          <NumberInput
+          <ManwonInput
             name="totalSaleAmount"
-            min={0}
             step={0.01}
             required
             className={inputClass}

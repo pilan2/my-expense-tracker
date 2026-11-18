@@ -511,3 +511,19 @@ test("품목 상세: 제목·상태 요약, 판매 입력 접기, 삭제는 맨 
   await expect(page.getByRole("button", { name: "이 품목 삭제" })).toBeVisible();
   await expect(page.getByText("판매 관리")).toHaveCount(0);
 });
+
+test("입력 폼: 만원 입력의 원 환산 표시, 구역 제목, 저장 전 합계", async ({ page }) => {
+  await importFixture(page);
+  await page.goto("/items/new");
+  for (const title of ["물품", "구매", "배송", "메모"]) await expect(page.getByRole("heading", { name: title, exact: true })).toBeVisible();
+  await page.locator('input[name="price"]').fill("1.5");
+  await expect(page.getByText("= 15,000원", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "+", exact: true }).click();
+  await page.locator('input[name="shippingFee"]').fill("0.3");
+  await expect(page.getByText("= 3,000원", { exact: true })).toBeVisible();
+  await expect(page.getByText("합계 15,000원 × 2 + 배송비 3,000원 = 33,000원")).toBeVisible();
+  await page.goto("/items/item-1");
+  await page.getByText("+ 판매 기록 추가").click();
+  await page.locator('input[name="saleAmount"]').fill("2");
+  await expect(page.getByText("= 20,000원", { exact: true })).toBeVisible();
+});

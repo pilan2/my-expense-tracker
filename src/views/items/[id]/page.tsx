@@ -18,6 +18,7 @@ import { wonToManwon, won, signedWon } from "@/lib/money";
 import { formatShipDDay, formatShipDateLabel, isShipmentOverdue } from "@/lib/dday";
 import { safeRedirectTarget } from "@/lib/nav";
 import { profitColor, buttonClass, inputClass, linkClass, warningColor, SectionHeader } from "@/components/ui";
+import { ManwonInput } from "@/components/manwon-input";
 
 function selfHref(id: string, from: string, mode?: "edit") {
   const params = new URLSearchParams({ from });
@@ -200,7 +201,7 @@ export default  function ItemDetailPage({
               </label>
               <label className="flex flex-col gap-1 text-sm">
                 <span className="font-medium">판매 금액 (만원 단위, 전체 총액)</span>
-                <NumberInput name="saleAmount" min={0} step={0.01} required className={inputClass} />
+                <ManwonInput name="saleAmount" step={0.01} required className={inputClass} />
               </label>
               <label className="flex flex-col gap-1 text-sm">
                 <span className="font-medium">판매일 (날짜 기반 통계에 사용 가능)</span>

@@ -10,6 +10,7 @@ import { BudgetSummary } from "@/components/budget-summary";
 import { LocalForm } from "@/components/local-form";
 import { BackButton } from "@/components/back-button";
 import { buttonClass, inputClass } from "@/components/ui";
+import { ManwonInput } from "@/components/manwon-input";
 
 const input = `${inputClass} w-full`;
 const button = buttonClass();
@@ -18,9 +19,9 @@ function WishForm({ wish, month, done }: { wish?: Wish; month: string; done: () 
   return <LocalForm action={async form => { await saveWish(wish?.id ?? null, form); done(); }} className="grid gap-3 text-sm">
     <label>후보 이름<input name="title" required defaultValue={wish?.title} className={input} /></label>
     <label>구매 예정 월<input name="month" type="month" required defaultValue={wish?.month ?? month} className={input} /></label>
-    <label>예상 단가 (만원)<input name="price" type="number" min="0" step="0.0001" required defaultValue={wish ? wonToManwon(wish.price) : ""} className={input} /></label>
+    <label>예상 단가 (만원)<ManwonInput name="price" required defaultValue={wish ? wonToManwon(wish.price) : ""} className={input} /></label>
     <label>예상 수량<input name="quantity" type="number" min="1" step="1" required defaultValue={wish?.quantity ?? 1} className={input} /></label>
-    <label>예상 배송비 (만원)<input name="shippingFee" type="number" min="0" step="0.0001" required defaultValue={wish ? wonToManwon(wish.shippingFee) : "0"} className={input} /></label>
+    <label>예상 배송비 (만원)<ManwonInput name="shippingFee" required defaultValue={wish ? wonToManwon(wish.shippingFee) : "0"} className={input} /></label>
     <label>사고 싶은 이유<textarea name="reason" defaultValue={wish?.reason ?? ""} rows={2} className={input} /></label>
     <label>우선순위<select name="priority" defaultValue={wish?.priority ?? 2} className={input}><option value="1">1 · 꼭 사고 싶음</option><option value="2">2 · 고민 중</option><option value="3">3 · 여유가 있으면</option></select></label>
     <label>판매 마감일 (선택)<input name="deadline" type="date" defaultValue={wish?.deadline?.toISOString().slice(0, 10) ?? ""} className={input} /></label>
@@ -52,13 +53,13 @@ export default function BudgetPage({ searchParams }: { searchParams: { month?: s
       <div className="mt-4 space-y-5">
         <LocalForm key={`override-${month}-${override?.amount}`} action={async form => { await saveBudget(form); setMessage(`${month} 예산을 저장했습니다.`); }} className="space-y-2 text-sm">
           <input type="hidden" name="month" value={month} /><input type="hidden" name="mode" value="month" />
-          <label className="block">이 달만 사용할 예산 (만원)<input name="amount" type="number" min="0" step="0.0001" required defaultValue={summary.amount === null ? "" : wonToManwon(summary.amount)} className={input} /></label>
+          <label className="block">이 달만 사용할 예산 (만원)<ManwonInput name="amount" required defaultValue={summary.amount === null ? "" : wonToManwon(summary.amount)} className={input} /></label>
           <button className={button}>이 달 예산 저장</button>
         </LocalForm>
         {override && <LocalForm action={async () => { await resetMonthlyBudget(month); setMessage("이 달의 별도 예산을 해제했습니다."); }}><button className="text-sm underline">이 달 별도 예산 해제</button></LocalForm>}
         {month >= currentMonth() && <LocalForm key={`default-${month}-${rule?.amount}`} action={async form => { await saveBudget(form); setMessage(`${month}부터 적용할 기본 예산을 저장했습니다.`); }} className="space-y-2 text-sm">
           <input type="hidden" name="month" value={month} /><input type="hidden" name="mode" value="default" />
-          <label className="block">이 달부터 적용할 기본 월 예산 (만원)<input name="amount" type="number" min="0" step="0.0001" required defaultValue={rule ? wonToManwon(rule.amount) : ""} className={input} /></label>
+          <label className="block">이 달부터 적용할 기본 월 예산 (만원)<ManwonInput name="amount" required defaultValue={rule ? wonToManwon(rule.amount) : ""} className={input} /></label>
           <p>과거 달은 유지합니다. 달별 별도 예산과 이미 예약한 미래 기본 예산이 있으면 그 설정이 우선합니다.</p>
           <button className={button}>기본 예산 저장</button>
         </LocalForm>}

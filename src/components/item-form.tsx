@@ -14,6 +14,7 @@ import { ImageCropInput } from "@/components/image-crop-input";
 import { ShipDateInput } from "@/components/ship-date-input";
 import type { GenreCatalogEntry, ItemTypeCatalogEntry } from "@/lib/catalog";
 import { buttonClass, inputClass } from "@/components/ui";
+import { ManwonInput } from "@/components/manwon-input";
 
 export type ItemFormDefaults = {
   genre: string;
@@ -199,179 +200,187 @@ export function ItemForm({
     }} onSubmit={handleSubmit} className="flex flex-col gap-4">
       {wishId && <input type="hidden" name="wishId" value={wishId} />}
       {sameAsItemId && <input type="hidden" name="sameAsItemId" value={sameAsItemId} />}
-      <div className="flex flex-col gap-2 text-sm">
-        <span className="font-medium">사진 (선택)</span>
-        {defaultValues?.imageUrl && (
-          <div className="flex items-center gap-3">
-                        <LocalImage src={defaultValues.imageUrl} alt="" className="h-24 w-24 rounded-md object-cover" />
-            <label className="flex items-center gap-2 text-neutral-500">
-              <input type="checkbox" name="removeImage" className="h-5 w-5" />
-              {sameAsItemId ? "이 사진 사용 안 함" : "사진 삭제"}
-            </label>
-          </div>
-        )}
-        <ImageCropInput name="image" initialFile={initialImage} onFileChange={setDraftImage} />
-      </div>
-
-      <PickerField label="장르" name="genre" options={genreOptions} value={genre} onChange={handleGenreChange} />
-      <PickerField
-        label="캐릭터"
-        name="character"
-        options={characterOptions}
-        value={character}
-        onChange={handleCharacterChange}
-      />
-      <PickerField
-        label="시리즈 (선택, 예: 오리지널/리부트)"
-        name="series"
-        options={seriesOptions}
-        value={series}
-        onChange={setSeries}
-        required={false}
-      />
-      <PickerField
-        label="물품 종류 (대분류)"
-        name="itemType"
-        options={itemTypeOptions}
-        value={itemType}
-        onChange={setItemType}
-      />
-
-      <Field label="물품 세부사항">
-        <input
-          name="detail"
-          defaultValue={defaultValues?.detail}
-          required
-          className={inputClass}
-        />
-      </Field>
-
-      <Field label="구매일 (날짜 기반 통계에 사용 가능)">
-        <ClearableDateInput
-          name="purchasedAt"
-          defaultValue={defaultValues?.purchasedAt ?? todayString()}
-          onValueChange={setPurchasedAt}
-          className={inputClass}
-        />
-      </Field>
-
-      <div className="flex flex-col gap-1 text-sm">
-        <span className="font-medium">수량</span>
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-            className="flex h-9 w-9 items-center justify-center rounded-md border border-neutral-300 text-lg dark:border-neutral-700"
-          >
-            −
-          </button>
-          <NumberInput
-            name="quantity"
-            min={1}
-            value={quantity}
-            onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
-            className={`${inputClass} w-20 text-center`}
-          />
-          <button
-            type="button"
-            onClick={() => setQuantity((q) => q + 1)}
-            className="flex h-9 w-9 items-center justify-center rounded-md border border-neutral-300 text-lg dark:border-neutral-700"
-          >
-            +
-          </button>
+      <FormSection title="물품" first>
+        <div className="flex flex-col gap-2 text-sm">
+          <span className="font-medium">사진 (선택)</span>
+          {defaultValues?.imageUrl && (
+            <div className="flex items-center gap-3">
+              <LocalImage src={defaultValues.imageUrl} alt="" className="h-24 w-24 rounded-md object-cover" />
+              <label className="flex items-center gap-2 text-neutral-500">
+                <input type="checkbox" name="removeImage" className="h-5 w-5" />
+                {sameAsItemId ? "이 사진 사용 안 함" : "사진 삭제"}
+              </label>
+            </div>
+          )}
+          <ImageCropInput name="image" initialFile={initialImage} onFileChange={setDraftImage} />
         </div>
-      </div>
 
-      <Field label="가격 (만원 단위, 예: 1.5 = 15,000원)">
-        <NumberInput
-          name="price"
-          min={0}
-          step={0.0001}
-          value={price}
-          onChange={event => setPrice(event.target.value)}
-          required
-          className={inputClass}
+        <PickerField label="장르" name="genre" options={genreOptions} value={genre} onChange={handleGenreChange} />
+        <PickerField
+          label="캐릭터"
+          name="character"
+          options={characterOptions}
+          value={character}
+          onChange={handleCharacterChange}
         />
-      </Field>
-
-      <Field label="구매처 링크 (선택)">
-        <input
-          name="purchaseLink"
-          type="url"
-          placeholder="https://..."
-          defaultValue={defaultValues?.purchaseLink}
-          className={inputClass}
+        <PickerField
+          label="시리즈 (선택, 예: 오리지널/리부트)"
+          name="series"
+          options={seriesOptions}
+          value={series}
+          onChange={setSeries}
+          required={false}
         />
-      </Field>
-
-      <PickerField
-        label="제작한 사람 (선택)"
-        name="maker"
-        options={makerOptions}
-        value={maker}
-        onChange={setMaker}
-        required={false}
-      />
-
-      <PickerField
-        label="공구 개최한 사람 (선택)"
-        name="organizer"
-        options={organizerOptions}
-        value={organizer}
-        onChange={setOrganizer}
-        required={false}
-      />
-
-      <label className="flex items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          name="hasOverseasShipping"
-          defaultChecked={defaultValues?.hasOverseasShipping}
-          className="h-5 w-5"
+        <PickerField
+          label="물품 종류 (대분류)"
+          name="itemType"
+          options={itemTypeOptions}
+          value={itemType}
+          onChange={setItemType}
         />
-        이후 배송비 계산 필요
-      </label>
 
-      <Field label="배송비 (만원 단위, 목록에서 여러 품목에 분배도 가능)">
-        <NumberInput
-          name="shippingFee"
-          min={0}
-          // 자동 분배는 원 단위까지 정확하게 나누므로(1원 = 0.0001만원), 수기 입력도 같은 정밀도를 허용한다.
-          step={0.0001}
-          value={shippingFee}
-          onChange={event => setShippingFee(event.target.value)}
-          className={inputClass}
-        />
-      </Field>
+        <Field label="물품 세부사항">
+          <input
+            name="detail"
+            defaultValue={defaultValues?.detail}
+            required
+            className={inputClass}
+          />
+        </Field>
 
-      <label className="flex items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          name="isPhysical"
-          checked={isPhysical}
-          onChange={(e) => setIsPhysical(e.target.checked)}
-          className="h-5 w-5"
-        />
-        현물로 보유 중
-      </label>
+      </FormSection>
 
-      {!isPhysical && (
-        <ShipDateInput
-          defaultDate={defaultValues?.expectedShipDate}
-          defaultMonth={defaultValues?.expectedShipMonth}
-          defaultApprox={defaultValues?.shipDateApprox}
-          onModeChange={() => rerenderDraft(value => value + 1)}
-        />
-      )}
+      <FormSection title="구매">
+        <Field label="구매일 (날짜 기반 통계에 사용 가능)">
+          <ClearableDateInput
+            name="purchasedAt"
+            defaultValue={defaultValues?.purchasedAt ?? todayString()}
+            onValueChange={setPurchasedAt}
+            className={inputClass}
+          />
+        </Field>
 
-      <Field label="메모 (선택)">
-        <textarea
-          name="memo"
-          rows={3}
-          defaultValue={defaultValues?.memo}
-          className={`${inputClass} resize-y`}
+        <div className="flex flex-col gap-1 text-sm">
+          <span className="font-medium">수량</span>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+              className="flex h-11 w-11 items-center justify-center rounded-md border border-neutral-300 text-lg dark:border-neutral-700"
+            >
+              −
+            </button>
+            <NumberInput
+              name="quantity"
+              min={1}
+              value={quantity}
+              onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
+              className={`${inputClass} w-20 text-center`}
+            />
+            <button
+              type="button"
+              onClick={() => setQuantity((q) => q + 1)}
+              className="flex h-11 w-11 items-center justify-center rounded-md border border-neutral-300 text-lg dark:border-neutral-700"
+            >
+              +
+            </button>
+          </div>
+        </div>
+
+        <Field label="단가 (만원 단위, 예: 1.5 = 15,000원)">
+          <ManwonInput
+            name="price"
+            value={price}
+            onChange={event => setPrice(event.target.value)}
+            required
+            className={inputClass}
+          />
+        </Field>
+
+        <Field label="구매처 링크 (선택)">
+          <input
+            name="purchaseLink"
+            type="url"
+            placeholder="https://..."
+            defaultValue={defaultValues?.purchaseLink}
+            className={inputClass}
+          />
+        </Field>
+
+        <PickerField
+          label="제작한 사람 (선택)"
+          name="maker"
+          options={makerOptions}
+          value={maker}
+          onChange={setMaker}
+          required={false}
         />
-      </Field>
+
+        <PickerField
+          label="공구 개최한 사람 (선택)"
+          name="organizer"
+          options={organizerOptions}
+          value={organizer}
+          onChange={setOrganizer}
+          required={false}
+        />
+
+      </FormSection>
+
+      <FormSection title="배송">
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            name="hasOverseasShipping"
+            defaultChecked={defaultValues?.hasOverseasShipping}
+            className="h-5 w-5"
+          />
+          이후 배송비 계산 필요
+        </label>
+
+        <Field label="배송비 (만원 단위, 목록에서 여러 품목에 분배도 가능)">
+          {/* 자동 분배는 원 단위까지 정확하게 나누므로(1원 = 0.0001만원), 수기 입력도 같은 정밀도를 허용한다. */}
+          <ManwonInput
+            name="shippingFee"
+            value={shippingFee}
+            onChange={event => setShippingFee(event.target.value)}
+            className={inputClass}
+          />
+        </Field>
+
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            name="isPhysical"
+            checked={isPhysical}
+            onChange={(e) => setIsPhysical(e.target.checked)}
+            className="h-5 w-5"
+          />
+          현물로 보유 중
+        </label>
+
+        {!isPhysical && (
+          <ShipDateInput
+            defaultDate={defaultValues?.expectedShipDate}
+            defaultMonth={defaultValues?.expectedShipMonth}
+            defaultApprox={defaultValues?.shipDateApprox}
+            onModeChange={() => rerenderDraft(value => value + 1)}
+          />
+        )}
+
+      </FormSection>
+
+      <FormSection title="메모">
+        <Field label="메모 (선택)">
+          <textarea
+            name="memo"
+            rows={3}
+            defaultValue={defaultValues?.memo}
+            className={`${inputClass} resize-y`}
+          />
+        </Field>
+
+      </FormSection>
 
       <ItemBudgetPreview date={purchasedAt} price={price} quantity={quantity} shippingFee={shippingFee} itemId={itemId} />
 
@@ -391,5 +400,15 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <span className="font-medium">{label}</span>
       {children}
     </label>
+  );
+}
+
+// 긴 등록 폼을 물품·구매·배송·메모 구역으로 나눠 지금 어디를 입력하는지 알 수 있게 한다.
+function FormSection({ title, first, children }: { title: string; first?: boolean; children: React.ReactNode }) {
+  return (
+    <section className={`flex flex-col gap-4 ${first ? "" : "border-t border-neutral-200 pt-5 dark:border-neutral-800"}`}>
+      <h2 className="text-base font-semibold">{title}</h2>
+      {children}
+    </section>
   );
 }
