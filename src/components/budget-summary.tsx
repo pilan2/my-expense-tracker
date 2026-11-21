@@ -4,6 +4,8 @@ import { currentMonth, monthBudget, remainingText, won } from "@/lib/budget";
 import { linkClass } from "@/components/ui";
 
 // 이번 달에 가장 궁금한 "얼마 남았나"를 크게, 예산·사용액은 작은 보조 줄로 보여준다.
+const overStripes = "repeating-linear-gradient(135deg, var(--loss) 0 5px, color-mix(in srgb, var(--loss) 45%, var(--surface)) 5px 9px)";
+
 export function BudgetSummary({ month = currentMonth(), link = true }: { month?: string; link?: boolean }) {
   const budget = monthBudget(currentData(), month);
   const ratio = budget.amount === null || budget.amount === 0 ? null : budget.spent / budget.amount;
@@ -21,13 +23,20 @@ export function BudgetSummary({ month = currentMonth(), link = true }: { month?:
       <p className="text-sm text-muted">이번 달 사용 {won(budget.spent)}</p>
     </> : <>
       <p className={`text-3xl font-bold ${exceeded ? "text-loss" : ""}`}>{remainingText(budget.remaining!)}</p>
-      {/* 초과하면 막대 전체를 쓴 금액으로 보고, 예산까지는 분홍·넘친 부분은 빨강으로 나눠 얼마나 넘었는지 보이게 한다. */}
-      <div role="progressbar" aria-label="예산 사용률" aria-valuemin={0} aria-valuemax={Math.max(100, usedPercent)} aria-valuenow={usedPercent} className="flex h-2.5 overflow-hidden rounded-full bg-surface">
+      {/* 초과하면 막대 전체를 쓴 금액으로 보고 예산까지와 넘친 부분을 나눈다. 분홍과 빨강은 색만으로는
+          비슷해 보여(특히 다크 모드), 예산 부분은 옅게, 초과 부분은 진한 빗금으로 밝기와 무늬를 다르게 한다. */}
+      <div role="progressbar" aria-label="예산 사용률" aria-valuemin={0} aria-valuemax={Math.max(100, usedPercent)} aria-valuenow={usedPercent} className={`flex overflow-hidden rounded-full bg-surface ${exceeded ? "h-3.5" : "h-2.5"}`}>
         {exceeded && ratio !== null ? <>
-          <div className="h-full bg-accent" style={{ width: `${100 / ratio}%` }} />
-          <div className="h-full bg-loss" style={{ width: `${100 - 100 / ratio}%` }} />
+          <div className="h-full bg-accent/35" style={{ width: `${100 / ratio}%` }} />
+          <div className="h-full border-l-2 border-surface" style={{ width: `${100 - 100 / ratio}%`, backgroundImage: overStripes }} />
         </> : <div className="h-full rounded-full bg-accent" style={{ width: `${percent}%` }} />}
       </div>
+      {exceeded && (
+        <p aria-hidden="true" className="flex items-center gap-3 text-xs text-muted">
+          <span className="flex items-center gap-1"><span className="inline-block h-2.5 w-4 rounded-sm bg-accent/35" />예산</span>
+          <span className="flex items-center gap-1"><span className="inline-block h-2.5 w-4 rounded-sm" style={{ backgroundImage: overStripes }} />초과</span>
+        </p>
+      )}
       <p className="text-sm text-muted">
         {ratio === null ? "이번 달은 지출 없는 달로 설정했어요." : `${won(budget.amount)} 중 ${won(budget.spent)} 사용 · ${usedPercent}%`}
         {exceeded && ratio !== null ? <span className="font-semibold text-loss"> · {usedPercent - 100}% 초과</span> : ratio !== null && ratio >= 0.8 ? " · 80% 넘게 썼어요." : ""}

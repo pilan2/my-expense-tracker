@@ -438,7 +438,8 @@ test("홈: 예산 카드, 확인할 것 칩, 발송 예정·최근 구매 사진
   await expect(page).toHaveURL(/\/items\?status=shipping-fee$/);
   await expect(page.getByRole("group", { name: "상태 필터" }).getByRole("button", { name: /^배송비 미정/ })).toHaveAttribute("aria-pressed", "true");
   await tab(page, "홈").click();
-  await page.getByRole("navigation", { name: "바로가기" }).getByRole("link", { name: "장르", exact: true }).click();
+  await expect(page.getByRole("region", { name: "이번 달 금액" }).getByRole("link", { name: "통계 보기" })).toBeVisible();
+  await page.getByRole("navigation", { name: "장르별 보기" }).getByRole("link", { name: "장르", exact: true }).click();
   await expect(page.getByRole("heading", { name: "장르", exact: true })).toBeVisible();
 });
 

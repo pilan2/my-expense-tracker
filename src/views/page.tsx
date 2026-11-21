@@ -46,18 +46,19 @@ export default function Home() {
         </Link>
       </div>
 
-      {/* 자주 들어가는 통계와 장르 목록은 맨 위에서 바로 갈 수 있게 한다. */}
-      <nav aria-label="바로가기" className="-mx-5 -mt-3 flex gap-2 overflow-x-auto px-5 pb-1 sm:-mx-6 sm:px-6">
-        <Link href="/stats" className={shortcutClass}>
-          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg>
-          통계
-        </Link>
-        {summary.genres.map((genre) => (
-          <Link key={genre.name} href={`/browse/${encodeURIComponent(genre.name)}`} className={shortcutClass}>
-            {genre.name}
-          </Link>
-        ))}
-      </nav>
+      {/* 특정 장르만 골라 보는 입구라, 전체 흐름을 보는 통계(아래 이번 달 금액 옆)와 따로 둔다. */}
+      {summary.genres.length > 0 && (
+        <nav aria-label="장르별 보기" className="-mt-3">
+          <p className="mb-1.5 text-xs font-semibold text-muted">장르별 보기</p>
+          <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 sm:-mx-6 sm:px-6">
+            {summary.genres.map((genre) => (
+              <Link key={genre.name} href={`/browse/${encodeURIComponent(genre.name)}`} className={shortcutClass}>
+                {genre.name}
+              </Link>
+            ))}
+          </div>
+        </nav>
+      )}
 
       <BackupReminder />
 
@@ -76,7 +77,14 @@ export default function Home() {
         </section>
       )}
 
-      <section aria-label="이번 달 금액" className="grid grid-cols-2 gap-3">
+      <section aria-label="이번 달 금액">
+        <SectionHeader title="이번 달" action={
+          <Link href="/stats" className={`${buttonClass("secondary")} min-h-10 px-3`}>
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg>
+            통계 보기
+          </Link>
+        } />
+        <div className="grid grid-cols-2 gap-3">
         <div className={cardClass}>
           <p className="text-sm text-muted">이번 달 소비</p>
           <p className="text-xl font-bold">{won(currentMonth.purchaseTotal)}</p>
@@ -84,6 +92,7 @@ export default function Home() {
         <div className={cardClass}>
           <p className="text-sm text-muted">이번 달 판매</p>
           <p className={`text-xl font-bold ${saleColor}`}>{won(currentMonth.saleTotal)}</p>
+        </div>
         </div>
       </section>
 
