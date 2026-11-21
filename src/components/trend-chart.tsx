@@ -79,29 +79,29 @@ export function TrendLineChart({ points: data }: { points: MonthlyPoint[] }) {
           strokeWidth={2}
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="stroke-[#2a78d6] dark:stroke-[#3987e5]"
+          className="stroke-accent"
         />
-        <path d={salePath} fill="none" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="stroke-[#008300] dark:stroke-[#2fae45]" />
+        <path d={salePath} fill="none" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="stroke-sale" />
 
         <circle
           cx={x(activeIndex)}
           cy={y(activePoint.purchaseTotal)}
           r={4}
           strokeWidth={2}
-          className="fill-[#2a78d6] stroke-white dark:fill-[#3987e5] dark:stroke-neutral-900"
+          className="fill-accent stroke-surface"
         />
         <circle
           cx={x(activeIndex)}
           cy={y(activePoint.saleTotal)}
           r={4}
           strokeWidth={2}
-          className="fill-[#008300] stroke-white dark:fill-[#2fae45] dark:stroke-neutral-900"
+          className="fill-sale stroke-surface"
         />
       </svg>
 
       {hovered && (
         <div
-          className="pointer-events-none absolute top-0 z-10 min-w-max rounded-md border border-neutral-200 bg-white px-3 py-2 text-xs shadow-sm dark:border-neutral-700 dark:bg-neutral-900"
+          className="pointer-events-none absolute top-0 z-10 min-w-max rounded-md border border-neutral-200 bg-surface px-3 py-2 text-xs shadow-sm dark:border-neutral-700 dark:bg-neutral-900"
           style={{
             ...(tooltipLeftPercent > 60
               ? { right: `${100 - tooltipLeftPercent}%` }
@@ -110,12 +110,12 @@ export function TrendLineChart({ points: data }: { points: MonthlyPoint[] }) {
         >
           <p className="mb-1 font-medium text-neutral-900 dark:text-neutral-100">{formatMonth(hovered.month)}</p>
           <p className="flex items-center gap-1.5">
-            <span className="inline-block h-0.5 w-3 shrink-0 rounded-full bg-[#2a78d6] dark:bg-[#3987e5]" />
+            <span className="inline-block h-0.5 w-3 shrink-0 rounded-full bg-accent" />
             <span className="text-neutral-500">구매</span>
             <span className="font-medium text-neutral-900 dark:text-neutral-100">{formatWon(hovered.purchaseTotal)}</span>
           </p>
           <p className="flex items-center gap-1.5">
-            <span className="inline-block h-0.5 w-3 shrink-0 rounded-full bg-[#008300] dark:bg-[#2fae45]" />
+            <span className="inline-block h-0.5 w-3 shrink-0 rounded-full bg-sale" />
             <span className="text-neutral-500">판매</span>
             <span className="font-medium text-neutral-900 dark:text-neutral-100">{formatWon(hovered.saleTotal)}</span>
           </p>
@@ -129,11 +129,11 @@ export function TrendLineChart({ points: data }: { points: MonthlyPoint[] }) {
 
       <div className="mt-2 flex items-center gap-4 text-xs">
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-0.5 w-3 rounded-full bg-[#2a78d6] dark:bg-[#3987e5]" />
+          <span className="inline-block h-0.5 w-3 rounded-full bg-accent" />
           <span className="text-neutral-500">구매</span>
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-0.5 w-3 rounded-full bg-[#008300] dark:bg-[#2fae45]" />
+          <span className="inline-block h-0.5 w-3 rounded-full bg-sale" />
           <span className="text-neutral-500">판매</span>
         </span>
       </div>

@@ -134,7 +134,7 @@ export default  function StatsPage({
         <div className="flex flex-col gap-8">
           <div>
             <h2 className="mb-2 text-lg font-semibold">전체 월별 추이</h2>
-            <div className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-800">
+            <div className="rounded-2xl border border-line bg-surface p-4 shadow-card">
               <TrendLineChart points={overall} />
             </div>
           </div>
@@ -187,7 +187,7 @@ export default  function StatsPage({
                     {monthGroups.map((genreGroup) => (
                       <div
                         key={genreGroup.genre}
-                        className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-800"
+                        className="rounded-2xl border border-line bg-surface p-4 shadow-card"
                       >
                         <h3 className="mb-3 text-lg font-semibold">{genreGroup.genre}</h3>
 
@@ -204,7 +204,7 @@ export default  function StatsPage({
                                   {subgroup.purchases.map((item) => (
                                     <li key={item.id}>
                                       <ItemCardWithDelivery {...item} href={itemHref(item.id, from)}
-                                        className="block rounded-md border border-neutral-200 border-l-4 border-l-blue-400 p-3 dark:border-neutral-800 dark:border-l-blue-500" showGenreCharacter={false}  />
+                                        className="block rounded-2xl border border-line bg-surface shadow-card border-l-4 border-l-chip-wait-ink p-3" showGenreCharacter={false}  />
                                     </li>
                                   ))}
                                 </ul>
@@ -227,7 +227,7 @@ export default  function StatsPage({
                                       <li key={sale.id}>
                                         <Link
                                           href={itemHref(sale.itemId, from)}
-                                          className="flex flex-col gap-1 rounded-md border border-neutral-200 border-l-4 border-l-green-400 p-3 hover:opacity-70 sm:flex-row sm:items-center sm:justify-between dark:border-neutral-800 dark:border-l-green-500"
+                                          className="flex flex-col gap-1 rounded-md border border-neutral-200 border-l-4 border-l-sale p-3 hover:opacity-70 sm:flex-row sm:items-center sm:justify-between dark:border-neutral-800 "
                                         >
                                           <p className="text-sm">{sale.item.detail}</p>
                                           <p className="text-sm text-neutral-500">
@@ -258,14 +258,14 @@ export default  function StatsPage({
 
           <div>
             <h2 className="mb-2 text-lg font-semibold">장르별 구매 비교</h2>
-            <div className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-800">
+            <div className="rounded-2xl border border-line bg-surface p-4 shadow-card">
               <GenreComparisonChart months={comparison.months} series={comparison.purchase} />
             </div>
           </div>
 
           <div>
             <h2 className="mb-2 text-lg font-semibold">장르별 판매 비교</h2>
-            <div className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-800">
+            <div className="rounded-2xl border border-line bg-surface p-4 shadow-card">
               <GenreComparisonChart months={comparison.months} series={comparison.sale} />
             </div>
           </div>
@@ -276,7 +276,7 @@ export default  function StatsPage({
               {byGenre.map((genre) => (
                 <div key={genre.genre}>
                   <h3 className="mb-2 text-sm font-medium text-neutral-500">{genre.genre}</h3>
-                  <div className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-800">
+                  <div className="rounded-2xl border border-line bg-surface p-4 shadow-card">
                     <TrendLineChart points={genre.points} />
                   </div>
                 </div>

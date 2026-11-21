@@ -13,7 +13,7 @@ import { ClearableDateInput } from "@/components/clearable-date-input";
 import { ImageCropInput } from "@/components/image-crop-input";
 import { ShipDateInput } from "@/components/ship-date-input";
 import type { GenreCatalogEntry, ItemTypeCatalogEntry } from "@/lib/catalog";
-import { buttonClass, inputClass } from "@/components/ui";
+import { buttonClass, inputClass, cardClass } from "@/components/ui";
 import { ManwonInput } from "@/components/manwon-input";
 
 export type ItemFormDefaults = {
@@ -40,10 +40,10 @@ export type ItemFormDefaults = {
 
 
 const pickerButtonClass = (selected: boolean) =>
-  `rounded-full border px-3 py-1.5 text-sm ${
+  `min-h-9 rounded-full border px-3.5 py-1.5 text-sm ${
     selected
-      ? "border-neutral-900 bg-neutral-900 text-white dark:border-neutral-100 dark:bg-neutral-100 dark:text-neutral-900"
-      : "border-neutral-300 dark:border-neutral-700"
+      ? "border-accent bg-accent font-semibold text-on-accent"
+      : "border-line bg-surface"
   }`;
 
 // 카탈로그에 있는 값은 버튼으로 고르고, 없는 값이면(또는 "+ 직접 입력"을 누르면) 텍스트로 새로 입력한다.
@@ -203,7 +203,7 @@ export function ItemForm({
       {wishId && <input type="hidden" name="wishId" value={wishId} />}
       {sameAsItemId && <input type="hidden" name="sameAsItemId" value={sameAsItemId} />}
       {checklistEntryId && <input type="hidden" name="checklistEntryId" value={checklistEntryId} />}
-      <FormSection title="물품" first>
+      <FormSection title="물품">
         <div className="flex flex-col gap-2 text-sm">
           <span className="font-medium">사진 (선택)</span>
           {defaultValues?.imageUrl && (
@@ -387,12 +387,15 @@ export function ItemForm({
 
       <ItemBudgetPreview date={purchasedAt} price={price} quantity={quantity} shippingFee={shippingFee} itemId={itemId} />
 
-      <button
-        type="submit"
-        className={`mt-2 ${buttonClass()}`}
-      >
-        저장
-      </button>
+      {/* 긴 폼을 끝까지 내리지 않아도 저장할 수 있게 탭바 바로 위에 붙여 둔다. */}
+      <div className="sticky bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-10 -mx-1 bg-background/90 px-1 py-2 backdrop-blur">
+        <button
+          type="submit"
+          className={`w-full ${buttonClass()} min-h-12 text-base`}
+        >
+          저장
+        </button>
+      </div>
     </LocalForm>
   );
 }
@@ -407,10 +410,10 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 // 긴 등록 폼을 물품·구매·배송·메모 구역으로 나눠 지금 어디를 입력하는지 알 수 있게 한다.
-function FormSection({ title, first, children }: { title: string; first?: boolean; children: React.ReactNode }) {
+function FormSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className={`flex flex-col gap-4 ${first ? "" : "border-t border-neutral-200 pt-5 dark:border-neutral-800"}`}>
-      <h2 className="text-base font-semibold">{title}</h2>
+    <section className={`flex flex-col gap-4 ${cardClass}`}>
+      <h2 className="text-base font-bold text-accent-ink">{title}</h2>
       {children}
     </section>
   );

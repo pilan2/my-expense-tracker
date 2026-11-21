@@ -25,7 +25,7 @@ export function BackupReminder() {
   const reminder = backupReminder(record, currentRevision(), currentData().item.length);
   if (!reminder) return null;
   return (
-    <Link href="/backup" role="status" className="flex min-h-11 items-center justify-between gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm dark:border-amber-800 dark:bg-amber-950">
+    <Link href="/backup" role="status" className="flex min-h-11 items-center justify-between gap-3 rounded-2xl bg-chip-fee-bg px-4 py-3 text-sm">
       <span className={warningColor}>
         {reminder.kind === "never"
           ? "아직 백업한 적이 없어요. 기록이 이 기기에만 있으니 백업 파일을 보관해주세요."

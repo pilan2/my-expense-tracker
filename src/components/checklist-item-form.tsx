@@ -52,7 +52,7 @@ export function ChecklistItemForm({
         setPrice("");
         setQuantity("");
       }}
-      className="mb-8 flex flex-col gap-3 rounded-md border border-neutral-200 p-4 dark:border-neutral-800"
+      className="mb-8 flex flex-col gap-3 rounded-2xl border border-line bg-surface shadow-card p-4"
     >
       <div className="flex gap-2">
         <input

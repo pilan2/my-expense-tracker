@@ -7,7 +7,7 @@ import { isShipmentOverdue } from "@/lib/dday";
 import type { Item } from "@/lib/local/models";
 import { itemHref } from "@/lib/nav";
 import { won } from "@/lib/money";
-import { buttonClass } from "@/components/ui";
+import { buttonClass, cardClass } from "@/components/ui";
 
 type Purchase = Item & { remainingQuantity: number };
 
@@ -25,9 +25,9 @@ export function SameProductSection({ item, purchases, candidates, from }: {
   const linkClass = buttonClass("secondary");
 
   return (
-    <div className="mt-8 border-t pt-6 dark:border-neutral-800">
+    <div className={`mt-5 ${cardClass}`}>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-lg font-semibold">같은 물품 구매 기록</h2>
+        <h2 className="text-lg font-bold">같은 물품 구매 기록</h2>
         <Link href={`/items/new?sameAs=${encodeURIComponent(item.id)}`} className={linkClass}>
           + 같은 물품 추가 구매
         </Link>
@@ -56,17 +56,17 @@ export function SameProductSection({ item, purchases, candidates, from }: {
                   </span>
                 </>
               );
-              const boxClass = "flex flex-col gap-0.5 rounded-md border p-3";
+              const boxClass = "flex flex-col gap-0.5 rounded-xl border p-3";
               return (
                 <li key={purchase.id}>
                   {purchase.id === item.id ? (
-                    <div className={`${boxClass} border-neutral-900 dark:border-neutral-100`}>
+                    <div className={`${boxClass} border-accent/40 bg-accent-soft`}>
                       <span className="text-xs font-medium">현재 보고 있는 구매</span>
                       {content}
                     </div>
                   ) : (
                     <Link href={itemHref(purchase.id, from)}
-                      className={`${boxClass} border-neutral-200 hover:opacity-70 dark:border-neutral-800`}>
+                      className={`${boxClass} border-line bg-surface hover:bg-surface-soft`}>
                       {content}
                     </Link>
                   )}
@@ -94,7 +94,7 @@ export function SameProductSection({ item, purchases, candidates, from }: {
           <p className="mt-2 text-neutral-500">같은 장르·캐릭터·물품 종류의 품목입니다. 상대 품목이 다른 묶음에 있으면 그 묶음 전체가 합쳐집니다.</p>
           <ul className="mt-2 flex flex-col gap-2">
             {candidates.map((candidate) => (
-              <li key={candidate.id} className="flex items-center justify-between gap-3 rounded-md border border-neutral-200 p-3 dark:border-neutral-800">
+              <li key={candidate.id} className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface shadow-card p-3">
                 <span className="min-w-0 break-words">
                   {candidate.series ? `(${candidate.series}) ` : ""}{candidate.detail}
                   <span className="block text-neutral-500">
@@ -103,7 +103,7 @@ export function SameProductSection({ item, purchases, candidates, from }: {
                   </span>
                 </span>
                 <LocalForm action={linkSameProduct.bind(null, item.id, candidate.id)} className="shrink-0">
-                  <button type="submit" className="min-h-11 whitespace-nowrap rounded-md border border-blue-300 px-3 py-2 font-medium text-blue-700 dark:border-blue-700 dark:text-blue-300">
+                  <button type="submit" className="min-h-11 whitespace-nowrap rounded-xl border border-accent/40 bg-surface px-3 py-2 font-semibold text-accent-ink">
                     연결
                   </button>
                 </LocalForm>

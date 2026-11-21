@@ -49,7 +49,7 @@ export default  function EventDetailPage({ params }: { params: { id: string } })
               .filter((e) => e.type === "PURCHASE")
               .reduce((sum, e) => sum + effectiveChecklistAmount(e), 0);
             return (
-            <div key={booth} className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-800">
+            <div key={booth} className="rounded-2xl border border-line bg-surface p-4 shadow-card">
               <div className="mb-2 flex items-center justify-between">
                 <h2 className="text-lg font-semibold">{booth}</h2>
                 <EditBoothForm currentName={booth} action={renameBooth.bind(null, event.id, booth)} />
@@ -73,7 +73,7 @@ export default  function EventDetailPage({ params }: { params: { id: string } })
                   return (
                   <li
                     key={entry.id}
-                    className={`flex items-start gap-2 rounded-md border border-neutral-200 p-2 dark:border-neutral-800 ${
+                    className={`flex items-start gap-2 rounded-xl border border-line bg-background p-2 ${
                       entry.checked ? "opacity-50" : ""
                     }`}
                   >
@@ -94,8 +94,8 @@ export default  function EventDetailPage({ params }: { params: { id: string } })
                         <span
                           className={`rounded px-1.5 py-0.5 text-xs font-medium ${
                             entry.type === "PICKUP"
-                              ? "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
-                              : "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300"
+                              ? "bg-chip-wait-bg text-chip-wait-ink"
+                              : "bg-chip-ship-bg text-chip-ship-ink"
                           }`}
                         >
                           {entry.type === "PICKUP" ? "수령" : "구매"}
@@ -103,7 +103,7 @@ export default  function EventDetailPage({ params }: { params: { id: string } })
                         {entry.item && (
                           <Link
                             href={itemHref(entry.item.id, from)}
-                            className="inline-flex min-h-11 shrink-0 items-center text-xs text-blue-600 underline dark:text-blue-400"
+                            className="inline-flex min-h-11 shrink-0 items-center text-xs text-accent-ink underline"
                           >
                             상세보기 →
                           </Link>
@@ -111,7 +111,7 @@ export default  function EventDetailPage({ params }: { params: { id: string } })
                         {!entry.item && entry.type === "PURCHASE" && (
                           <Link
                             href={`/items/new?entry=${encodeURIComponent(entry.id)}`}
-                            className="inline-flex min-h-11 shrink-0 items-center text-xs text-blue-600 underline dark:text-blue-400"
+                            className="inline-flex min-h-11 shrink-0 items-center text-xs text-accent-ink underline"
                           >
                             품목으로 등록 →
                           </Link>

@@ -30,10 +30,10 @@ export default function MorePage() {
         {groups.map((group) => (
           <section key={group.title}>
             <h2 className="mb-2 text-sm font-medium text-neutral-500">{group.title}</h2>
-            <ul className="divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200 dark:divide-neutral-800 dark:border-neutral-800">
+            <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface shadow-card">
               {group.links.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="flex min-h-14 items-center justify-between gap-3 px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-900">
+                  <Link href={link.href} className="flex min-h-14 items-center justify-between gap-3 px-4 py-3 hover:bg-surface-soft">
                     <span className="flex flex-col">
                       <span className="font-medium">{link.label}</span>
                       <span className="text-sm text-neutral-500">{link.description}</span>

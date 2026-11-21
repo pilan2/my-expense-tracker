@@ -10,8 +10,8 @@ const PADDING = { top: 16, right: 12, bottom: 8, left: 12 };
 
 // 팔레트 고정 순서(8색) — 슬롯 순서는 항상 동일하게, 개별 장르에 배정만 다르게 한다.
 const STROKE_CLASSES = [
-  "stroke-[#2a78d6] dark:stroke-[#3987e5]",
-  "stroke-[#008300] dark:stroke-[#2fae45]",
+  "stroke-accent",
+  "stroke-sale",
   "stroke-[#e87ba4] dark:stroke-[#d55181]",
   "stroke-[#eda100] dark:stroke-[#c98500]",
   "stroke-[#1baf7a] dark:stroke-[#199e70]",
@@ -20,8 +20,8 @@ const STROKE_CLASSES = [
   "stroke-[#e34948] dark:stroke-[#e66767]",
 ];
 const FILL_CLASSES = [
-  "fill-[#2a78d6] dark:fill-[#3987e5]",
-  "fill-[#008300] dark:fill-[#2fae45]",
+  "fill-accent",
+  "fill-sale",
   "fill-[#e87ba4] dark:fill-[#d55181]",
   "fill-[#eda100] dark:fill-[#c98500]",
   "fill-[#1baf7a] dark:fill-[#199e70]",
@@ -30,8 +30,8 @@ const FILL_CLASSES = [
   "fill-[#e34948] dark:fill-[#e66767]",
 ];
 const BG_CLASSES = [
-  "bg-[#2a78d6] dark:bg-[#3987e5]",
-  "bg-[#008300] dark:bg-[#2fae45]",
+  "bg-accent",
+  "bg-sale",
   "bg-[#e87ba4] dark:bg-[#d55181]",
   "bg-[#eda100] dark:bg-[#c98500]",
   "bg-[#1baf7a] dark:bg-[#199e70]",
@@ -125,7 +125,7 @@ export function GenreComparisonChart({ months, series }: { months: string[]; ser
 
       {hoverIndex !== null && (
         <div
-          className="pointer-events-none absolute top-0 z-10 min-w-max rounded-md border border-neutral-200 bg-white px-3 py-2 text-xs shadow-sm dark:border-neutral-700 dark:bg-neutral-900"
+          className="pointer-events-none absolute top-0 z-10 min-w-max rounded-md border border-neutral-200 bg-surface px-3 py-2 text-xs shadow-sm dark:border-neutral-700 dark:bg-neutral-900"
           style={{
             ...(tooltipLeftPercent > 60
               ? { right: `${100 - tooltipLeftPercent}%` }

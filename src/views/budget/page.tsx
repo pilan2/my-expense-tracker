@@ -48,7 +48,7 @@ export default function BudgetPage({ searchParams }: { searchParams: { month?: s
     <label className="block text-sm">확인할 월<input aria-label="확인할 월" type="month" value={month} onChange={event => { if (isBudgetMonth(event.target.value)) router.push(`/budget?month=${event.target.value}`); }} className={input} /></label>
     <BudgetSummary month={month} link={false} />
     <p className="text-sm text-neutral-500">구매일 기준으로 단가 × 수량 + 배송비를 계산합니다. 판매 수입과 남은 예산은 다음 예산에 더하지 않습니다. 행사 체크리스트는 중복 합산하지 않으며, 실제 구매는 품목으로 등록해주세요.</p>
-    <details className="rounded border border-neutral-300 p-4 dark:border-neutral-700" open={summary.amount === null}>
+    <details className="rounded-2xl border border-line bg-surface p-4 shadow-card" open={summary.amount === null}>
       <summary className="cursor-pointer font-medium">예산 설정</summary>
       <div className="mt-4 space-y-5">
         <LocalForm key={`override-${month}-${override?.amount}`} action={async form => { await saveBudget(form); setMessage(`${month} 예산을 저장했습니다.`); }} className="space-y-2 text-sm">
@@ -71,12 +71,12 @@ export default function BudgetPage({ searchParams }: { searchParams: { month?: s
       <div className="flex items-center justify-between"><h2 className="font-semibold">구매 후보</h2><button className={linkClass} onClick={() => setCreating(!creating)}>{creating ? "입력 닫기" : "후보 추가"}</button></div>
       <p className="text-sm">사기 전에 이유와 우선순위를 적어보세요. 구매 후보는 아직 지출에 포함되지 않습니다.</p>
       {creating && <WishForm month={month} done={() => { setCreating(false); setMessage("구매 후보를 저장했습니다."); }} />}
-      <div className="rounded bg-neutral-100 p-3 text-sm dark:bg-neutral-800" aria-live="polite">
+      <div className="rounded-2xl bg-surface-soft p-3 text-sm" aria-live="polite">
         <p>선택한 후보 예상 지출 {won(projected)}</p>
         <p>{summary.remaining === null ? "예산을 설정하면 구매 후 잔액을 볼 수 있어요." : `선택한 후보를 모두 사면 ${remainingText(summary.remaining - projected)}`}</p>
       </div>
       {!pending.length && <p className="text-sm text-neutral-500">이 달의 구매 후보가 없습니다.</p>}
-      {pending.map(wish => <article key={wish.id} className="space-y-3 rounded border border-neutral-300 p-4 dark:border-neutral-700">
+      {pending.map(wish => <article key={wish.id} className="space-y-3 rounded-2xl border border-line bg-surface p-4 shadow-card">
         <label className="flex items-center gap-2"><input type="checkbox" checked={selected.includes(wish.id)} onChange={event => setSelected(event.target.checked ? [...selected, wish.id] : selected.filter(id => id !== wish.id))} />{wish.title}</label>
         <p className="text-sm">우선순위 {wish.priority} · 예상 {won(wishCost(wish))} ({wish.quantity}개, 배송비 포함)</p>
         {wish.reason && <p className="whitespace-pre-wrap text-sm">사고 싶은 이유: {wish.reason}</p>}

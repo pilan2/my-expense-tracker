@@ -45,7 +45,7 @@ function groupByCharacterAndSeries<T extends { character: string; series: string
 export default  function ItemsPage({
   searchParams,
 }: {
-  searchParams: { q?: string; status?: string; pending?: string };
+  searchParams: { q?: string; status?: string; pending?: string; view?: string };
 }) {
   const filter = parseItemFilter(searchParams);
 
@@ -93,7 +93,7 @@ export default  function ItemsPage({
           장르/캐릭터 관리 →
         </Link>
       </div>
-      <ItemsSelectableList groups={groups} initialQuery={filter.q} initialStatus={filter.status} />
+      <ItemsSelectableList groups={groups} initialQuery={filter.q} initialStatus={filter.status} initialView={filter.view} />
     </div>
   );
 }

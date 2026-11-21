@@ -51,7 +51,7 @@ export default  function EventsPage() {
             return (
               <li
                 key={event.id}
-                className="flex items-center justify-between gap-2 rounded-md border border-neutral-200 p-3 dark:border-neutral-800"
+                className="flex items-center justify-between gap-2 rounded-2xl border border-line bg-surface shadow-card p-3"
               >
                 <Link href={`/events/${event.id}`} className="flex-1 hover:opacity-70">
                   <p className="font-medium">{event.name}</p>

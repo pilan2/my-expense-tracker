@@ -109,7 +109,7 @@ export function ImageCropInput({ name, className, initialFile, onFileChange }: {
       <dialog
         ref={dialogRef}
         onClose={() => setStage("closed")}
-        className="m-auto w-full max-w-md rounded-md border border-neutral-200 bg-white p-4 backdrop:bg-black/50 dark:border-neutral-700 dark:bg-neutral-900"
+        className="m-auto w-full max-w-md rounded-md border border-neutral-200 bg-surface p-4 backdrop:bg-black/50 dark:border-neutral-700 dark:bg-neutral-900"
       >
         {stage === "rotate" && rawImageSrc && (
           <div className="flex flex-col gap-3">

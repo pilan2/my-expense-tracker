@@ -42,7 +42,7 @@ export default  function BulkSalePage({
       <BackButton href="/items" />
       <PageHeader title="묶음 판매" />
       <LocalForm action={createBulkSale} className="flex flex-col gap-4">
-        <div className="flex flex-col gap-3 rounded-md border border-neutral-200 p-4 dark:border-neutral-800">
+        <div className="flex flex-col gap-3 rounded-2xl border border-line bg-surface shadow-card p-4">
           {sellable.map((item) => (
             <div key={item.id} className="flex items-center justify-between gap-3 text-sm">
               <input type="hidden" name="itemIds" value={item.id} />

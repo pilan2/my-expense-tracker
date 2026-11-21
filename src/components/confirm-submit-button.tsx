@@ -30,7 +30,7 @@ export function ConfirmSubmitButton({
 
       <dialog
         ref={dialogRef}
-        className="m-auto rounded-md border border-neutral-200 bg-white p-6 text-neutral-900 backdrop:bg-black/50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+        className="m-auto rounded-2xl border border-neutral-200 bg-surface p-6 text-neutral-900 backdrop:bg-black/50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
       >
         <p className="mb-4 max-w-xs text-sm">{confirmMessage}</p>
         <div className="flex justify-end gap-2">

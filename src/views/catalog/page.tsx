@@ -76,7 +76,7 @@ export default  function CatalogPage() {
         }}
       />
 
-      <div className="mt-8 rounded-lg border border-neutral-200 p-4 dark:border-neutral-800">
+      <div className="mt-8 rounded-2xl border border-line bg-surface p-4 shadow-card">
         <h2 className="mb-2 font-semibold">물품 종류 (대분류)</h2>
         <p className="mb-3 text-sm text-neutral-500">장르/캐릭터와 무관하게 전역으로 사용되는 목록이에요.</p>
         <ItemTypeList itemTypes={itemTypes} actions={{ deleteItemType, renameItemType, reorderItemTypes }} />

@@ -17,18 +17,22 @@ type Filterable = {
   hasOverseasShipping: boolean; remainingQuantity: number;
 };
 
+export type ItemView = "list" | "grid";
+
 // 이전 "배송비 미정만 보기" 링크(?pending=1)도 같은 필터로 연다.
-export function parseItemFilter(searchParams: { q?: string; status?: string; pending?: string }) {
+export function parseItemFilter(searchParams: { q?: string; status?: string; pending?: string; view?: string }) {
   const status = itemStatusFilters.some((filter) => filter.id === searchParams.status)
     ? (searchParams.status as ItemStatusFilter)
     : searchParams.pending === "1" ? "shipping-fee" : "all";
-  return { q: searchParams.q ?? "", status };
+  const view: ItemView = searchParams.view === "grid" ? "grid" : "list";
+  return { q: searchParams.q ?? "", status, view };
 }
 
-export function itemFilterHref(q: string, status: ItemStatusFilter) {
+export function itemFilterHref(q: string, status: ItemStatusFilter, view: ItemView = "list") {
   const params = new URLSearchParams();
   if (q.trim()) params.set("q", q.trim());
   if (status !== "all") params.set("status", status);
+  if (view === "grid") params.set("view", "grid");
   const query = params.toString();
   return query ? `/items?${query}` : "/items";
 }

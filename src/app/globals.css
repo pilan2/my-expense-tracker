@@ -1,27 +1,124 @@
 @import "tailwindcss";
 
+/* 연한 파스텔 핑크 테마. 색은 모두 여기 변수로만 정하고, 다크 모드는 변수 값만 바꾼다. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: Arial, Helvetica, sans-serif;
-  --font-mono: monospace;
+  --background: #fff5f7;
+  --foreground: #3a2a30;
+  --surface: #ffffff;
+  --surface-soft: #ffe7ee;
+  --line: #f3d6df;
+  --accent: #c4466f;
+  --accent-hover: #a8375c;
+  --on-accent: #ffffff;
+  --accent-soft: #ffe3ec;
+  --accent-ink: #b0466b;
+  --muted: #7a5f69;
+  --sale: #1f6b4a;
+  --gain: #3557b7;
+  --loss: #b4372f;
+  --warn: #8a5300;
+  --chip-wait-bg: #eee8fb;
+  --chip-wait-ink: #5b48a8;
+  --chip-ship-bg: #ffe6d6;
+  --chip-ship-ink: #9a4a14;
+  --chip-have-bg: #dff3ea;
+  --chip-have-ink: #1f6b4a;
+  --chip-sold-bg: #f1e9ec;
+  --chip-sold-ink: #6b5a61;
+  --chip-fee-bg: #fff0c7;
+  --chip-fee-ink: #7f5300;
+  --tint-sky-bg: #e3eefb;
+  --tint-sky-ink: #3557b7;
+  --card-shadow: 0 2px 12px rgba(196, 70, 111, 0.07);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #1c1418;
+    --foreground: #f6e9ee;
+    --surface: #261c21;
+    --surface-soft: #3a2530;
+    --line: #3a2b32;
+    --accent: #f29bb7;
+    --accent-hover: #f7b6cb;
+    --on-accent: #2a1119;
+    --accent-soft: #3a2530;
+    --accent-ink: #f7b6cb;
+    --muted: #c9aeb9;
+    --sale: #93daba;
+    --gain: #a9bdf5;
+    --loss: #f59a92;
+    --warn: #f2ce6f;
+    --chip-wait-bg: #2e2842;
+    --chip-wait-ink: #cfc3f7;
+    --chip-ship-bg: #3b2619;
+    --chip-ship-ink: #f5b88f;
+    --chip-have-bg: #1b3329;
+    --chip-have-ink: #93daba;
+    --chip-sold-bg: #30262b;
+    --chip-sold-ink: #d2c0c7;
+    --chip-fee-bg: #3a2e12;
+    --chip-fee-ink: #f2ce6f;
+    --tint-sky-bg: #25324a;
+    --tint-sky-ink: #a9bdf5;
+    --card-shadow: none;
+    /* 회색 보조 글씨(text-neutral-500)는 어두운 배경에서도 읽히도록 밝힌다. */
+    --color-neutral-500: #c9aeb9;
+    --color-neutral-400: #a88d98;
   }
 
   /* 날짜 입력의 달력 아이콘이 다크 모드에서도 잘 보이도록 반전. */
   input[type="date"]::-webkit-calendar-picker-indicator {
     filter: invert(1);
   }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-soft: var(--surface-soft);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-on-accent: var(--on-accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-ink: var(--accent-ink);
+  --color-muted: var(--muted);
+  --color-sale: var(--sale);
+  --color-gain: var(--gain);
+  --color-loss: var(--loss);
+  --color-warn: var(--warn);
+  --color-chip-wait-bg: var(--chip-wait-bg);
+  --color-chip-wait-ink: var(--chip-wait-ink);
+  --color-chip-ship-bg: var(--chip-ship-bg);
+  --color-chip-ship-ink: var(--chip-ship-ink);
+  --color-chip-have-bg: var(--chip-have-bg);
+  --color-chip-have-ink: var(--chip-have-ink);
+  --color-chip-sold-bg: var(--chip-sold-bg);
+  --color-chip-sold-ink: var(--chip-sold-ink);
+  --color-chip-fee-bg: var(--chip-fee-bg);
+  --color-chip-fee-ink: var(--chip-fee-ink);
+  --color-tint-sky-bg: var(--tint-sky-bg);
+  --color-tint-sky-ink: var(--tint-sky-ink);
+  --shadow-card: var(--card-shadow);
+  --font-sans: var(--font-pretendard), -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  --font-mono: monospace;
+}
+
+/* 기존 화면이 쓰던 회색 단계를 분홍빛이 도는 모브 계열로 바꿔, 전체 톤을 한 번에 맞춘다. */
+@theme {
+  --color-neutral-50: #fff8fa;
+  --color-neutral-100: #fbeff3;
+  --color-neutral-200: #f3dee5;
+  --color-neutral-300: #e9c9d4;
+  --color-neutral-400: #c7a6b3;
+  --color-neutral-500: #7a5f69;
+  --color-neutral-600: #634b55;
+  --color-neutral-700: #4a3640;
+  --color-neutral-800: #3a2b32;
+  --color-neutral-900: #261c21;
+  --color-neutral-950: #1c1418;
 }
 
 html,
@@ -42,5 +139,7 @@ body {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  /* 금액 자릿수가 세로로 맞도록 숫자 폭을 고정한다. */
+  font-variant-numeric: tabular-nums;
 }

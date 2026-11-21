@@ -32,7 +32,7 @@ export default  function SalesPage() {
               <li key={sale.id}>
                 <Link
                   href={itemHref(sale.itemId, "/sales")}
-                  className="flex flex-col gap-1 rounded-md border border-neutral-200 p-3 hover:opacity-70 sm:flex-row sm:items-center sm:justify-between dark:border-neutral-800"
+                  className="flex flex-col gap-1 rounded-2xl border border-line bg-surface p-3 hover:opacity-70 sm:flex-row sm:items-center sm:justify-between shadow-card"
                 >
                   <div>
                     <p className="font-medium">

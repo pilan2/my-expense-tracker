@@ -54,7 +54,7 @@ export default  function ShippingGroupsPage() {
               <li key={group.id}>
                 <Link
                   href={`/shipping-groups/${group.id}`}
-                  className="block rounded-md border border-neutral-200 p-3 hover:opacity-70 dark:border-neutral-800"
+                  className="block rounded-2xl border border-line bg-surface shadow-card p-3 hover:opacity-70"
                 >
                   <p className="font-medium">{group.label}</p>
                   <p className="text-sm text-neutral-500">

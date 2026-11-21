@@ -1,50 +1,44 @@
 import { BudgetSummary } from "@/components/budget-summary";
 import { BackupReminder } from "@/components/backup-status";
+import { ItemThumb } from "@/components/item-card";
 import Link from "@/lib/local/navigation";
 import { getCategorySummary } from "@/lib/spending";
-import { getUpcomingShipments, getRecentPurchases } from "@/lib/items";
+import { getItems, getUpcomingShipments, getRecentPurchases } from "@/lib/items";
 import { getRecentSales, calcSaleProfit } from "@/lib/sales";
 import { getCurrentMonthTotals } from "@/lib/trends";
-import { formatShipDDay } from "@/lib/dday";
+import { isShipmentOverdue } from "@/lib/dday";
+import { itemStatusChip } from "@/lib/item-status";
+import { matchesItemFilter } from "@/lib/item-filter";
 import { itemHref } from "@/lib/nav";
 import { won, signedWon } from "@/lib/money";
-import { profitColor, buttonClass, cardClass, linkClass, saleColor, SectionHeader } from "@/components/ui";
+import { profitColor, buttonClass, cardClass, chipClass, linkClass, saleColor, SectionHeader } from "@/components/ui";
 
-const rowClass = "flex min-h-11 items-start justify-between gap-2 rounded-md border border-neutral-200 px-3 py-2 text-sm hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-900";
-
-export default  function Home() {
-  const [summary, upcomingShipments, recentPurchases, recentSales, currentMonth] = [
+export default function Home() {
+  const [summary, items, upcomingShipments, recentPurchases, recentSales, currentMonth] = [
     getCategorySummary(),
+    getItems(),
     getUpcomingShipments(),
-    getRecentPurchases(),
-    getRecentSales(5),
+    getRecentPurchases(6),
+    getRecentSales(3),
     getCurrentMonthTotals(),
   ] as const;
 
-  const shipmentsByDate = new Map<string, typeof upcomingShipments>();
-  for (const item of upcomingShipments) {
-    const dateStr = item.expectedShipDate!.toISOString().slice(0, 10);
-    if (!shipmentsByDate.has(dateStr)) shipmentsByDate.set(dateStr, []);
-    shipmentsByDate.get(dateStr)!.push(item);
-  }
-  const shipmentDateGroups = [...shipmentsByDate.entries()].slice(0, 5);
-
-  // getRecentPurchases()는 날짜 없는 품목도 맨 뒤에 포함해서 전부 돌려주므로(전체보기용),
-  // 미리보기에서는 날짜 있는 것만 쓰고 날짜순으로 최근 5개 "날짜"까지 모은다(품목 개수가
-  // 아니라 날짜 기준이라, 하루에 여러 개를 샀어도 그 날짜 그룹이 잘리지 않는다).
-  const purchasesByDate = new Map<string, typeof recentPurchases>();
-  for (const item of recentPurchases) {
-    if (!item.purchasedAt) continue;
-    const dateStr = item.purchasedAt.toISOString().slice(0, 10);
-    if (!purchasesByDate.has(dateStr)) purchasesByDate.set(dateStr, []);
-    purchasesByDate.get(dateStr)!.push(item);
-  }
-  const purchaseDateGroups = [...purchasesByDate.entries()].slice(0, 5);
+  // 홈에서는 "지금 손이 가야 하는 것"만 칩으로 모아 해당 필터 목록으로 바로 보낸다.
+  const todo = [
+    { label: "수령 확인 대기", count: items.filter((item) => matchesItemFilter(item, "", "shipping")).length, href: "/items?status=shipping", chip: chipClass("ship") },
+    { label: "배송비 미정", count: items.filter((item) => item.hasOverseasShipping).length, href: "/items?status=shipping-fee", chip: chipClass("fee") },
+  ].filter((entry) => entry.count > 0);
+  // 발송일이 지난 품목은 위의 "수령 확인 대기"로 보여주므로 여기서는 앞으로 올 것만.
+  const upcoming = upcomingShipments.filter((item) => !isShipmentOverdue(item.expectedShipDate!, item.shipDateApprox)).slice(0, 8);
+  const monthLabel = `${new Date().getFullYear()}년 ${new Date().getMonth() + 1}월`;
 
   return (
-    <div className="box-border mx-auto w-full max-w-3xl space-y-8 overflow-x-hidden p-6">
+    <div className="box-border mx-auto w-full max-w-3xl space-y-7 overflow-x-hidden p-5 sm:p-6">
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold">홈</h1>
+        <div>
+          <p className="text-sm text-muted">{monthLabel}</p>
+          <h1 className="text-2xl font-bold">홈</h1>
+        </div>
         <Link href="/items/new" className={buttonClass()}>
           + 품목 등록
         </Link>
@@ -54,49 +48,63 @@ export default  function Home() {
 
       <BudgetSummary />
 
-      <section aria-label="이번 달 금액" className="grid grid-cols-2 gap-3 sm:gap-4">
-        <div className={cardClass}>
-          <p className="text-sm text-neutral-500">이번 달 소비</p>
-          <p className="text-xl font-semibold sm:text-2xl">{won(currentMonth.purchaseTotal)}</p>
-        </div>
-        <div className={cardClass}>
-          <p className="text-sm text-neutral-500">이번 달 판매</p>
-          <p className={`text-xl font-semibold sm:text-2xl ${saleColor}`}>{won(currentMonth.saleTotal)}</p>
-        </div>
-      </section>
+      {todo.length > 0 && (
+        <section aria-label="확인할 것">
+          <h2 className="mb-2 text-lg font-bold">확인할 것</h2>
+          <div className="flex flex-wrap gap-2">
+            {todo.map((entry) => (
+              <Link key={entry.label} href={entry.href} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-line bg-surface px-3.5 text-sm font-medium shadow-card hover:bg-surface-soft">
+                {entry.label} <span className={entry.chip}>{entry.count}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
-      <section aria-label="전체 누적" className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-sm">
-        <p className="text-neutral-500">
-          전체 누적 · 소비 <span className="font-medium text-neutral-900 dark:text-neutral-100">{won(summary.totalPurchase)}</span>
-          {" "}· 판매 <span className={`font-medium ${saleColor}`}>{won(summary.totalSale)}</span>
-          {" "}· 손익 <span className={`font-medium ${profitColor(summary.totalProfit)}`}>{signedWon(summary.totalProfit)}</span>
-        </p>
-        <Link href="/stats" className={linkClass}>통계 자세히 보기 →</Link>
+      <section aria-label="이번 달 금액" className="grid grid-cols-2 gap-3">
+        <div className={cardClass}>
+          <p className="text-sm text-muted">이번 달 소비</p>
+          <p className="text-xl font-bold">{won(currentMonth.purchaseTotal)}</p>
+        </div>
+        <div className={cardClass}>
+          <p className="text-sm text-muted">이번 달 판매</p>
+          <p className={`text-xl font-bold ${saleColor}`}>{won(currentMonth.saleTotal)}</p>
+        </div>
       </section>
 
       <section>
         <SectionHeader title="발송 예정" action={<Link href="/shipments" className={linkClass}>발송 일정 보기 →</Link>} />
-        {shipmentDateGroups.length === 0 ? (
-          <p className="text-sm text-neutral-500">발송을 기다리는 품목이 없습니다.</p>
+        {upcoming.length === 0 ? (
+          <p className="text-sm text-muted">발송을 기다리는 품목이 없습니다.</p>
         ) : (
-          <ul className="flex flex-col gap-2">
-            {shipmentDateGroups.map(([dateStr, items]) => (
-              <li key={dateStr}>
-                <Link
-                  // 월 단위 발송일은 날짜별 보기에 나오지 않으므로 그 달 달력으로 보낸다.
-                  href={items[0].shipDateApprox ? `/shipments?view=calendar&month=${dateStr.slice(0, 7)}` : `/shipments?view=day&date=${dateStr}`}
-                  className={rowClass}
-                >
-                  <span>
-                    {items
-                      .slice(0, 2)
-                      .map((item) => `${item.character} · ${item.detail}`)
-                      .join(", ")}
-                    {items.length > 2 ? ` 외 ${items.length - 2}개` : ""}
-                  </span>
-                  <span className="shrink-0 font-medium text-blue-600 dark:text-blue-400">
-                    {formatShipDDay(items[0].expectedShipDate!, items[0].shipDateApprox)}
-                  </span>
+          <ul className="-mx-5 flex gap-3 overflow-x-auto px-5 pb-2 sm:-mx-6 sm:px-6">
+            {upcoming.map((item) => {
+              const status = itemStatusChip(item);
+              return (
+                <li key={item.id} className="w-36 shrink-0">
+                  <Link href={itemHref(item.id, "/")} className="flex h-full flex-col gap-2 rounded-2xl border border-line bg-surface p-2.5 shadow-card hover:opacity-80">
+                    <ItemThumb imageUrl={item.imageUrl} name={item.detail} seed={item.detail} className="aspect-[4/3] w-full rounded-xl text-2xl" />
+                    {status && <span className={`self-start ${chipClass(status.kind)}`}>{status.label}</span>}
+                    <span className="line-clamp-2 text-sm font-semibold leading-snug">{item.detail}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
+
+      <section>
+        <SectionHeader title="최근 구매" action={<Link href="/purchases" className={linkClass}>전체 보기 →</Link>} />
+        {recentPurchases.length === 0 ? (
+          <p className="text-sm text-muted">구매 기록이 없습니다.</p>
+        ) : (
+          <ul className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+            {recentPurchases.map((item) => (
+              <li key={item.id}>
+                <Link href={itemHref(item.id, "/")} className="flex flex-col gap-1 hover:opacity-80">
+                  <ItemThumb imageUrl={item.imageUrl} name={item.detail} seed={item.detail} className="aspect-square w-full rounded-xl text-xl" />
+                  <span className="truncate text-xs font-medium">{item.detail}</span>
                 </Link>
               </li>
             ))}
@@ -104,103 +112,52 @@ export default  function Home() {
         )}
       </section>
 
-      <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
-        <div>
-          <SectionHeader title="최근 구매" action={<Link href="/purchases" className={linkClass}>전체보기 →</Link>} />
-          {purchaseDateGroups.length === 0 ? (
-            <p className="text-sm text-neutral-500">구매 기록이 없습니다.</p>
-          ) : (
-            <ul className="flex flex-col gap-2">
-              {purchaseDateGroups.map(([dateStr, items]) => (
-                <li key={dateStr}>
-                  <Link
-                    href={`/purchases#d-${dateStr}`}
-                    className={rowClass}
-                  >
-                    <span>
-                      {items
-                        .slice(0, 2)
-                        .map((item) => `${item.character} · ${item.detail}`)
-                        .join(", ")}
-                      {items.length > 2 ? ` 외 ${items.length - 2}개` : ""}
-                    </span>
-                    <span className="shrink-0 text-neutral-500">
-                      {items[0].purchasedAt!.toLocaleDateString("ko-KR")}
-                    </span>
+      <section>
+        <SectionHeader title="최근 판매" action={<Link href="/sales" className={linkClass}>전체 보기 →</Link>} />
+        {recentSales.length === 0 ? (
+          <p className="text-sm text-muted">판매 기록이 없습니다.</p>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {recentSales.map((sale) => {
+              const profit = calcSaleProfit({
+                quantitySold: sale.quantitySold,
+                saleAmount: Number(sale.saleAmount),
+                item: { price: Number(sale.item.price), shippingFee: Number(sale.item.shippingFee), quantity: sale.item.quantity },
+              });
+              return (
+                <li key={sale.id}>
+                  <Link href={itemHref(sale.itemId, "/")} className="flex min-h-11 items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 py-2.5 text-sm shadow-card hover:bg-surface-soft">
+                    <span className="min-w-0 truncate">{sale.item.detail}</span>
+                    <span className={`shrink-0 font-semibold ${profitColor(profit)}`}>{signedWon(profit)}</span>
                   </Link>
                 </li>
-              ))}
-            </ul>
-          )}
+              );
+            })}
+          </ul>
+        )}
+      </section>
+
+      <section aria-label="전체 누적" className="space-y-3 rounded-2xl bg-surface-soft p-4">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="font-bold">전체 누적</h2>
+          <Link href="/stats" className={linkClass}>통계 자세히 보기 →</Link>
         </div>
-
-        <div>
-          <SectionHeader title="최근 판매" action={<Link href="/sales" className={linkClass}>전체보기 →</Link>} />
-          {recentSales.length === 0 ? (
-            <p className="text-sm text-neutral-500">판매 기록이 없습니다.</p>
-          ) : (
-            <ul className="flex flex-col gap-2">
-              {recentSales.map((sale) => {
-                const profit = calcSaleProfit({
-                  quantitySold: sale.quantitySold,
-                  saleAmount: Number(sale.saleAmount),
-                  item: {
-                    price: Number(sale.item.price),
-                    shippingFee: Number(sale.item.shippingFee),
-                    quantity: sale.item.quantity,
-                  },
-                });
-
-                return (
-                  <li key={sale.id}>
-                    <Link
-                      href={itemHref(sale.itemId, "/")}
-                      className={`${rowClass} flex-col sm:flex-row sm:items-center`}
-                    >
-                      <span className="min-w-0 truncate">
-                        {sale.item.character} · {sale.item.detail}
-                      </span>
-                      <span
-                        className={`shrink-0 font-medium ${profitColor(profit)}`}
-                      >
-                        {signedWon(profit)}
-                      </span>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </div>
-      </div>
-
-      <div>
-        <SectionHeader title="장르별로 보기" action={<Link href="/browse/makers" className={linkClass}>제작자별로 보기 →</Link>} />
-        <ul className="flex flex-col gap-2">
-          {summary.genres.map((genre) => (
-            <li key={genre.name}>
-              <Link
-                href={`/browse/${encodeURIComponent(genre.name)}`}
-                className={`${rowClass} flex-col sm:flex-row sm:items-center`}
-              >
-                <span className="font-medium">{genre.name}</span>
-                <span className="text-neutral-500">
-                  구매 {won(genre.purchaseTotal)} · 판매{" "}
-                  {won(genre.saleTotal)}
-                  {genre.saleTotal > 0 && (
-                    <>
-                      {" · 손익 "}
-                      <span className={`font-medium ${profitColor(genre.profit)}`}>
-                        {signedWon(genre.profit)}
-                      </span>
-                    </>
-                  )}
-                </span>
+        <dl className="grid grid-cols-3 gap-2 text-sm">
+          <div><dt className="text-muted">소비</dt><dd className="font-semibold">{won(summary.totalPurchase)}</dd></div>
+          <div><dt className="text-muted">판매</dt><dd className={`font-semibold ${saleColor}`}>{won(summary.totalSale)}</dd></div>
+          <div><dt className="text-muted">손익</dt><dd className={`font-semibold ${profitColor(summary.totalProfit)}`}>{signedWon(summary.totalProfit)}</dd></div>
+        </dl>
+        {summary.genres.length > 0 && (
+          <div className="flex flex-wrap gap-2 pt-1">
+            {summary.genres.map((genre) => (
+              <Link key={genre.name} href={`/browse/${encodeURIComponent(genre.name)}`} className="inline-flex min-h-9 items-center rounded-full border border-line bg-surface px-3 text-sm hover:bg-accent-soft">
+                {genre.name}
               </Link>
-            </li>
-          ))}
-        </ul>
-      </div>
+            ))}
+            <Link href="/browse/makers" className="inline-flex min-h-9 items-center rounded-full border border-dashed border-line px-3 text-sm text-muted">제작자별</Link>
+          </div>
+        )}
+      </section>
     </div>
   );
 }

@@ -61,7 +61,7 @@ export default  function BrowseMakerItemsPage({
                     {itemTypeGroup.items.map((item) => (
                       <li key={item.id}>
                         <ItemCardWithDelivery {...item} href={itemHref(item.id, from)}
-                          className="block rounded-md border border-neutral-200 p-3 dark:border-neutral-800" showGenreCharacter={false} showItemType={false}  />
+                          className="block rounded-2xl border border-line bg-surface shadow-card p-3" showGenreCharacter={false} showItemType={false}  />
                       </li>
                     ))}
                   </ul>

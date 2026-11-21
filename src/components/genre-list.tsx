@@ -43,7 +43,7 @@ export function GenreList({ genres, actions }: { genres: GenreCatalogEntry[]; ac
       dndId="genres"
       className="flex flex-col gap-6"
       renderItem={(genre, handle) => (
-        <div className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-800">
+        <div className="rounded-2xl border border-line bg-surface p-4 shadow-card">
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <DragHandle {...handle} />
@@ -75,7 +75,7 @@ export function GenreList({ genres, actions }: { genres: GenreCatalogEntry[]; ac
                   dndId={`characters-${genre.id}`}
                   className="flex flex-col gap-3"
                   renderItem={(character, charHandle) => (
-                    <div className="rounded-md border border-neutral-200 p-3 dark:border-neutral-800">
+                    <div className="rounded-2xl border border-line bg-surface shadow-card p-3">
                       <div className="mb-2 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <DragHandle {...charHandle} />

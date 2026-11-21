@@ -32,7 +32,7 @@ export function ShipDateInput({
             onClick={() => { setMode("exact"); onModeChange?.(); }}
             className={`rounded px-2 py-1 ${
               mode === "exact"
-                ? "bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900"
+                ? "bg-accent text-on-accent"
                 : "text-neutral-500"
             }`}
           >
@@ -43,7 +43,7 @@ export function ShipDateInput({
             onClick={() => { setMode("month"); onModeChange?.(); }}
             className={`rounded px-2 py-1 ${
               mode === "month"
-                ? "bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900"
+                ? "bg-accent text-on-accent"
                 : "text-neutral-500"
             }`}
           >

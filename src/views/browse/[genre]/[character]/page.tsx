@@ -37,7 +37,7 @@ function groupBySeries<T extends { series: string | null; itemType: string }>(
   return { withoutSeriesItemTypeGroups: groupByItemType(withoutSeries, itemTypeOrder), bySeries };
 }
 
-const cardClass = "block rounded-md border border-neutral-200 p-3 dark:border-neutral-800";
+const cardClass = "block rounded-2xl border border-line bg-surface shadow-card p-3";
 
 // 같은 물품으로 묶인 구매 건은 카드 하나로 접어서 보여준다.
 function ItemList({ items, from }: { items: ReturnType<typeof getItemsByCategory>; from: string }) {

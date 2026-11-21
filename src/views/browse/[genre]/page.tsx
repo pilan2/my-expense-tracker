@@ -33,7 +33,7 @@ export default  function BrowseCharactersPage({
           <li key={character.name}>
             <Link
               href={`/browse/${encodeURIComponent(genre)}/${encodeURIComponent(character.name)}`}
-              className="block rounded-md border border-neutral-200 p-3 hover:opacity-70 dark:border-neutral-800"
+              className="block rounded-2xl border border-line bg-surface shadow-card p-3 hover:opacity-70"
             >
               <CategoryStatRow
                 label={character.name}

@@ -20,7 +20,7 @@ export default  function BrowseMakersPage() {
             <li key={maker.name}>
               <Link
                 href={`/browse/makers/${encodeURIComponent(maker.name)}`}
-                className="block rounded-md border border-neutral-200 p-3 hover:opacity-70 dark:border-neutral-800"
+                className="block rounded-2xl border border-line bg-surface shadow-card p-3 hover:opacity-70"
               >
                 <CategoryStatRow
                   label={maker.name}

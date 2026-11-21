@@ -40,13 +40,13 @@ export default  function ShipmentsPage({
           <div className="flex gap-1 rounded-md border border-neutral-200 p-1 text-sm dark:border-neutral-800">
             <Link
               href="/shipments?view=calendar"
-              className={`rounded px-3 py-1 ${view === "calendar" ? "bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900" : ""}`}
+              className={`rounded px-3 py-1 ${view === "calendar" ? "bg-accent text-on-accent" : ""}`}
             >
               달력
             </Link>
             <Link
               href="/shipments?view=list"
-              className={`rounded px-3 py-1 ${view === "list" ? "bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900" : ""}`}
+              className={`rounded px-3 py-1 ${view === "list" ? "bg-accent text-on-accent" : ""}`}
             >
               목록
             </Link>
@@ -139,7 +139,7 @@ export default  function ShipmentsPage({
                   key={j}
                   className={`min-h-16 min-w-0 rounded-md border p-1 text-xs ${
                     day ? "border-neutral-200 dark:border-neutral-800" : "border-transparent"
-                  } ${isToday ? "ring-2 ring-blue-500" : ""}`}
+                  } ${isToday ? "ring-2 ring-accent" : ""}`}
                 >
                   {day && (
                     dayItems.length > 0 ? (
@@ -149,7 +149,7 @@ export default  function ShipmentsPage({
                           {dayItems.slice(0, 3).map((item) => (
                             <span
                               key={item.id}
-                              className="truncate rounded bg-blue-100 px-1 py-0.5 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
+                              className="truncate rounded bg-chip-wait-bg px-1 py-0.5 text-chip-wait-ink"
                             >
                               {item.character}
                             </span>
@@ -177,7 +177,7 @@ export default  function ShipmentsPage({
             {approxItems.map((item) => (
               <li key={item.id}>
                 <ItemCardWithDelivery {...item} href={itemHref(item.id, monthHref(year, month))}
-                  className="block rounded-md border border-neutral-200 p-3 dark:border-neutral-800" />
+                  className="block rounded-2xl border border-line bg-surface shadow-card p-3" />
               </li>
             ))}
           </ul>
@@ -220,7 +220,7 @@ export default  function ShipmentsPage({
             {groupItems.map((item) => (
               <li key={item.id}>
                 <ItemCardWithDelivery {...item} href={itemHref(item.id, "/shipments?view=list")}
-                  className="block rounded-md border border-neutral-200 p-3 dark:border-neutral-800" />
+                  className="block rounded-2xl border border-line bg-surface shadow-card p-3" />
               </li>
             ))}
           </ul>
@@ -244,7 +244,7 @@ export default  function ShipmentsPage({
           {items.map((item) => (
             <li key={item.id}>
               <ItemCardWithDelivery {...item} href={itemHref(item.id, from)}
-                className="block rounded-md border border-neutral-200 p-3 dark:border-neutral-800" />
+                className="block rounded-2xl border border-line bg-surface shadow-card p-3" />
             </li>
           ))}
         </ul>

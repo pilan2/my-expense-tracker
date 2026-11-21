@@ -45,7 +45,7 @@ export default  function ShippingGroupDetailPage({
       {pendingItems.length > 0 && (
         <LocalForm
           action={bulkSetShipDate.bind(null, group.id)}
-          className="mb-8 flex flex-col gap-3 rounded-md border border-neutral-200 p-4 dark:border-neutral-800"
+          className="mb-8 flex flex-col gap-3 rounded-2xl border border-line bg-surface shadow-card p-4"
         >
           <p className="text-sm font-medium">발송예정일 일괄 수정</p>
           <p className="text-xs text-neutral-500">발송 대기 중인 {pendingItems.length}개 품목 전체에 적용돼요.</p>
@@ -67,7 +67,7 @@ export default  function ShippingGroupDetailPage({
               {pendingItems.map((item) => (
                 <li
                   key={item.id}
-                  className="flex items-start justify-between gap-2 rounded-md border border-neutral-200 p-3 dark:border-neutral-800"
+                  className="flex items-start justify-between gap-2 rounded-2xl border border-line bg-surface shadow-card p-3"
                 >
                   <div className="min-w-0 flex-1">
                     <Link href={itemHref(item.id, from)} className="hover:opacity-70">
@@ -104,7 +104,7 @@ export default  function ShippingGroupDetailPage({
               {deliveredItems.map((item) => (
                 <li
                   key={item.id}
-                  className="flex items-center justify-between gap-2 rounded-md border border-neutral-200 p-3 opacity-60 dark:border-neutral-800"
+                  className="flex items-center justify-between gap-2 rounded-2xl border border-line bg-surface shadow-card p-3 opacity-60"
                 >
                   <Link href={itemHref(item.id, from)} className="min-w-0 flex-1 truncate text-sm hover:opacity-70">
                     {item.genre} · {item.character} · {item.detail}

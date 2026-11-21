@@ -42,7 +42,7 @@ export function ProductGroupCard({ purchases, from, className, showGenreCharacte
         {purchases.map(({ maker, organizer, purchaseLink, ...purchase }) => (
           <li key={purchase.id}>
             <ItemCardWithDelivery {...purchase} href={itemHref(purchase.id, from)}
-              className="block rounded-md border border-neutral-200 p-3 dark:border-neutral-800"
+              className="block rounded-2xl border border-line bg-surface shadow-card p-3"
               showGenreCharacter={false} showItemType={false}
               sourceLabel={`${purchaseSourceLabel({ maker, organizer, purchaseLink })} · ${purchase.purchasedAt ? purchase.purchasedAt.toLocaleDateString("ko-KR") : "구매일 모름"}`} />
           </li>

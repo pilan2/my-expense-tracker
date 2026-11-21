@@ -117,13 +117,13 @@ test("카탈로그 이름 변경, 배송비 배분, 묶음 판매와 삭제 확�
   await page.getByLabel("현물로 보유 중").check();
   await page.getByRole("button", { name: "저장", exact: true }).click();
   await expect(page.getByRole("heading", { name: "전체 품목", exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "배송비 미정", exact: true }).click();
+  await page.getByRole("group", { name: "상태 필터" }).getByRole("button", { name: new RegExp("^배송비 미정 \\d") }).click();
   await page.getByRole("button", { name: "배송비 나누기", exact: true }).click();
   for (const checkbox of await page.locator('input[name="itemIds"]').all()) await checkbox.check();
   await page.locator('input[name="totalShippingFee"]').fill("0.3");
   await page.getByRole("button", { name: "배송비 나누기", exact: true }).click();
   await expect(page.getByText("배송비 미정인 품목이 없습니다.")).toBeVisible();
-  await page.getByRole("button", { name: "전체", exact: true }).click();
+  await page.getByRole("group", { name: "상태 필터" }).getByRole("button", { name: new RegExp("^전체 \\d") }).click();
   await expect(page.getByText(/2,250원/)).toBeVisible();
   await expect(page.getByText(/750원/)).toBeVisible();
   await page.getByRole("button", { name: "묶음 판매", exact: true }).click();
@@ -439,17 +439,19 @@ test("하단 탭바: 탭 이동·현재 탭 표시·더보기 메뉴·하위 화
   expect(box!.y + box!.height).toBeLessThanOrEqual(page.viewportSize()!.height + 1);
 });
 
-test("홈: 이번 달·누적 요약, 발송 예정 빈 상태, 최근 구매 날짜로 바로 이동", async ({ page }) => {
+test("홈: 예산 카드, 확인할 것 칩, 발송 예정·최근 구매 사진 카드, 누적 요약", async ({ page }) => {
   await importFixture(page);
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "홈", exact: true })).toBeVisible();
   await expect(page.getByRole("region", { name: "전체 누적" })).toContainText("30,000원");
   await expect(page.getByRole("link", { name: "발송 일정 보기 →" })).toBeVisible();
-  const recent = page.locator("a[href^='/purchases#d-']").first();
-  const href = await recent.getAttribute("href");
-  await recent.click();
-  await expect(page.getByRole("heading", { name: "구매 내역 (최신순)" })).toBeVisible();
-  await expect(page.locator(`[id='${href!.split("#")[1]}']`)).toBeInViewport();
+  await expect(page.getByRole("link").filter({ hasText: "원래 품목" }).first()).toContainText("2030년 10월");
+  await page.getByRole("region", { name: "확인할 것" }).getByRole("link", { name: /배송비 미정/ }).click();
+  await expect(page).toHaveURL(/\/items\?status=shipping-fee$/);
+  await expect(page.getByRole("group", { name: "상태 필터" }).getByRole("button", { name: /^배송비 미정/ })).toHaveAttribute("aria-pressed", "true");
+  await tab(page, "홈").click();
+  await page.getByRole("region", { name: "전체 누적" }).getByRole("link", { name: "장르" }).click();
+  await expect(page.getByRole("heading", { name: "장르", exact: true })).toBeVisible();
 });
 
 test("품목 검색·상태 필터: 즉시 거르기, 주소 유지, 상세에서 돌아오기, 이전 링크 호환", async ({ page }) => {
@@ -467,16 +469,16 @@ test("품목 검색·상태 필터: 즉시 거르기, 주소 유지, 상세에�
   await search.fill("두번째 키 링");
   await expect(page.getByText("1개 품목")).toBeVisible();
   await expect(search).toBeFocused();
-  await page.getByRole("button", { name: "현물", exact: true }).click();
+  await page.getByRole("group", { name: "상태 필터" }).getByRole("button", { name: new RegExp("^현물 \\d") }).click();
   await expect(page).toHaveURL(/\/items\?q=.+&status=physical$/);
   await page.getByRole("link").filter({ hasText: "두번째 키링" }).click();
   await page.getByRole("link", { name: "← 뒤로가기" }).click();
   await expect(search).toHaveValue("두번째 키 링");
-  await expect(page.getByRole("button", { name: "현물", exact: true })).toHaveAttribute("aria-pressed", "true");
-  await page.getByRole("button", { name: "발송 대기", exact: true }).click();
+  await expect(page.getByRole("group", { name: "상태 필터" }).getByRole("button", { name: new RegExp("^현물 \\d") })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("group", { name: "상태 필터" }).getByRole("button", { name: new RegExp("^발송 대기 \\d") }).click();
   await expect(page.getByText("조건에 맞는 품목이 없습니다.")).toBeVisible();
   await page.goto("/items?pending=1");
-  await expect(page.getByRole("button", { name: "배송비 미정", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("group", { name: "상태 필터" }).getByRole("button", { name: new RegExp("^배송비 미정 \\d") })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByText("1개 품목")).toBeVisible();
 });
 
@@ -636,4 +638,19 @@ test("판매 기록 수정: 수량·금액·날짜를 고치고 잔여 수량과
   await expect(page.getByText("2026. 11. 5. · 2개 · 26,000원")).toBeVisible();
   await expect(page.getByText(/잔여 수량\s*1/)).toBeVisible();
   await expect(page.getByText(/손익 \+6,000원/).first()).toBeVisible();
+});
+
+test("품목 사진 그리드: 보기 전환, 상태 칩, 상세에서 돌아와도 그리드 유지, 선택 모드는 목록", async ({ page }) => {
+  await importFixture(page);
+  await page.goto("/items");
+  await page.getByRole("button", { name: "사진 그리드 보기" }).click();
+  await expect(page).toHaveURL(/\/items\?view=grid$/);
+  const card = page.getByRole("link").filter({ hasText: "원래 품목" });
+  await expect(card).toContainText("2030년 10월");
+  await expect(card).toContainText("30,000원");
+  await card.click();
+  await page.getByRole("link", { name: "← 뒤로가기" }).click();
+  await expect(page.getByRole("button", { name: "사진 그리드 보기" })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "묶음 판매", exact: true }).click();
+  await expect(page.locator('input[name="itemIds"]')).toHaveCount(1);
 });

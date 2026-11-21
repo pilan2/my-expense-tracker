@@ -23,8 +23,9 @@ test("상태 필터: 발송 대기·배송중·현물·판매 완료·배송비 
 });
 
 test("주소 변환과 이전 배송비 미정 링크 호환", () => {
-  assert.deepEqual(parseItemFilter({ pending: "1" }), { q: "", status: "shipping-fee" });
-  assert.deepEqual(parseItemFilter({ status: "모름", q: "키링" }), { q: "키링", status: "all" });
+  assert.deepEqual(parseItemFilter({ pending: "1" }), { q: "", status: "shipping-fee", view: "list" });
+  assert.deepEqual(parseItemFilter({ status: "모름", q: "키링", view: "grid" }), { q: "키링", status: "all", view: "grid" });
+  assert.equal(itemFilterHref("", "all", "grid"), "/items?view=grid");
   assert.equal(itemFilterHref("", "all"), "/items");
   assert.equal(itemFilterHref(" 키링 ", "sold"), "/items?q=%ED%82%A4%EB%A7%81&status=sold");
 });

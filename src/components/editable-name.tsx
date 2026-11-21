@@ -46,7 +46,7 @@ export function EditableName({
       {editing && (
         <form
           action={formAction}
-          className="absolute top-full left-0 z-20 mt-1 flex w-max max-w-[calc(100vw-3rem)] flex-col gap-1 rounded-md border border-neutral-200 bg-white p-2 shadow-md dark:border-neutral-700 dark:bg-neutral-900"
+          className="absolute top-full left-0 z-20 mt-1 flex w-max max-w-[calc(100vw-3rem)] flex-col gap-1 rounded-md border border-neutral-200 bg-surface p-2 shadow-md dark:border-neutral-700 dark:bg-neutral-900"
         >
           <div className="flex items-center gap-1">
             <input
@@ -72,7 +72,7 @@ export function EditableName({
               취소
             </button>
           </div>
-          {state.error && <p className="max-w-[220px] text-xs text-red-600 dark:text-red-400">{state.error}</p>}
+          {state.error && <p className="max-w-[220px] text-xs text-loss">{state.error}</p>}
         </form>
       )}
     </span>

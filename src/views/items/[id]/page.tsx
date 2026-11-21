@@ -19,7 +19,9 @@ import { wonToManwon, won, signedWon } from "@/lib/money";
 import { formatShipDDay, formatShipDateLabel, isShipmentOverdue } from "@/lib/dday";
 import { safeRedirectTarget } from "@/lib/nav";
 import { todayString } from "@/lib/budget";
-import { profitColor, buttonClass, inputClass, linkClass, warningColor, SectionHeader } from "@/components/ui";
+import { profitColor, buttonClass, inputClass, linkClass, warningColor, cardClass, chipClass } from "@/components/ui";
+import { ItemThumb } from "@/components/item-card";
+import { itemStatusChip } from "@/lib/item-status";
 import { ManwonInput } from "@/components/manwon-input";
 
 function selfHref(id: string, from: string, mode?: "edit") {
@@ -95,7 +97,7 @@ export default  function ItemDetailPage({
       <div className="box-border mx-auto w-full max-w-xl overflow-x-hidden p-6">
         <BackButton href={selfHref(item.id, from)} />
         <h1 className="mb-2 text-xl font-semibold">품목 수정</h1>
-        <div className="mb-6 text-sm"><ItemStatus item={item} remaining={remaining} showDeliveryAction={false} /></div>
+        <div className="mb-6 flex flex-wrap items-center gap-2 text-sm"><ItemStatus item={item} remaining={remaining} /></div>
         <ItemForm
           action={updateItem.bind(null, item.id, from)}
           genreCatalog={genreCatalog}
@@ -115,68 +117,82 @@ export default  function ItemDetailPage({
 
   const total = Number(item.price) * item.quantity + Number(item.shippingFee);
 
-  return (
-    <div className="box-border mx-auto w-full max-w-xl overflow-x-hidden p-6">
-      <BackButton href={from} />
+  const delivering = !item.isPhysical && remaining > 0 && item.expectedShipDate !== null && isShipmentOverdue(item.expectedShipDate, item.shipDateApprox);
 
-      {item.imageUrl && (
-        <LocalImage src={item.imageUrl} alt="" className="mb-4 max-h-80 w-full rounded-lg object-contain" />
-      )}
-      <div className="mb-3 flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="flex flex-wrap gap-x-1 text-sm text-neutral-500">
-            <span>{item.genre === item.character ? item.genre : `${item.genre} · ${item.character}`}</span>
-            {item.series && <span>({item.series})</span>}
-            <span>· {item.itemType}</span>
-          </p>
-          <h1 className="break-words text-xl font-semibold">{item.detail}</h1>
-        </div>
-        <Link href={selfHref(item.id, from, "edit")} className={`shrink-0 ${buttonClass("secondary")}`}>
+  return (
+    <div className="box-border mx-auto w-full max-w-xl overflow-x-hidden p-5 sm:p-6">
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <BackButton href={from} />
+        <Link href={selfHref(item.id, from, "edit")} className={`mb-2 ${buttonClass("secondary")}`}>
           수정
         </Link>
       </div>
-      <div className="mb-6 text-sm"><ItemStatus item={item} remaining={remaining} showDeliveryAction /></div>
 
-      <dl className="grid grid-cols-2 gap-x-4 gap-y-3 rounded-lg border border-neutral-200 p-4 dark:border-neutral-800">
-        <Info label="수량" value={remaining !== item.quantity ? `${item.quantity} (잔여 ${remaining})` : item.quantity} />
-        <Info label="단가" value={won(Number(item.price))} />
+      {item.imageUrl ? (
+        <LocalImage src={item.imageUrl} alt="" className="mb-5 max-h-96 w-full rounded-3xl bg-surface-soft object-contain" />
+      ) : (
+        <ItemThumb name={item.detail} seed={item.detail} className="mb-5 aspect-[5/3] w-full rounded-3xl text-6xl" />
+      )}
+      <p className="flex flex-wrap gap-x-1 text-sm text-muted">
+        <span>{item.genre === item.character ? item.genre : `${item.genre} · ${item.character}`}</span>
+        {item.series && <span>({item.series})</span>}
+        <span>· {item.itemType}</span>
+      </p>
+      <h1 className="mt-0.5 break-words text-2xl font-bold leading-snug">{item.detail}</h1>
+      <div className="mt-3 mb-5 flex flex-wrap items-center gap-2 text-sm"><ItemStatus item={item} remaining={remaining} /></div>
+
+      {delivering && (
+        // 배송중인 품목에서 가장 자주 하는 일이라 화면에서 가장 눈에 띄는 버튼으로 둔다.
+        <LocalForm action={confirmDelivery.bind(null, item.id)} className="mb-5">
+          <button type="submit" className={`w-full ${buttonClass()} min-h-12 text-base`}>받았어요 · 수령 확인</button>
+        </LocalForm>
+      )}
+
+      <dl className={`grid grid-cols-2 gap-x-4 gap-y-4 ${cardClass}`}>
+        <Info label="단가" value={<span className="font-semibold">{won(Number(item.price))}</span>} />
+        <Info label="수량" value={remaining !== item.quantity ? `${item.quantity}개 (잔여 ${remaining})` : `${item.quantity}개`} />
         <Info label="구매일" value={item.purchasedAt ? item.purchasedAt.toLocaleDateString("ko-KR") : "모름"} />
         <Info label="배송비" value={item.hasOverseasShipping ? <span className={warningColor}>이후 계산 필요</span> : won(Number(item.shippingFee))} />
-        <Info label="총 구매 금액" value={won(total)} />
-        {sales.length > 0 && <Info label="판매 손익" value={<span className={`font-medium ${profitColor(profit)}`}>{signedWon(profit)}</span>} />}
         {item.maker && <Info label="제작한 사람" value={item.maker} />}
         {item.organizer && <Info label="공구 개최한 사람" value={item.organizer} />}
         {item.shippingGroup && (
           <Info wide label="발송 그룹" value={
-            <Link href={`/shipping-groups/${item.shippingGroup.id}`} className="text-blue-600 underline dark:text-blue-400">
+            <Link href={`/shipping-groups/${item.shippingGroup.id}`} className="text-accent-ink underline">
               {item.shippingGroup.label} →
             </Link>
           } />
         )}
         {item.purchaseLink && (
           <Info wide label="구매처" value={
-            <a href={item.purchaseLink} target="_blank" rel="noopener noreferrer" className="break-all text-blue-600 underline dark:text-blue-400">
+            <a href={item.purchaseLink} target="_blank" rel="noopener noreferrer" className="break-all text-accent-ink underline">
               {item.purchaseLink}
             </a>
           } />
         )}
         {item.memo && <Info wide label="메모" value={<span className="whitespace-pre-wrap">{item.memo}</span>} />}
+        <div className="col-span-2 flex items-baseline justify-between gap-3 border-t border-line pt-3">
+          <dt className="text-sm text-muted">총 구매 금액</dt>
+          <dd className="text-xl font-bold">{won(total)}</dd>
+        </div>
       </dl>
 
-      <section className="mt-8">
-        <SectionHeader title="판매 관리" />
-        <p className="mb-3 text-sm text-neutral-500">
+      <section className={`mt-5 ${cardClass}`}>
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <h2 className="text-lg font-bold">판매 관리</h2>
+          <span className="text-sm text-muted">잔여 {remaining}개</span>
+        </div>
+        <p className="mb-3 text-sm text-muted">
           구매 수량 {item.quantity} · 잔여 수량{" "}
-          <span className="font-medium text-neutral-900 dark:text-neutral-100">{remaining}</span>
+          <span className="font-semibold text-foreground">{remaining}</span>
           {sales.length > 0 && (
             <>
-              {" "}· 손익 <span className={`font-medium ${profitColor(profit)}`}>{signedWon(profit)}</span>
+              {" "}· 손익 <span className={`font-semibold ${profitColor(profit)}`}>{signedWon(profit)}</span>
             </>
           )}
         </p>
 
         {sales.length > 0 && (
-          <ul className="mb-3 divide-y divide-neutral-200 text-sm dark:divide-neutral-800">
+          <ul className="mb-3 divide-y divide-line text-sm">
             {sales.map((sale) => (
               <SaleRow key={sale.id} sale={{ ...sale, saleAmount: Number(sale.saleAmount) }} maxQuantity={remaining + sale.quantitySold} />
             ))}
@@ -185,8 +201,8 @@ export default  function ItemDetailPage({
 
         {remaining > 0 ? (
           // 판매 입력은 자주 쓰지 않으므로 접어두고, 판매 기록이 하나도 없을 때도 버튼 하나로만 보인다.
-          <details className="rounded-lg border border-neutral-200 dark:border-neutral-800">
-            <summary className="flex min-h-11 cursor-pointer items-center px-4 text-sm font-medium">+ 판매 기록 추가</summary>
+          <details className="rounded-xl border border-dashed border-accent/40 bg-background">
+            <summary className="flex min-h-11 cursor-pointer items-center justify-center px-4 text-sm font-semibold text-accent-ink">+ 판매 기록 추가</summary>
             <LocalForm action={createSale.bind(null, item.id)} className="flex flex-col gap-3 px-4 pb-4">
               <label className="flex flex-col gap-1 text-sm">
                 <span className="font-medium">판매 수량</span>
@@ -206,7 +222,7 @@ export default  function ItemDetailPage({
             </LocalForm>
           </details>
         ) : (
-          <p className="text-sm text-neutral-500">모두 판매되었습니다.</p>
+          <p className="text-sm text-muted">모두 판매되었습니다.</p>
         )}
       </section>
 
@@ -227,34 +243,22 @@ function Info({ label, value, wide }: { label: string; value: React.ReactNode; w
   );
 }
 
-// 상세 상단의 상태 한 줄. 배송중일 때는 바로 수령 확인할 수 있게 버튼을 붙인다.
-function ItemStatus({ item, remaining, showDeliveryAction }: {
-  item: { id: string; isPhysical: boolean; expectedShipDate: Date | null; shipDateApprox: boolean };
-  remaining: number; showDeliveryAction: boolean;
+// 상세 상단의 상태: 색 칩과 함께 날짜를 작게 붙인다.
+function ItemStatus({ item, remaining }: {
+  item: { isPhysical: boolean; expectedShipDate: Date | null; shipDateApprox: boolean; hasOverseasShipping: boolean };
+  remaining: number;
 }) {
   const shipDate = item.expectedShipDate;
-  if (remaining === 0) return <span className="font-medium text-neutral-500">판매 완료</span>;
-  if (item.isPhysical) {
-    return <span>{shipDate ? `배송 완료 (발송일 ${formatShipDateLabel(shipDate, item.shipDateApprox)})` : "현물 보유 중"}</span>;
-  }
-  if (!shipDate) return null;
-  if (isShipmentOverdue(shipDate, item.shipDateApprox)) {
-    return (
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        <span className="font-medium text-amber-600 dark:text-amber-400">배송중</span>
-        <span className="text-neutral-500">(발송일 {formatShipDateLabel(shipDate, item.shipDateApprox)})</span>
-        {showDeliveryAction && (
-          <LocalForm action={confirmDelivery.bind(null, item.id)}>
-            <button type="submit" className={buttonClass("secondary")}>수령 확인</button>
-          </LocalForm>
-        )}
-      </div>
-    );
-  }
+  const status = itemStatusChip({ ...item, remainingQuantity: remaining });
+  const dateText = !shipDate ? null
+    : item.isPhysical ? `배송 완료 (발송일 ${formatShipDateLabel(shipDate, item.shipDateApprox)})`
+    : isShipmentOverdue(shipDate, item.shipDateApprox) ? `발송일 ${formatShipDateLabel(shipDate, item.shipDateApprox)}`
+    : `발송예정 ${formatShipDateLabel(shipDate, item.shipDateApprox)} · ${formatShipDDay(shipDate, item.shipDateApprox)}`;
   return (
-    <span>
-      발송예정 {formatShipDateLabel(shipDate, item.shipDateApprox)}{" "}
-      <span className="font-medium text-blue-600 dark:text-blue-400">{formatShipDDay(shipDate, item.shipDateApprox)}</span>
-    </span>
+    <>
+      {status && <span className={chipClass(status.kind)}>{status.kind === "have" && !shipDate ? "현물 보유 중" : status.label}</span>}
+      {dateText && remaining > 0 && <span className="text-muted">{dateText}</span>}
+      {item.hasOverseasShipping && <span className={chipClass("fee")}>배송비 미정</span>}
+    </>
   );
 }

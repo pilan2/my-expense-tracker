@@ -36,7 +36,7 @@ export default  function PurchasesPage() {
                 {groupItems.map((item) => (
                   <li key={item.id}>
                     <ItemCardWithDelivery {...item} href={itemHref(item.id, "/purchases")}
-                      className="block rounded-md border border-neutral-200 p-3 dark:border-neutral-800" />
+                      className="block rounded-2xl border border-line bg-surface shadow-card p-3" />
                   </li>
                 ))}
               </ul>
@@ -50,7 +50,7 @@ export default  function PurchasesPage() {
                 {unknownItems.map((item) => (
                   <li key={item.id}>
                     <ItemCardWithDelivery {...item} href={itemHref(item.id, "/purchases")}
-                      className="block rounded-md border border-neutral-200 p-3 dark:border-neutral-800" />
+                      className="block rounded-2xl border border-line bg-surface shadow-card p-3" />
                   </li>
                 ))}
               </ul>

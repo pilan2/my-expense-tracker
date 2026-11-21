@@ -23,7 +23,7 @@ export function EventRecovery() {
     const result = await recoverEvents(backup);
     setMessage(`행사 ${result.events}개 · 체크리스트 ${result.entries}개를 추가했습니다. 기존 행사 ${result.skipped}개는 유지했습니다.`);
     setBackup(undefined);
-  }} className="space-y-3 rounded-md border border-neutral-300 p-4 dark:border-neutral-700">
+  }} className="space-y-3 rounded-2xl border border-line bg-surface p-4 shadow-card">
     <h2 className="font-medium">누락된 행사만 복구</h2>
     <p className="text-sm">클라우드에서 내보낸 행사 전용 파일을 선택하세요. 품목·판매·사진과 기존 행사는 유지하고, 아직 없는 행사와 체크리스트만 추가합니다. 먼저 현재 기기의 전체 백업을 다운로드해주세요.</p>
     <input aria-label="행사 복구 파일" type="file" accept=".json,application/json" className="max-w-full text-sm" onChange={async event => {
@@ -39,7 +39,7 @@ export function EventRecovery() {
       } finally { if (selected === selection.current) setReading(false); }
     }} />
     {reading && <p role="status">행사 파일 검사 중…</p>}
-    {(error || previewError) && <p role="alert" className="text-sm text-red-600 dark:text-red-400">{error || previewError}</p>}
+    {(error || previewError) && <p role="alert" className="text-sm text-loss">{error || previewError}</p>}
     {preview && <p className="text-sm">추가할 행사 {preview.event.length}개 · 체크리스트 {preview.eventChecklistItem.length}개 · 이미 있는 행사 {preview.skipped}개</p>}
     <button type="submit" disabled={reading || !preview?.event.length} className={buttonClass()}>행사만 추가</button>
     {message && <p role="status" className="text-sm">{message}</p>}
