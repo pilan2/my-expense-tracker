@@ -677,3 +677,31 @@ test("장르 화면: 캐릭터 고르지 않아도 전체 품목, 캐릭터 필�
   await page.goto("/items");
   await expect(page.getByRole("link").filter({ hasText: "원래 품목" })).toHaveCount(0);
 });
+
+test("같은 물품 구매 순서 번호와, 판매자 정보 없이도 같은 날·같은 발송일이면 발송 그룹으로 묶기", async ({ page }) => {
+  await importFixture(page);
+  async function register(detail: string) {
+    await page.goto("/items/new");
+    await page.getByRole("button", { name: "장르", exact: true }).click();
+    await page.getByRole("button", { name: "캐릭터", exact: true }).click();
+    await page.getByRole("button", { name: "인형", exact: true }).click();
+    await page.getByLabel("물품 세부사항").fill(detail);
+    await page.locator('input[name="price"]').fill("1");
+    await page.locator('input[name="purchasedAt"]').fill("2026-11-01");
+    await page.locator('input[name="expectedShipDate"]').fill("2030-12-10");
+    await page.getByRole("button", { name: "저장", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "전체 품목", exact: true })).toBeVisible();
+  }
+  await register("같이 오는 스탠드");
+  await register("같이 오는 키링");
+  await page.getByRole("link").filter({ hasText: "같이 오는 키링" }).click();
+  await expect(page.getByRole("link", { name: /2026\. 11\. 1\. 구매 · 2030\. 12\. 10\. 발송/ })).toBeVisible();
+
+  await page.goto("/items/item-1?from=%2Fitems");
+  await page.getByRole("link", { name: "+ 같은 물품 추가 구매" }).click();
+  await page.locator('input[name="price"]').fill("0.8");
+  await page.getByLabel("현물로 보유 중").check();
+  await page.getByRole("button", { name: "저장", exact: true }).click();
+  await expect(page.getByText("1번째 구매", { exact: true })).toBeVisible();
+  await expect(page.getByText("2번째 구매", { exact: true })).toBeVisible();
+});

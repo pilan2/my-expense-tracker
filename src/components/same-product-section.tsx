@@ -2,7 +2,7 @@ import Link from "@/lib/local/navigation";
 import { LocalForm } from "@/components/local-form";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 import { linkSameProduct, unlinkSameProduct } from "@/lib/actions/items";
-import { purchaseSourceLabel, summarizeProductGroup } from "@/lib/product-groups";
+import { purchaseSourceLabel, purchaseTitle, memoSnippet, summarizeProductGroup } from "@/lib/product-groups";
 import { isShipmentOverdue, formatDate } from "@/lib/dday";
 import type { Item } from "@/lib/local/models";
 import { itemHref } from "@/lib/nav";
@@ -42,11 +42,12 @@ export function SameProductSection({ item, purchases, candidates, from }: {
             {summary.minPrice !== summary.maxPrice ? ` (${won(summary.minPrice)}~${won(summary.maxPrice)})` : ""}
           </p>
           <ul className="mb-3 flex flex-col gap-2 text-sm">
-            {purchases.map((purchase) => {
+            {purchases.map((purchase, index) => {
+              const memo = memoSnippet(purchase.memo);
               const content = (
                 <>
                   <span className="flex flex-wrap items-baseline justify-between gap-x-2">
-                    <span className="min-w-0 break-words font-medium">{purchaseSourceLabel(purchase)}</span>
+                    <span className="min-w-0 break-words font-medium">{purchaseTitle(index + 1, purchase)}</span>
                     <span className="shrink-0 whitespace-nowrap">{won(purchase.price)} × {purchase.quantity}</span>
                   </span>
                   <span className="text-neutral-500">
@@ -54,6 +55,7 @@ export function SameProductSection({ item, purchases, candidates, from }: {
                     {purchase.shippingFee > 0 ? ` · 배송비 ${won(purchase.shippingFee)}` : ""} · {statusLabel(purchase)}
                     {purchase.remainingQuantity !== purchase.quantity ? ` · 잔여 ${purchase.remainingQuantity}` : ""}
                   </span>
+                  {memo && <span className="text-neutral-500">메모: {memo}</span>}
                 </>
               );
               const boxClass = "flex flex-col gap-0.5 rounded-xl border p-3";
@@ -96,8 +98,7 @@ export function SameProductSection({ item, purchases, candidates, from }: {
                 <span className="min-w-0 break-words">
                   {candidate.series ? `(${candidate.series}) ` : ""}{candidate.detail}
                   <span className="block text-neutral-500">
-                    {purchaseSourceLabel(candidate)} · {won(candidate.price)} × {candidate.quantity}
-                    {candidate.purchasedAt ? ` · ${formatDate(candidate.purchasedAt)}` : ""}
+                    {[purchaseSourceLabel(candidate), `${won(candidate.price)} × ${candidate.quantity}`, candidate.purchasedAt ? formatDate(candidate.purchasedAt) : null].filter(Boolean).join(" · ")}
                   </span>
                 </span>
                 <LocalForm action={linkSameProduct.bind(null, item.id, candidate.id)} className="shrink-0">

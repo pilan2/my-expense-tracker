@@ -54,7 +54,6 @@ export const backfillShippingGroups = localAction(async function backfillShippin
       isPhysical: false,
       shippingGroupId: null,
       purchasedAt: { not: null },
-      OR: [{ maker: { not: null } }, { organizer: { not: null } }],
     },
     select: { id: true },
     orderBy: [{ purchasedAt: "asc" }, { createdAt: "asc" }],
@@ -64,7 +63,7 @@ export const backfillShippingGroups = localAction(async function backfillShippin
     // 앞선 루프에서 이미 다른 그룹에 같이 묶였을 수 있으니, 매번 최신 상태를 다시 읽는다.
     const fresh = await db.item.findUnique({
       where: { id: candidate.id },
-      select: { id: true, purchasedAt: true, maker: true, organizer: true, isPhysical: true, shippingGroupId: true },
+      select: { id: true, purchasedAt: true, maker: true, organizer: true, isPhysical: true, expectedShipDate: true, shipDateApprox: true, shippingGroupId: true },
     });
     if (fresh) await autoAssignShippingGroup(fresh);
   }

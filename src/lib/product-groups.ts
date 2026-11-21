@@ -49,12 +49,29 @@ export function countProductGroups(items: Linkable[]) {
   return counts;
 }
 
-// 구매처 이름 필드가 따로 없으므로 제작자·공구자·링크 주소로 구매 건을 구분한다.
-export function purchaseSourceLabel(item: Pick<Item, "maker" | "organizer" | "purchaseLink">) {
+// 구매처 이름 필드가 따로 없으므로 제작자·공구자·링크 주소로 구매처를 짐작한다. 없으면 null.
+export function purchaseSourceLabel(item: Pick<Item, "maker" | "organizer" | "purchaseLink">): string | null {
   const people = [item.maker, item.organizer && `공구 ${item.organizer}`].filter(Boolean).join(" · ");
   if (people) return people;
   if (item.purchaseLink) {
     try { return new URL(item.purchaseLink).hostname.replace(/^www\./, ""); } catch { return item.purchaseLink; }
   }
-  return "구매처 정보 없음";
+  return null;
+}
+
+// 구매처를 안 적은 구매 건이 많아도 서로 구분되도록, 구매 순서(구매일, 같으면 등록 순)로 번호를 붙인다.
+export function orderPurchases<T extends { id: string; purchasedAt: Date | null; createdAt: Date }>(items: T[]) {
+  return [...items].sort((a, b) =>
+    (a.purchasedAt?.getTime() ?? Infinity) - (b.purchasedAt?.getTime() ?? Infinity) || a.createdAt.getTime() - b.createdAt.getTime());
+}
+
+export function purchaseTitle(order: number, item: Pick<Item, "maker" | "organizer" | "purchaseLink">) {
+  const source = purchaseSourceLabel(item);
+  return `${order}번째 구매${source ? ` · ${source}` : ""}`;
+}
+
+export function memoSnippet(memo: string | null) {
+  const line = memo?.split("\n")[0].trim();
+  if (!line) return null;
+  return line.length > 20 ? `${line.slice(0, 20)}…` : line;
 }

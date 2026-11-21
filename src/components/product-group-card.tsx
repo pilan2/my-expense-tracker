@@ -1,14 +1,14 @@
 import { type ComponentProps } from "react";
 import { LocalImage } from "@/components/local-image";
 import { ItemCardWithDelivery } from "@/components/item-card-with-delivery";
-import { purchaseSourceLabel, summarizeProductGroup } from "@/lib/product-groups";
+import { orderPurchases, purchaseTitle, summarizeProductGroup } from "@/lib/product-groups";
 import { itemHref } from "@/lib/nav";
 import { won } from "@/lib/money";
 import { formatDate } from "@/lib/dday";
 
 type Purchase = Omit<ComponentProps<typeof ItemCardWithDelivery>, "href" | "price" | "shippingFee"> & {
   price: number; shippingFee: number; maker: string | null; organizer: string | null;
-  purchaseLink: string | null; purchasedAt: Date | null;
+  purchaseLink: string | null; purchasedAt: Date | null; createdAt: Date;
 };
 
 // 같은 물품의 여러 구매 건을 카드 하나로 접고, 펼치면 구매 건별 카드(수령 확인 포함)를 보여준다.
@@ -40,12 +40,12 @@ export function ProductGroupCard({ purchases, from, className, showGenreCharacte
         </span>
       </summary>
       <ul className="mt-3 flex flex-col gap-2">
-        {purchases.map(({ maker, organizer, purchaseLink, ...purchase }) => (
+        {orderPurchases(purchases).map(({ maker, organizer, purchaseLink, ...purchase }, index) => (
           <li key={purchase.id}>
             <ItemCardWithDelivery {...purchase} href={itemHref(purchase.id, from)}
               className="block rounded-2xl border border-line bg-surface shadow-card p-3"
               showGenreCharacter={false} showItemType={false}
-              sourceLabel={`${purchaseSourceLabel({ maker, organizer, purchaseLink })} · ${purchase.purchasedAt ? formatDate(purchase.purchasedAt) : "구매일 모름"}`} />
+              sourceLabel={`${purchaseTitle(index + 1, { maker, organizer, purchaseLink })} · ${purchase.purchasedAt ? formatDate(purchase.purchasedAt) : "구매일 모름"}`} />
           </li>
         ))}
       </ul>
