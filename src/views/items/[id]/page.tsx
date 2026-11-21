@@ -8,7 +8,8 @@ import { SameProductSection } from "@/components/same-product-section";
 import { getGenreCatalog, getItemTypeCatalog } from "@/lib/catalog";
 import { getSalesForItem, calcRemainingQuantity, calcProfit } from "@/lib/sales";
 import { updateItem, deleteItem, confirmDelivery } from "@/lib/actions/items";
-import { createSale, deleteSale } from "@/lib/actions/sales";
+import { createSale } from "@/lib/actions/sales";
+import { SaleRow } from "@/components/sale-row";
 import { ItemForm, type ItemFormDefaults } from "@/components/item-form";
 import { BackButton } from "@/components/back-button";
 import { NumberInput } from "@/components/number-input";
@@ -17,6 +18,7 @@ import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 import { wonToManwon, won, signedWon } from "@/lib/money";
 import { formatShipDDay, formatShipDateLabel, isShipmentOverdue } from "@/lib/dday";
 import { safeRedirectTarget } from "@/lib/nav";
+import { todayString } from "@/lib/budget";
 import { profitColor, buttonClass, inputClass, linkClass, warningColor, SectionHeader } from "@/components/ui";
 import { ManwonInput } from "@/components/manwon-input";
 
@@ -71,7 +73,8 @@ export default  function ItemDetailPage({
     imageUrl: item.imageUrl,
   };
 
-  const today = new Date().toISOString().slice(0, 10);
+  // 날짜는 UTC 자정으로 저장하지만 "오늘"은 기기 현지 날짜여야 새벽에 어제로 잡히지 않는다.
+  const today = todayString();
   const salesForCalc = sales.map((s) => ({ quantitySold: s.quantitySold, saleAmount: Number(s.saleAmount) }));
   const remaining = calcRemainingQuantity(item.quantity, salesForCalc);
   const profit = calcProfit(Number(item.price), Number(item.shippingFee), item.quantity, salesForCalc);
@@ -175,17 +178,7 @@ export default  function ItemDetailPage({
         {sales.length > 0 && (
           <ul className="mb-3 divide-y divide-neutral-200 text-sm dark:divide-neutral-800">
             {sales.map((sale) => (
-              <li key={sale.id} className="flex items-center justify-between gap-2 py-1">
-                <span>
-                  {sale.saleDate ? sale.saleDate.toLocaleDateString("ko-KR") : "날짜 모름"} · {sale.quantitySold}개 ·{" "}
-                  {won(Number(sale.saleAmount))}
-                </span>
-                <LocalForm action={deleteSale.bind(null, sale.id)}>
-                  <ConfirmSubmitButton confirmMessage="이 판매 기록을 삭제할까요?" className={buttonClass("dangerGhost")}>
-                    삭제
-                  </ConfirmSubmitButton>
-                </LocalForm>
-              </li>
+              <SaleRow key={sale.id} sale={{ ...sale, saleAmount: Number(sale.saleAmount) }} maxQuantity={remaining + sale.quantitySold} />
             ))}
           </ul>
         )}
@@ -201,7 +194,7 @@ export default  function ItemDetailPage({
               </label>
               <label className="flex flex-col gap-1 text-sm">
                 <span className="font-medium">판매 금액 (만원 단위, 전체 총액)</span>
-                <ManwonInput name="saleAmount" step={0.01} required className={inputClass} />
+                <ManwonInput name="saleAmount" required className={inputClass} />
               </label>
               <label className="flex flex-col gap-1 text-sm">
                 <span className="font-medium">판매일 (날짜 기반 통계에 사용 가능)</span>

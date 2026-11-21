@@ -75,6 +75,26 @@ export const createBulkSale = localAction(async function createBulkSale(formData
   redirect("/items");
 });
 
+export const updateSale = localAction(async function updateSale(saleId: string, formData: FormData) {
+  const sale = await db.sale.findUniqueOrThrow({ where: { id: saleId } });
+  const quantitySold = Number(formData.get("quantitySold"));
+  const saleAmount = manwonToWon(String(formData.get("saleAmount") ?? "0"));
+  const saleDateRaw = formData.get("saleDate");
+  const saleDate = saleDateRaw ? new Date(String(saleDateRaw)) : null;
+
+  const item = await db.item.findUniqueOrThrow({
+    where: { id: sale.itemId },
+    include: { sales: { select: { id: true, quantitySold: true } } },
+  });
+  // 수정하는 판매 건은 빼고 남은 수량을 계산해야 같은 수량으로 다시 저장할 수 있다.
+  const available = calcRemainingQuantity(item.quantity, item.sales.filter((row) => row.id !== saleId));
+  if (!Number.isInteger(quantitySold) || quantitySold < 1 || quantitySold > available) {
+    throw new Error(`판매 수량은 1개 이상, ${available}개 이하여야 합니다.`);
+  }
+
+  await db.sale.update({ where: { id: saleId }, data: { quantitySold, saleAmount, saleDate } });
+});
+
 export const deleteSale = localAction(async function deleteSale(saleId: string) {
 
   await db.sale.delete({ where: { id: saleId } });

@@ -2,6 +2,7 @@ import { emptyData, normalizeRow, tables, validateData, withProductGroup, type D
 import { createRepository } from "./repository";
 import { readBackupSnapshot, replaceData, stageImage, transaction } from "./database";
 import { blobToDataUrl } from "./images";
+import { todayString } from "../budget";
 
 type JsonObject = Record<string, unknown>;
 function object(value: unknown): JsonObject {
@@ -77,19 +78,24 @@ export async function restoreParsedBackup(backup: ReturnType<typeof parseBackup>
 }
 
 export async function exportBackup() {
-  const { data, images: blobs } = await readBackupSnapshot();
+  return (await exportBackupWithRevision()).backup;
+}
+
+// 백업에 담긴 데이터의 리비전도 함께 돌려줘서, 이후 변경이 있었는지 판단할 수 있게 한다.
+export async function exportBackupWithRevision() {
+  const { data, images: blobs, revision } = await readBackupSnapshot();
   // 행사·체크리스트를 포함한 모든 테이블과 참조를 검사한 뒤 파일을 만든다.
   validateData(data);
   const images: Record<string, string> = {};
   for (const [id, blob] of blobs) images[id] = await blobToDataUrl(blob);
-  return { schemaVersion: 3, exportedAt: new Date().toISOString(), data, images };
+  return { backup: { schemaVersion: 3, exportedAt: new Date().toISOString(), data, images }, revision };
 }
 
 export function downloadJson(value: unknown) {
   const url = URL.createObjectURL(new Blob([JSON.stringify(value, null, 2)], { type: "application/json" }));
   const anchor = document.createElement("a");
   anchor.href = url;
-  anchor.download = `expense-tracker-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  anchor.download = `expense-tracker-backup-${todayString()}.json`;
   document.body.appendChild(anchor); anchor.click(); anchor.remove();
   setTimeout(() => URL.revokeObjectURL(url), 60000);
 }

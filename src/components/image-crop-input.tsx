@@ -144,7 +144,7 @@ export function ImageCropInput({ name, className, initialFile, onFileChange }: {
               <button
                 type="button"
                 onClick={confirmRotation}
-                className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm text-white dark:bg-neutral-100 dark:text-neutral-900"
+                className={buttonClass()}
               >
                 다음: 자르기
               </button>
@@ -188,7 +188,7 @@ export function ImageCropInput({ name, className, initialFile, onFileChange }: {
                 <button
                   type="button"
                   onClick={applyCrop}
-                  className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm text-white dark:bg-neutral-100 dark:text-neutral-900"
+                  className={buttonClass()}
                 >
                   적용
                 </button>

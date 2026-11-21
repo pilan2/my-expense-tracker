@@ -7,6 +7,7 @@ import { NumberInput } from "@/components/number-input";
 import { ClearableDateInput } from "@/components/clearable-date-input";
 import { buttonClass, inputClass, PageHeader } from "@/components/ui";
 import { ManwonInput } from "@/components/manwon-input";
+import { todayString } from "@/lib/budget";
 
 export default  function BulkSalePage({
   searchParams,
@@ -33,7 +34,8 @@ export default  function BulkSalePage({
     );
   }
 
-  const today = new Date().toISOString().slice(0, 10);
+  // 날짜는 UTC 자정으로 저장하지만 "오늘"은 기기 현지 날짜여야 새벽에 어제로 잡히지 않는다.
+  const today = todayString();
 
   return (
     <div className="box-border mx-auto w-full max-w-xl overflow-x-hidden p-6">
@@ -63,7 +65,6 @@ export default  function BulkSalePage({
           <span className="font-medium">총 판매 금액 (만원 단위, 선택한 품목 전체 총액)</span>
           <ManwonInput
             name="totalSaleAmount"
-            step={0.01}
             required
             className={inputClass}
           />

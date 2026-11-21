@@ -27,7 +27,7 @@ export function getEvent(id: string) {
         orderBy: [{ booth: "asc" }, { createdAt: "asc" }],
         include: {
           item: {
-            select: { id: true, genre: true, character: true, detail: true, price: true, quantity: true },
+            select: { id: true, genre: true, character: true, detail: true, price: true, quantity: true, isPhysical: true },
           },
         },
       },
@@ -54,6 +54,6 @@ export function effectiveChecklistAmount(entry: {
 export function getItemOptions() {
   return db.item.findMany({
     orderBy: { createdAt: "desc" },
-    select: { id: true, genre: true, character: true, detail: true, price: true, quantity: true },
+    select: { id: true, genre: true, character: true, detail: true, price: true, quantity: true, isPhysical: true },
   });
 }

@@ -93,7 +93,12 @@ export const deleteChecklistItem = localAction(async function deleteChecklistIte
   await db.eventChecklistItem.delete({ where: { id } });
 });
 
-export const toggleChecklistItem = localAction(async function toggleChecklistItem(id: string) {
+// 행사장에서 수령한 품목은 실제로 받은 것이므로, 사용자가 동의하면 같은 저장에서 수령 확인까지 한다.
+// 체크를 해제해도 품목 상태는 되돌리지 않는다(수령 확인은 품목 화면에서 따로 관리).
+export const toggleChecklistItem = localAction(async function toggleChecklistItem(id: string, alsoConfirmDelivery = false) {
   const entry = await db.eventChecklistItem.findUniqueOrThrow({ where: { id } });
   await db.eventChecklistItem.update({ where: { id }, data: { checked: !entry.checked } });
+  if (alsoConfirmDelivery && !entry.checked && entry.type === "PICKUP" && entry.itemId) {
+    await db.item.update({ where: { id: entry.itemId }, data: { isPhysical: true } });
+  }
 });

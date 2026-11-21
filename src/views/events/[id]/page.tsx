@@ -77,10 +77,13 @@ export default  function EventDetailPage({ params }: { params: { id: string } })
                       entry.checked ? "opacity-50" : ""
                     }`}
                   >
-                    <LocalForm action={toggleChecklistItem.bind(null, entry.id)}>
+                    <LocalForm action={async () => {
+                      const askDelivery = !entry.checked && entry.type === "PICKUP" && entry.item && !entry.item.isPhysical;
+                      await toggleChecklistItem(entry.id, Boolean(askDelivery) && window.confirm("연결된 품목도 수령 확인할까요? 확인하면 품목이 현물 보유 상태로 바뀝니다."));
+                    }}>
                       <button
                         type="submit"
-                        className="flex h-8 w-8 items-center justify-center text-2xl leading-none"
+                        className="flex h-11 w-11 items-center justify-center text-2xl leading-none"
                         aria-label="완료 체크"
                       >
                         {entry.checked ? "☑" : "☐"}
@@ -103,6 +106,14 @@ export default  function EventDetailPage({ params }: { params: { id: string } })
                             className="inline-flex min-h-11 shrink-0 items-center text-xs text-blue-600 underline dark:text-blue-400"
                           >
                             상세보기 →
+                          </Link>
+                        )}
+                        {!entry.item && entry.type === "PURCHASE" && (
+                          <Link
+                            href={`/items/new?entry=${encodeURIComponent(entry.id)}`}
+                            className="inline-flex min-h-11 shrink-0 items-center text-xs text-blue-600 underline dark:text-blue-400"
+                          >
+                            품목으로 등록 →
                           </Link>
                         )}
                       </div>

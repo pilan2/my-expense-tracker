@@ -14,6 +14,7 @@ let version = 0;
 export function subscribe(listener: () => void) { listeners.add(listener); return () => { listeners.delete(listener); }; }
 export function getVersion() { return version; }
 export function notifyChange() { version++; for (const listener of listeners) listener(); }
+export function currentRevision() { return snapshot?.revision ?? 0; }
 export function currentData() { if (!snapshot) throw new Error("기기 저장소를 불러오는 중입니다."); return snapshot.data; }
 export function transactionData() { if (!draft) throw new Error("저장 작업 밖에서는 데이터를 수정할 수 없습니다."); return draft; }
 
@@ -149,22 +150,24 @@ export async function readImage(id: string): Promise<Blob> {
 }
 
 // 백업 도중 다른 탭에서 사진을 삭제해도 메타데이터와 사진이 같은 시점의 것이어야 한다.
-export async function readBackupSnapshot(): Promise<{ data: Data; images: Map<string, Blob> }> {
+export async function readBackupSnapshot(): Promise<{ data: Data; images: Map<string, Blob>; revision: number }> {
   const db = await openDatabase();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(["state", "images"], "readonly");
     const state = tx.objectStore("state").get("data");
     const images = new Map<string, Blob>();
     let data = emptyData();
+    let revision = 0;
     let missing = false;
     state.onsuccess = () => {
       data = upgradeStoredData(state.result?.data ?? emptyData());
+      revision = state.result?.revision ?? 0;
       for (const id of imageIds(data)) {
         const photo = tx.objectStore("images").get(id);
         photo.onsuccess = () => { if (photo.result instanceof Blob) images.set(id, photo.result); else missing = true; };
       }
     };
-    tx.oncomplete = () => missing ? reject(new Error("사진이 누락되어 백업을 만들 수 없습니다.")) : resolve({ data, images });
+    tx.oncomplete = () => missing ? reject(new Error("사진이 누락되어 백업을 만들 수 없습니다.")) : resolve({ data, images, revision });
     tx.onabort = () => reject(tx.error);
   });
 }
@@ -174,4 +177,24 @@ export function stageItemDraftRemoval(key: string, revision: number) {
   transactionData();
   if (!Number.isSafeInteger(revision) || revision < 0) throw new Error("임시저장 버전을 확인해주세요.");
   stagedDraftRemoval = { key, revision };
+}
+
+// 앱 데이터와 별도로 보관하는 부가 정보(마지막 백업 시각 등). 백업 복원으로 바뀌지 않는다.
+export async function readStateValue<T>(key: string): Promise<T | undefined> {
+  const db = await openDatabase();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("state", "readonly");
+    const request = tx.objectStore("state").get(key);
+    tx.oncomplete = () => resolve(request.result as T | undefined);
+    tx.onabort = () => reject(tx.error);
+  });
+}
+export async function writeStateValue(key: string, value: unknown) {
+  const db = await openDatabase();
+  return new Promise<void>((resolve, reject) => {
+    const tx = db.transaction("state", "readwrite");
+    tx.objectStore("state").put(value, key);
+    tx.oncomplete = () => resolve();
+    tx.onabort = () => reject(tx.error);
+  });
 }

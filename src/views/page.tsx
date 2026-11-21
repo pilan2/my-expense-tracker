@@ -1,4 +1,5 @@
 import { BudgetSummary } from "@/components/budget-summary";
+import { BackupReminder } from "@/components/backup-status";
 import Link from "@/lib/local/navigation";
 import { getCategorySummary } from "@/lib/spending";
 import { getUpcomingShipments, getRecentPurchases } from "@/lib/items";
@@ -48,6 +49,8 @@ export default  function Home() {
           + 품목 등록
         </Link>
       </div>
+
+      <BackupReminder />
 
       <BudgetSummary />
 

@@ -67,21 +67,27 @@ export async function cropImageByPercent(
   const cropWidth = (percentCrop.width / 100) * image.naturalWidth;
   const cropHeight = (percentCrop.height / 100) * image.naturalHeight;
 
+  // 휴대폰 원본(수 MB)을 그대로 두면 기기 저장소와 백업 파일이 빠르게 커지므로,
+  // 목록·상세에서 쓰기에 충분한 크기로 줄여서 저장한다. 원본 픽셀 기준으로만 계산한다.
+  const scale = Math.min(1, MAX_PHOTO_EDGE / Math.max(cropWidth, cropHeight));
   const canvas = document.createElement("canvas");
-  canvas.width = cropWidth;
-  canvas.height = cropHeight;
+  canvas.width = Math.max(1, Math.round(cropWidth * scale));
+  canvas.height = Math.max(1, Math.round(cropHeight * scale));
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("이미지 처리에 실패했습니다.");
-  ctx.drawImage(image, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
-  return canvasToBlob(canvas);
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(image, cropX, cropY, cropWidth, cropHeight, 0, 0, canvas.width, canvas.height);
+  return canvasToBlob(canvas, 0.85);
 }
 
-function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
+export const MAX_PHOTO_EDGE = 1600;
+
+function canvasToBlob(canvas: HTMLCanvasElement, quality = 0.9): Promise<Blob> {
   return new Promise((resolve, reject) => {
     canvas.toBlob(
       (blob) => (blob ? resolve(blob) : reject(new Error("이미지 처리에 실패했습니다."))),
       "image/jpeg",
-      0.9,
+      quality,
     );
   });
 }

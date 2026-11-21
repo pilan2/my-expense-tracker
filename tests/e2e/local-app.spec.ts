@@ -527,3 +527,113 @@ test("입력 폼: 만원 입력의 원 환산 표시, 구역 제목, 저장 전 
   await page.locator('input[name="saleAmount"]').fill("2");
   await expect(page.getByText("= 20,000원", { exact: true })).toBeVisible();
 });
+
+test.describe("한국 시간 새벽", () => {
+  test.use({ timezoneId: "Asia/Seoul" });
+  test("판매일 기본값은 현지 날짜, 판매 금액은 1원 단위까지 입력", async ({ page }) => {
+    await page.clock.setFixedTime(new Date("2026-11-21T00:30:00+09:00"));
+    await importFixture(page);
+    await page.goto("/items/item-1");
+    await page.getByText("+ 판매 기록 추가").click();
+    await expect(page.locator('input[name="saleDate"]')).toHaveValue("2026-11-21");
+    await page.locator('input[name="saleAmount"]').fill("0.1234");
+    await page.getByRole("button", { name: "판매 등록", exact: true }).click();
+    await expect(page.getByText("2026. 11. 21. · 1개 · 1,234원")).toBeVisible();
+    await page.goto("/items/item-1");
+    await page.getByRole("link", { name: "+ 같은 물품 추가 구매" }).click();
+    await page.locator('input[name="price"]').fill("1");
+    await page.getByLabel("현물로 보유 중").check();
+    await page.getByRole("button", { name: "저장", exact: true }).click();
+    await expect(page.getByText("현재 보고 있는 구매")).toBeVisible();
+    const newId = new URL(page.url()).pathname.split("/").pop();
+    await page.goto(`/items/bulk-sale?itemIds=item-1&itemIds=${newId}`);
+    await expect(page.locator('input[name="saleDate"]')).toHaveValue("2026-11-21");
+  });
+});
+
+test("사진 저장: 큰 사진은 긴 변 1600px 이하 JPEG로 줄여서 저장", async ({ page }) => {
+  await importFixture(page);
+  await page.goto("/items/item-1?mode=edit");
+  const dataUrl = await page.evaluate(() => {
+    const canvas = document.createElement("canvas"); canvas.width = 4000; canvas.height = 3000;
+    const ctx = canvas.getContext("2d")!;
+    for (let i = 0; i < 400; i++) { ctx.fillStyle = `hsl(${i}, 70%, 50%)`; ctx.fillRect((i * 97) % 4000, (i * 53) % 3000, 200, 200); }
+    return canvas.toDataURL("image/png");
+  });
+  await page.getByLabel("사진 선택", { exact: true }).setInputFiles({ name: "big.png", mimeType: "image/png", buffer: Buffer.from(dataUrl.split(",")[1], "base64") });
+  await page.getByRole("button", { name: "다음: 자르기", exact: true }).click();
+  await page.getByRole("button", { name: "적용", exact: true }).click();
+  await page.getByRole("button", { name: "저장", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "원래 품목", level: 1 })).toBeVisible();
+  const size = await page.locator("img").first().evaluate(async (img: HTMLImageElement) => {
+    await img.decode();
+    const blob = await (await fetch(img.src)).blob();
+    return { width: img.naturalWidth, height: img.naturalHeight, type: blob.type, bytes: blob.size };
+  });
+  expect(Math.max(size.width, size.height)).toBe(1600);
+  expect(size.type).toBe("image/jpeg");
+  expect(size.bytes).toBeLessThan(1_000_000);
+});
+
+test("백업 알림: 백업 전에는 홈에 표시, 다운로드하면 사라지고 백업 화면에 마지막 백업 표시", async ({ page }) => {
+  await importFixture(page);
+  await page.goto("/");
+  const reminder = page.getByRole("status").filter({ hasText: "아직 백업한 적이 없어요" });
+  await expect(reminder).toBeVisible();
+  await reminder.click();
+  await expect(page.getByRole("list", { name: "백업 상태" })).toContainText("마지막 백업: 아직 없음");
+  const downloading = page.waitForEvent("download");
+  await page.getByRole("button", { name: "다운로드", exact: true }).click();
+  await downloading;
+  await expect(page.getByRole("list", { name: "백업 상태" })).toContainText("(오늘) · 이후 변경 없음");
+  await tab(page, "홈").click();
+  await expect(page.getByRole("heading", { name: "홈", exact: true })).toBeVisible();
+  await expect(page.getByText("아직 백업한 적이 없어요")).toHaveCount(0);
+});
+
+test("행사 체크리스트: 수령 체크 시 품목 수령 확인, 현장 구매 항목을 품목으로 등록·연결", async ({ page }) => {
+  await importFixture(page);
+  await page.goto("/events/event-1");
+  page.once("dialog", (dialog) => { expect(dialog.message()).toContain("수령 확인할까요?"); void dialog.accept(); });
+  await page.getByRole("button", { name: "완료 체크" }).click();
+  await expect(page.getByRole("button", { name: "완료 체크" })).toHaveText("☑");
+  await page.goto("/items/item-1");
+  await expect(page.getByText("배송 완료 (발송일 2030년 10월)")).toBeVisible();
+
+  await page.goto("/events/event-1");
+  await page.getByPlaceholder("부스 (예: A-12)").fill("B-07");
+  await page.locator('select[name="type"]').selectOption("PURCHASE");
+  await page.getByPlaceholder("품목 이름 (품목을 연결하지 않을 때만 직접 입력)").fill("현장 한정 엽서");
+  await page.locator('input[name="price"]').fill("0.5");
+  await page.getByRole("button", { name: "체크리스트에 추가" }).click();
+  await page.getByRole("link", { name: "품목으로 등록 →" }).click();
+  await expect(page.getByLabel("물품 세부사항")).toHaveValue("현장 한정 엽서");
+  await expect(page.locator('input[name="price"]')).toHaveValue("0.5");
+  await expect(page.getByLabel("현물로 보유 중")).toBeChecked();
+  await page.getByRole("button", { name: "장르", exact: true }).click();
+  await page.getByRole("button", { name: "캐릭터", exact: true }).click();
+  await page.getByRole("button", { name: "인형", exact: true }).click();
+  await page.getByRole("button", { name: "저장", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "테스트 행사" })).toBeVisible();
+  await expect(page.getByRole("paragraph").filter({ hasText: "장르 · 캐릭터 · 현장 한정 엽서" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "품목으로 등록 →" })).toHaveCount(0);
+});
+
+test("판매 기록 수정: 수량·금액·날짜를 고치고 잔여 수량과 손익에 반영", async ({ page }) => {
+  await importFixture(page);
+  await page.goto("/items/item-1?from=%2Fitems");
+  await page.getByText("+ 판매 기록 추가").click();
+  await page.locator('input[name="saleAmount"]').fill("1.5");
+  await page.locator('input[name="saleDate"]').fill("2026-11-01");
+  await page.getByRole("button", { name: "판매 등록", exact: true }).click();
+  await page.getByRole("button", { name: "2026. 11. 1. · 1개 · 15,000원 수정" }).click();
+  const form = page.getByRole("form", { name: "판매 기록 수정" });
+  await expect(form.getByText("판매 수량 (최대 3개)")).toBeVisible();
+  await form.locator('input[name="quantitySold"]').fill("2");
+  await form.locator('input[name="saleAmount"]').fill("2.6");
+  await form.locator('input[name="saleDate"]').fill("2026-11-05");
+  await form.getByRole("button", { name: "수정 저장" }).click();
+  await expect(page.getByText("2026. 11. 5. · 2개 · 26,000원")).toBeVisible();
+  await expect(page.getByText(/잔여 수량\s*1/)).toBeVisible();
+  await expect(page.getByText(/손익 \+6,000원/).first()).toBeVisible();
+});

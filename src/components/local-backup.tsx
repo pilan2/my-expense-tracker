@@ -4,7 +4,9 @@ import { currentData } from "@/lib/local/database";
 import { EventRecovery } from "./event-recovery";
 import { BackButton } from "./back-button";
 import { LocalForm } from "./local-form";
-import { parseBackup, restoreParsedBackup, exportBackup, downloadJson } from "@/lib/local/backup";
+import { parseBackup, restoreParsedBackup, exportBackupWithRevision, downloadJson } from "@/lib/local/backup";
+import { recordBackup } from "@/lib/local/backup-status";
+import { BackupStatusSummary } from "./backup-status";
 import { buttonClass, linkClass } from "@/components/ui";
 
 export default function LocalBackup() {
@@ -15,13 +17,16 @@ export default function LocalBackup() {
   const [message, setMessage] = useState("");
   const [reading, setReading] = useState(false);
   const [persistent, setPersistent] = useState("");
+  const [persistedChanged, setPersistedChanged] = useState(0);
   return <div className="mx-auto max-w-xl space-y-6 p-6">
     <BackButton href="/more" /><h1 className="text-xl font-semibold">백업 및 기기 저장</h1>
+    <BackupStatusSummary persistedChanged={persistedChanged} />
     <p className="text-sm text-neutral-500">데이터와 사진은 이 기기의 현재 브라우저에만 저장됩니다. 브라우저 데이터 삭제나 기기 변경에 대비해 백업 파일을 앱 밖에 보관해주세요.</p>
     <LocalForm action={async () => {
       setMessage("");
-      const exported = await exportBackup();
+      const { backup: exported, revision } = await exportBackupWithRevision();
       downloadJson(exported);
+      await recordBackup(revision);
       setMessage(`전체 백업 파일을 만들었습니다: 품목 ${exported.data.item.length}개 · 판매 ${exported.data.sale.length}개 · 행사 ${exported.data.event.length}개 · 체크리스트 ${exported.data.eventChecklistItem.length}개 · 사진 ${Object.keys(exported.images).length}개 · 예산 설정 ${exported.data.budgetRule.length + exported.data.monthlyBudget.length}개 · 구매 후보 ${exported.data.wish.length}개. 다운로드한 파일을 보관해주세요.`);
     }} className="rounded-md border border-neutral-300 p-4 dark:border-neutral-700">
       <h2 className="mb-2 font-medium">전체 백업 다운로드</h2>
@@ -61,6 +66,7 @@ export default function LocalBackup() {
     <div className="text-sm"><button className={linkClass} onClick={async () => {
       try { setPersistent(await navigator.storage?.persist?.() ? "브라우저의 지속 저장이 허용됐습니다. 별도 백업도 계속 보관해주세요." : "브라우저가 지속 저장을 허용하지 않았습니다. 정기적으로 백업해주세요."); }
       catch { setPersistent("지속 저장을 요청하지 못했습니다. 정기적으로 백업해주세요."); }
+      setPersistedChanged(value => value + 1);
     }}>기기 데이터 지속 저장 요청</button><p role="status" className="mt-2">{persistent}</p></div>
   </div>;
 }

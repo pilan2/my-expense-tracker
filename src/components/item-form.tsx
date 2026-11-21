@@ -121,6 +121,7 @@ export function ItemForm({
   itemId,
   wishId,
   sameAsItemId,
+  checklistEntryId,
   initialImage,
   onDraftChange,
 }: {
@@ -131,6 +132,7 @@ export function ItemForm({
   itemId?: string;
   wishId?: string;
   sameAsItemId?: string;
+  checklistEntryId?: string;
   initialImage?: File | null;
   onDraftChange?: (values: ItemDraftValues, image: File | null) => void;
 }) {
@@ -200,6 +202,7 @@ export function ItemForm({
     }} onSubmit={handleSubmit} className="flex flex-col gap-4">
       {wishId && <input type="hidden" name="wishId" value={wishId} />}
       {sameAsItemId && <input type="hidden" name="sameAsItemId" value={sameAsItemId} />}
+      {checklistEntryId && <input type="hidden" name="checklistEntryId" value={checklistEntryId} />}
       <FormSection title="물품" first>
         <div className="flex flex-col gap-2 text-sm">
           <span className="font-medium">사진 (선택)</span>

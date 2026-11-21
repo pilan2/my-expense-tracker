@@ -8,8 +8,10 @@ export type ItemDraftValues = {
   purchaseLink: string; memo: string;
 };
 export type ItemDraft = { revision: number; values: ItemDraftValues | null; image: Blob | null };
-export function itemDraftKey(wishId?: string, sameAsItemId?: string) {
-  return wishId ? `item-draft:wish:${wishId}` : sameAsItemId ? `item-draft:same:${sameAsItemId}` : "item-draft:new";
+export function itemDraftKey(wishId?: string, sameAsItemId?: string, checklistEntryId?: string) {
+  if (wishId) return `item-draft:wish:${wishId}`;
+  if (sameAsItemId) return `item-draft:same:${sameAsItemId}`;
+  return checklistEntryId ? `item-draft:entry:${checklistEntryId}` : "item-draft:new";
 }
 
 const pendingWrites = new Map<string, Promise<unknown>>();
