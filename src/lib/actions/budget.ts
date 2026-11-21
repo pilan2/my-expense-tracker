@@ -25,18 +25,3 @@ export const saveBudget = localAction(async (form: FormData) => {
 export const resetMonthlyBudget = localAction(async (month: string) => {
   db.monthlyBudget.deleteMany({ where: { id: month } });
 });
-export const saveWish = localAction(async (id: string | null, form: FormData) => {
-  const values = {
-    title: String(form.get("title") ?? "").trim(), month: monthValue(form.get("month")),
-    price: money(form, "price"), shippingFee: money(form, "shippingFee"), quantity: Number(form.get("quantity")),
-    reason: String(form.get("reason") ?? "").trim() || null, priority: Number(form.get("priority")),
-    deadline: form.get("deadline") ? new Date(String(form.get("deadline"))) : null,
-    purchaseLink: String(form.get("purchaseLink") ?? "").trim() || null,
-  };
-  if (id) {
-    const existing = db.wish.findUniqueOrThrow({ where: { id } });
-    if (existing.status !== "pending") throw new Error("구매 완료된 후보는 수정할 수 없습니다.");
-    db.wish.update({ where: { id }, data: values });
-  } else db.wish.create({ data: { ...values, status: "pending" } });
-});
-export const deleteWish = localAction(async (id: string) => { db.wish.delete({ where: { id } }); });

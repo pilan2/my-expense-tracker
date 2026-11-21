@@ -154,7 +154,6 @@ export default function Home() {
                 {genre.name}
               </Link>
             ))}
-            <Link href="/browse/makers" className="inline-flex min-h-9 items-center rounded-full border border-dashed border-line px-3 text-sm text-muted">제작자별</Link>
           </div>
         )}
       </section>

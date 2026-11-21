@@ -8,13 +8,12 @@ const groups: { title: string; links: { href: string; label: string; description
       { href: "/stats", label: "통계", description: "월별 추이와 장르별 비교" },
       { href: "/purchases", label: "구매 내역", description: "구매일 순 전체 목록" },
       { href: "/sales", label: "판매 내역", description: "판매일 순 전체 목록과 손익" },
-      { href: "/browse/makers", label: "제작자별 보기", description: "제작한 사람별 품목" },
     ],
   },
   {
     title: "관리",
     links: [
-      { href: "/budget", label: "예산·구매 후보", description: "월별 예산과 사고 싶은 물건" },
+      { href: "/budget", label: "월별 예산", description: "이번 달 예산과 남은 금액" },
       { href: "/catalog", label: "장르/캐릭터 관리", description: "선택지 추가·이름 변경·순서" },
       { href: "/shipping-groups", label: "발송 그룹", description: "함께 발송되는 품목 묶음" },
       { href: "/backup", label: "백업 및 기기 저장", description: "전체 백업 다운로드·불러오기" },

@@ -27,7 +27,7 @@ export default function LocalBackup() {
       const { backup: exported, revision } = await exportBackupWithRevision();
       downloadJson(exported);
       await recordBackup(revision);
-      setMessage(`전체 백업 파일을 만들었습니다: 품목 ${exported.data.item.length}개 · 판매 ${exported.data.sale.length}개 · 행사 ${exported.data.event.length}개 · 체크리스트 ${exported.data.eventChecklistItem.length}개 · 사진 ${Object.keys(exported.images).length}개 · 예산 설정 ${exported.data.budgetRule.length + exported.data.monthlyBudget.length}개 · 구매 후보 ${exported.data.wish.length}개. 다운로드한 파일을 보관해주세요.`);
+      setMessage(`전체 백업 파일을 만들었습니다: 품목 ${exported.data.item.length}개 · 판매 ${exported.data.sale.length}개 · 행사 ${exported.data.event.length}개 · 체크리스트 ${exported.data.eventChecklistItem.length}개 · 사진 ${Object.keys(exported.images).length}개. 다운로드한 파일을 보관해주세요.`);
     }} className="rounded-2xl border border-line bg-surface p-4 shadow-card">
       <h2 className="mb-1 font-bold">전체 백업 다운로드</h2>
       <p className="mb-3 text-sm text-muted">사진 포함 모든 기록 · 품목 {data.item.length}개 · 행사 {data.event.length}개 · 체크리스트 {data.eventChecklistItem.length}개</p>
@@ -55,7 +55,6 @@ export default function LocalBackup() {
       {reading && <p role="status">백업 검사 중…</p>}
       {error && <p role="alert" className="text-sm text-loss">{error}</p>}
       {backup && <div className="text-sm"><p>품목 {backup.data.item.length}개 · 판매 {backup.data.sale.length}개 · 행사 {backup.data.event.length}개 · 체크리스트 {backup.data.eventChecklistItem.length}개 · 사진 {backup.images.size}개</p>
-        <p>예산 설정 {backup.data.budgetRule.length + backup.data.monthlyBudget.length}개 · 구매 후보 {backup.data.wish.length}개</p>
         {backup.legacy && <p className="mt-2 text-warn">이전 버전의 백업입니다. 이 파일에는 행사·체크리스트가 없습니다. 전체 교체 시 현재 기기의 행사·체크리스트도 삭제됩니다. 카탈로그 순서도 복원되지 않습니다. 사진은 인터넷으로 가져옵니다. 모든 정보를 보존하려면 이전 안내의 전체 내보내기를 사용해주세요.</p>}</div>}
       <button type="submit" disabled={!backup || reading} className={buttonClass("danger")}>불러오기 (기존 데이터 교체)</button>
     </LocalForm>

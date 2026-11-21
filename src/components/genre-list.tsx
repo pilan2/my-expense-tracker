@@ -20,12 +20,6 @@ type CatalogActions = Pick<
   | "addSeries"
   | "deleteSeries"
   | "renameSeries"
-  | "addMaker"
-  | "deleteMaker"
-  | "renameMaker"
-  | "addOrganizer"
-  | "deleteOrganizer"
-  | "renameOrganizer"
 >;
 
 // /catalog의 장르 카드 목록. 장르 순서와, 각 장르 안 캐릭터 순서를 드래그로 바꿀 수 있다.
@@ -150,79 +144,6 @@ export function GenreList({ genres, actions }: { genres: GenreCatalogEntry[]; ac
               </LocalForm>
             </div>
 
-            <div className="mb-4">
-              <h3 className="mb-2 text-sm font-medium text-neutral-500">제작한 사람</h3>
-              <ul className="mb-2 flex flex-wrap gap-2">
-                {genre.makers.map((maker) => (
-                  <li
-                    key={maker.id}
-                    className="flex items-center gap-1.5 rounded-full border border-neutral-200 py-1 pr-1 pl-3 text-sm dark:border-neutral-800"
-                  >
-                    <EditableName name={maker.name} action={actions.renameMaker.bind(null, maker.id)} />
-                    <LocalForm action={actions.deleteMaker.bind(null, maker.id)}>
-                      <ConfirmSubmitButton
-                        confirmMessage={`"${maker.name}"을(를) 삭제할까요?`}
-                        className="flex h-5 w-5 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
-                      >
-                        ×
-                      </ConfirmSubmitButton>
-                    </LocalForm>
-                  </li>
-                ))}
-                {genre.makers.length === 0 && <li className="text-sm text-neutral-500">없습니다.</li>}
-              </ul>
-              <LocalForm action={actions.addMaker.bind(null, genre.id)} className="flex gap-2">
-                <input
-                  name="name"
-                  placeholder="새 제작자 이름"
-                  required
-                  className={`flex-1 ${inputClass}`}
-                />
-                <button
-                  type="submit"
-                  className={buttonClass("secondary")}
-                >
-                  제작자 추가
-                </button>
-              </LocalForm>
-            </div>
-
-            <div>
-              <h3 className="mb-2 text-sm font-medium text-neutral-500">공구 개최한 사람</h3>
-              <ul className="mb-2 flex flex-wrap gap-2">
-                {genre.organizers.map((organizer) => (
-                  <li
-                    key={organizer.id}
-                    className="flex items-center gap-1.5 rounded-full border border-neutral-200 py-1 pr-1 pl-3 text-sm dark:border-neutral-800"
-                  >
-                    <EditableName name={organizer.name} action={actions.renameOrganizer.bind(null, organizer.id)} />
-                    <LocalForm action={actions.deleteOrganizer.bind(null, organizer.id)}>
-                      <ConfirmSubmitButton
-                        confirmMessage={`"${organizer.name}"을(를) 삭제할까요?`}
-                        className="flex h-5 w-5 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
-                      >
-                        ×
-                      </ConfirmSubmitButton>
-                    </LocalForm>
-                  </li>
-                ))}
-                {genre.organizers.length === 0 && <li className="text-sm text-neutral-500">없습니다.</li>}
-              </ul>
-              <LocalForm action={actions.addOrganizer.bind(null, genre.id)} className="flex gap-2">
-                <input
-                  name="name"
-                  placeholder="새 공구자 이름"
-                  required
-                  className={`flex-1 ${inputClass}`}
-                />
-                <button
-                  type="submit"
-                  className={buttonClass("secondary")}
-                >
-                  공구자 추가
-                </button>
-              </LocalForm>
-            </div>
           </details>
         </div>
       )}

@@ -12,7 +12,7 @@ export function BudgetSummary({ month = currentMonth(), link = true }: { month?:
   return <section aria-label="월별 예산 현황" className="space-y-3 rounded-3xl bg-accent-soft p-5">
     <div className="flex items-center justify-between gap-3">
       <h2 className="text-sm font-semibold text-accent-ink">{Number(month.slice(5))}월 예산</h2>
-      {link && <Link href={`/budget?month=${month}`} className={linkClass}>예산·구매 후보 ›</Link>}
+      {link && <Link href={`/budget?month=${month}`} className={linkClass}>예산 설정 ›</Link>}
     </div>
     {budget.amount === null ? <>
       <p className="text-xl font-bold">예산을 설정하면 남은 금액을 확인할 수 있어요.</p>

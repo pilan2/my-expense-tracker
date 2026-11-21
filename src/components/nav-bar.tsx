@@ -7,7 +7,7 @@ type Tab = "home" | "items" | "shipments" | "events" | "more";
 export function tabForPath(pathname: string): Tab {
   const first = pathname.split("/").filter(Boolean)[0] ?? "";
   if (!first || first === "login") return "home";
-  if (first === "items" || (first === "browse" && pathname.split("/")[2] !== "makers")) return "items";
+  if (first === "items" || first === "browse") return "items";
   if (first === "shipments" || first === "shipping-groups") return "shipments";
   if (first === "events") return "events";
   return "more";

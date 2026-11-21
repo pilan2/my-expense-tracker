@@ -5,8 +5,6 @@ export type GenreCatalogEntry = {
   name: string;
   order: number;
   characters: { id: string; name: string; order: number; series: { id: string; name: string }[] }[];
-  makers: { id: string; name: string }[];
-  organizers: { id: string; name: string }[];
 };
 
 export type ItemTypeCatalogEntry = { id: string; name: string; order: number };
@@ -40,8 +38,6 @@ export  function getGenreCatalog(): GenreCatalogEntry[] {
           series: { orderBy: { name: "asc" }, select: { id: true, name: true } },
         },
       },
-      makers: { orderBy: { name: "asc" }, select: { id: true, name: true } },
-      organizers: { orderBy: { name: "asc" }, select: { id: true, name: true } },
     },
   });
 
@@ -51,8 +47,6 @@ export  function getGenreCatalog(): GenreCatalogEntry[] {
       characters: genre.characters
         .map((character) => ({ ...character, series: [...character.series].sort(compareWithEtcLast) }))
         .sort(compareByOrder),
-      makers: [...genre.makers].sort(compareWithEtcLast),
-      organizers: [...genre.organizers].sort(compareWithEtcLast),
     }))
     .sort(compareByOrder);
 }
@@ -114,8 +108,6 @@ export async function ensureInCatalog(data: {
   character: string;
   series: string | null;
   itemType: string;
-  maker: string | null;
-  organizer: string | null;
 }) {
   const genre = await transactionDb.genre.upsert({
     where: { name: data.genre },
@@ -136,20 +128,6 @@ export async function ensureInCatalog(data: {
     await transactionDb.series.upsert({
       where: { characterId_name: { characterId: character.id, name: data.series } },
       create: { name: data.series, characterId: character.id },
-      update: {},
-    });
-  }
-  if (data.maker) {
-    await transactionDb.maker.upsert({
-      where: { genreId_name: { genreId: genre.id, name: data.maker } },
-      create: { name: data.maker, genreId: genre.id },
-      update: {},
-    });
-  }
-  if (data.organizer) {
-    await transactionDb.organizer.upsert({
-      where: { genreId_name: { genreId: genre.id, name: data.organizer } },
-      create: { name: data.organizer, genreId: genre.id },
       update: {},
     });
   }

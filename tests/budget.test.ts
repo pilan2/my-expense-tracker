@@ -3,7 +3,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { emptyData, validateData, type Data } from "../src/lib/local/models";
 import { createRepository } from "../src/lib/local/repository";
-import { budgetAmount, monthBudget, wishCost } from "../src/lib/budget";
+import { budgetAmount, monthBudget } from "../src/lib/budget";
 import { parseBackup, exportBackup, restoreParsedBackup } from "../src/lib/local/backup";
 import { initializeDatabase, currentData, transaction, transactionData, readBackupSnapshot } from "../src/lib/local/database";
 
@@ -30,7 +30,6 @@ test("월별 예산은 과거 설정·별도 0원 예산을 보존하고 판매�
   assert.equal(budgetAmount(data, "2027-01"), 200000);
   assert.deepEqual(monthBudget(data, "2026-10"), { amount: 100000, spent: 43000, remaining: 57000, undated: 1, pendingShipping: 1 });
   assert.equal(monthBudget(data, "2026-10", "item-1").spent, 0);
-  assert.equal(wishCost(data.wish[0]), 61000);
   data.item[0].purchasedAt = new Date("2026-11-01");
   assert.equal(monthBudget(data, "2026-10").spent, 0);
   assert.equal(monthBudget(data, "2026-11").spent, 43000);

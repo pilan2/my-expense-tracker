@@ -27,8 +27,8 @@ test("미완성 입력·사진 보존, 순서 보장, 다른 탭 충돌과 후�
   assert.equal(restored.values?.purchasedAt, "");
   assert.equal(await restored.image?.text(), "photo");
   await assert.rejects(writeItemDraft(key, 1, values), /다른 탭/);
-  await writeItemDraft(itemDraftKey("wish-1"), 0, { ...values, detail: "후보 1" });
-  assert.equal((await readItemDraft(itemDraftKey("wish-1"))).values?.detail, "후보 1");
+  await writeItemDraft(itemDraftKey("item-1"), 0, { ...values, detail: "후보 1" });
+  assert.equal((await readItemDraft(itemDraftKey("item-1"))).values?.detail, "후보 1");
   assert.equal((await readItemDraft(key)).values?.detail, values.detail);
   const backup = await exportBackup();
   assert.equal(backup.data.item.length, 0);
@@ -52,11 +52,11 @@ test("등록 실패 시 임시저장 유지, 성공 시 품목과 함께 원자�
   assert.equal(currentData().item.length, 1);
   assert.deepEqual(await readItemDraft(key), { revision: initial.revision + 1, values: null, image: null });
   await assert.rejects(writeItemDraft(key, initial.revision, values), /다른 탭/);
-  assert.ok((await readItemDraft(itemDraftKey("wish-1"))).values);
+  assert.ok((await readItemDraft(itemDraftKey("item-1"))).values);
 });
 
 test("새로 작성은 해당 임시 사진만 지우고 오래된 탭의 재생성을 막는다", async () => {
-  const key = itemDraftKey("wish-1"), before = await readItemDraft(key);
+  const key = itemDraftKey("item-1"), before = await readItemDraft(key);
   await writeItemDraft(key, before.revision, null);
   assert.equal((await readItemDraft(key)).values, null);
   await assert.rejects(writeItemDraft(key, before.revision, values), /다른 탭/);

@@ -16,12 +16,6 @@ import {
   deleteItemType,
   renameItemType,
   reorderItemTypes,
-  addMaker,
-  deleteMaker,
-  renameMaker,
-  addOrganizer,
-  deleteOrganizer,
-  renameOrganizer,
 } from "@/lib/actions/catalog";
 import { BackButton } from "@/components/back-button";
 import { GenreList } from "@/components/genre-list";
@@ -67,12 +61,6 @@ export default  function CatalogPage() {
           addSeries,
           deleteSeries,
           renameSeries,
-          addMaker,
-          deleteMaker,
-          renameMaker,
-          addOrganizer,
-          deleteOrganizer,
-          renameOrganizer,
         }}
       />
 

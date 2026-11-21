@@ -6,7 +6,7 @@ import { itemDraftKey, readItemDraft, writeItemDraft, queueItemDraftWrite, type 
 type Props = ComponentProps<typeof ItemForm>;
 
 export function NewItemDraftForm(props: Props) {
-  const key = itemDraftKey(props.wishId, props.sameAsItemId, props.checklistEntryId);
+  const key = itemDraftKey(props.sameAsItemId, props.checklistEntryId);
   const [loaded, setLoaded] = useState<ItemDraft>();
   const [error, setError] = useState("");
   const [attempt, setAttempt] = useState(0);

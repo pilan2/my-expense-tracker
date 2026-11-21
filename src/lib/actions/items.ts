@@ -68,13 +68,9 @@ function parseItemForm(formData: FormData) {
 
 export const createItem = localAction(async function createItem(formData: FormData) {
   const data = parseItemForm(formData);
-  const wishId = String(formData.get("wishId") ?? "");
-  const wish = wishId ? db.wish.findUniqueOrThrow({ where: { id: wishId } }) : null;
-  if (wish?.status === "purchased") throw new Error("이미 품목으로 등록한 구매 후보입니다.");
-
-  const sameAsId = wish ? "" : String(formData.get("sameAsItemId") ?? "");
+  const sameAsId = String(formData.get("sameAsItemId") ?? "");
   const sameAs = sameAsId ? db.item.findUniqueOrThrow({ where: { id: sameAsId } }) : null;
-  const entryId = wish || sameAs ? "" : String(formData.get("checklistEntryId") ?? "");
+  const entryId = sameAs ? "" : String(formData.get("checklistEntryId") ?? "");
   const entry = entryId ? db.eventChecklistItem.findUniqueOrThrow({ where: { id: entryId } }) : null;
   if (entry?.itemId) throw new Error("이미 품목과 연결된 체크리스트 항목입니다.");
 
@@ -84,7 +80,6 @@ export const createItem = localAction(async function createItem(formData: FormDa
     : sameAs && formData.get("removeImage") !== "on" ? sameAs.imageUrl : null;
 
   const created = await db.item.create({ data: { ...data, imageUrl } });
-  if (wish) db.wish.update({ where: { id: wish.id }, data: { status: "purchased", itemId: created.id } });
   if (sameAs) linkItems(sameAs.id, created.id);
   // 체크리스트 항목은 이후 연결된 품목의 최신 이름·가격·수량을 보여준다.
   if (entry) db.eventChecklistItem.update({ where: { id: entry.id }, data: { itemId: created.id } });
@@ -94,10 +89,8 @@ export const createItem = localAction(async function createItem(formData: FormDa
     character: data.character,
     series: data.series,
     itemType: data.itemType,
-    maker: data.maker,
-    organizer: data.organizer,
   });
-  if (formData.has("itemDraftRevision")) stageItemDraftRemoval(itemDraftKey(wishId || undefined, sameAsId || undefined, entryId || undefined), Number(formData.get("itemDraftRevision")));
+  if (formData.has("itemDraftRevision")) stageItemDraftRemoval(itemDraftKey(sameAsId || undefined, entryId || undefined), Number(formData.get("itemDraftRevision")));
   // 추가 구매 후에는 구매 건끼리 비교할 수 있도록 새 품목 화면으로 간다.
   redirect(sameAs ? itemHref(created.id, "/items") : entry ? `/events/${entry.eventId}` : "/items");
 });
@@ -145,8 +138,6 @@ export const updateItem = localAction(async function updateItem(id: string, from
     character: data.character,
     series: data.series,
     itemType: data.itemType,
-    maker: data.maker,
-    organizer: data.organizer,
   });
   // 저장 후에는 상위 목록이 아니라 이 품목의 보기 화면으로 돌아간다.
   redirect(itemHref(id, from));

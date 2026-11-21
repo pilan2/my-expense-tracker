@@ -8,8 +8,7 @@ export type ItemDraftValues = {
   purchaseLink: string; memo: string;
 };
 export type ItemDraft = { revision: number; values: ItemDraftValues | null; image: Blob | null };
-export function itemDraftKey(wishId?: string, sameAsItemId?: string, checklistEntryId?: string) {
-  if (wishId) return `item-draft:wish:${wishId}`;
+export function itemDraftKey(sameAsItemId?: string, checklistEntryId?: string) {
   if (sameAsItemId) return `item-draft:same:${sameAsItemId}`;
   return checklistEntryId ? `item-draft:entry:${checklistEntryId}` : "item-draft:new";
 }

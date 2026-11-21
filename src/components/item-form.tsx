@@ -119,7 +119,6 @@ export function ItemForm({
   itemTypeCatalog,
   defaultValues,
   itemId,
-  wishId,
   sameAsItemId,
   checklistEntryId,
   initialImage,
@@ -130,7 +129,6 @@ export function ItemForm({
   itemTypeCatalog: ItemTypeCatalogEntry[];
   defaultValues?: Partial<ItemFormDefaults>;
   itemId?: string;
-  wishId?: string;
   sameAsItemId?: string;
   checklistEntryId?: string;
   initialImage?: File | null;
@@ -163,24 +161,18 @@ export function ItemForm({
   const [character, setCharacter] = useState(defaultValues?.character ?? "");
   const [series, setSeries] = useState(defaultValues?.series ?? "");
   const [itemType, setItemType] = useState(defaultValues?.itemType ?? "");
-  const [maker, setMaker] = useState(defaultValues?.maker ?? "");
-  const [organizer, setOrganizer] = useState(defaultValues?.organizer ?? "");
 
   const selectedGenre = genreCatalog.find((g) => g.name === genre);
   const genreOptions = genreCatalog.map((g) => g.name);
   const characterOptions = selectedGenre?.characters.map((c) => c.name) ?? [];
   const seriesOptions = selectedGenre?.characters.find((c) => c.name === character)?.series.map((s) => s.name) ?? [];
   const itemTypeOptions = itemTypeCatalog.map((t) => t.name);
-  const makerOptions = selectedGenre?.makers.map((m) => m.name) ?? [];
-  const organizerOptions = selectedGenre?.organizers.map((o) => o.name) ?? [];
 
   // 장르가 바뀌면 그 장르에 속하지 않는 캐릭터/시리즈/제작자/공구자 선택은 의미가 없어지므로 초기화한다.
   function handleGenreChange(next: string) {
     setGenre(next);
     setCharacter("");
     setSeries("");
-    setMaker("");
-    setOrganizer("");
   }
   // 캐릭터가 바뀌면 그 캐릭터에 속하지 않는 시리즈 선택도 초기화한다.
   function handleCharacterChange(next: string) {
@@ -200,7 +192,6 @@ export function ItemForm({
       if (draftImage) form.set("image", draftImage);
       await action(form);
     }} onSubmit={handleSubmit} className="flex flex-col gap-4">
-      {wishId && <input type="hidden" name="wishId" value={wishId} />}
       {sameAsItemId && <input type="hidden" name="sameAsItemId" value={sameAsItemId} />}
       {checklistEntryId && <input type="hidden" name="checklistEntryId" value={checklistEntryId} />}
       <FormSection title="물품">
@@ -310,23 +301,14 @@ export function ItemForm({
           />
         </Field>
 
-        <PickerField
-          label="제작한 사람 (선택)"
-          name="maker"
-          options={makerOptions}
-          value={maker}
-          onChange={setMaker}
-          required={false}
-        />
+        {/* 사람마다 달라 선택지가 쌓이기만 해서 버튼 없이 직접 입력한다. */}
+        <Field label="제작한 사람 (선택)">
+          <input name="maker" defaultValue={defaultValues?.maker} className={inputClass} />
+        </Field>
 
-        <PickerField
-          label="공구 개최한 사람 (선택)"
-          name="organizer"
-          options={organizerOptions}
-          value={organizer}
-          onChange={setOrganizer}
-          required={false}
-        />
+        <Field label="공구 개최한 사람 (선택)">
+          <input name="organizer" defaultValue={defaultValues?.organizer} className={inputClass} />
+        </Field>
 
       </FormSection>
 

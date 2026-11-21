@@ -1,4 +1,4 @@
-import { isBudgetMonth, type Data, type Wish } from "./local/models";
+import { isBudgetMonth, type Data } from "./local/models";
 import { won } from "./money";
 
 export { won };
@@ -22,5 +22,4 @@ export function monthBudget(data: Data, month: string, excludeItemId?: string) {
     undated: data.item.filter(row => !row.purchasedAt && row.id !== excludeItemId).length,
     pendingShipping: items.filter(row => row.hasOverseasShipping).length };
 }
-export function wishCost(wish: Pick<Wish, "price" | "quantity" | "shippingFee">) { return wish.price * wish.quantity + wish.shippingFee; }
 export function remainingText(value: number) { return value < 0 ? `${won(-value)} 초과` : `${won(value)} 남음`; }

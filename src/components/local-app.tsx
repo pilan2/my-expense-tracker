@@ -24,8 +24,6 @@ import Purchases from "@/views/purchases/page";
 import Sales from "@/views/sales/page";
 import Genres from "@/views/browse/[genre]/page";
 import Characters from "@/views/browse/[genre]/[character]/page";
-import Makers from "@/views/browse/makers/page";
-import Maker from "@/views/browse/makers/[maker]/page";
 import Backup from "./local-backup";
 import More from "@/views/more/page";
 
@@ -51,10 +49,6 @@ function Route({ url }: { url: string }) {
       if (segments.length === 2) return <Group params={{ id: decodeURIComponent(segments[1]) }} />;
       break;
     case "browse":
-      if (segments[1] === "makers") {
-        if (segments.length === 2) return <Makers />;
-        if (segments.length === 3) return <Maker params={{ maker: segments[2] }} />;
-      }
       if (segments.length === 2) return <Genres params={{ genre: segments[1] }} />;
       if (segments.length === 3) return <Characters params={{ genre: segments[1], character: segments[2] }} />;
       break;

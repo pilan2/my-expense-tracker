@@ -30,20 +30,6 @@ export  function getItemsByCategory(genre: string, character: string) {
   }));
 }
 
-// /browse/makers/[maker]에서 쓰는, 해당 제작자(장르 무관)의 품목만.
-export  function getItemsByMaker(maker: string) {
-  const items = db.item.findMany({
-    where: { maker },
-    orderBy: { createdAt: "desc" },
-    include: { sales: SALES_FOR_CARD },
-  });
-
-  return items.map((item) => ({
-    ...item,
-    remainingQuantity: calcRemainingQuantity(item.quantity, item.sales),
-  }));
-}
-
 // 묶음 판매 화면에서, 체크박스로 선택된 품목 id들만.
 export  function getItemsByIds(ids: string[]) {
   const items = db.item.findMany({
