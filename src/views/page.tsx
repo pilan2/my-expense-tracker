@@ -13,6 +13,8 @@ import { itemHref } from "@/lib/nav";
 import { won, signedWon } from "@/lib/money";
 import { profitColor, buttonClass, cardClass, chipClass, linkClass, saleColor, SectionHeader } from "@/components/ui";
 
+const shortcutClass = "inline-flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-line bg-surface px-4 text-sm font-medium shadow-card hover:bg-accent-soft";
+
 export default function Home() {
   const [summary, items, upcomingShipments, recentPurchases, recentSales, currentMonth] = [
     getCategorySummary(),
@@ -43,6 +45,19 @@ export default function Home() {
           + 품목 등록
         </Link>
       </div>
+
+      {/* 자주 들어가는 통계와 장르 목록은 맨 위에서 바로 갈 수 있게 한다. */}
+      <nav aria-label="바로가기" className="-mx-5 -mt-3 flex gap-2 overflow-x-auto px-5 pb-1 sm:-mx-6 sm:px-6">
+        <Link href="/stats" className={shortcutClass}>
+          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg>
+          통계
+        </Link>
+        {summary.genres.map((genre) => (
+          <Link key={genre.name} href={`/browse/${encodeURIComponent(genre.name)}`} className={shortcutClass}>
+            {genre.name}
+          </Link>
+        ))}
+      </nav>
 
       <BackupReminder />
 
@@ -147,15 +162,6 @@ export default function Home() {
           <div><dt className="text-muted">판매</dt><dd className={`font-semibold ${saleColor}`}>{won(summary.totalSale)}</dd></div>
           <div><dt className="text-muted">손익</dt><dd className={`font-semibold ${profitColor(summary.totalProfit)}`}>{signedWon(summary.totalProfit)}</dd></div>
         </dl>
-        {summary.genres.length > 0 && (
-          <div className="flex flex-wrap gap-2 pt-1">
-            {summary.genres.map((genre) => (
-              <Link key={genre.name} href={`/browse/${encodeURIComponent(genre.name)}`} className="inline-flex min-h-9 items-center rounded-full border border-line bg-surface px-3 text-sm hover:bg-accent-soft">
-                {genre.name}
-              </Link>
-            ))}
-          </div>
-        )}
       </section>
     </div>
   );

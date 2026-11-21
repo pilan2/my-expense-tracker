@@ -21,6 +21,8 @@ import { safeRedirectTarget } from "@/lib/nav";
 import { todayString } from "@/lib/budget";
 import { profitColor, buttonClass, inputClass, linkClass, warningColor, cardClass, chipClass } from "@/components/ui";
 import { ItemThumb } from "@/components/item-card";
+import { ShippingGroupPicker } from "@/components/shipping-group-picker";
+import { getShippingGroups } from "@/lib/shipping-groups";
 import { itemStatusChip } from "@/lib/item-status";
 import { ManwonInput } from "@/components/manwon-input";
 
@@ -155,11 +157,10 @@ export default  function ItemDetailPage({
         <Info label="배송비" value={item.hasOverseasShipping ? <span className={warningColor}>이후 계산 필요</span> : won(Number(item.shippingFee))} />
         {item.maker && <Info label="제작한 사람" value={item.maker} />}
         {item.organizer && <Info label="공구 개최한 사람" value={item.organizer} />}
-        {item.shippingGroup && (
+        {(item.shippingGroup || !item.isPhysical) && (
           <Info wide label="발송 그룹" value={
-            <Link href={`/shipping-groups/${item.shippingGroup.id}`} className="text-accent-ink underline">
-              {item.shippingGroup.label} →
-            </Link>
+            <ShippingGroupPicker itemId={item.id} current={item.shippingGroup}
+              groups={getShippingGroups().map((group) => ({ id: group.id, label: group.label, count: group.items.length }))} />
           } />
         )}
         {item.purchaseLink && (

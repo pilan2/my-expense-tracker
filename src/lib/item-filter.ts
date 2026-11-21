@@ -24,7 +24,8 @@ export function parseItemFilter(searchParams: { q?: string; status?: string; pen
   const status = itemStatusFilters.some((filter) => filter.id === searchParams.status)
     ? (searchParams.status as ItemStatusFilter)
     : searchParams.pending === "1" ? "shipping-fee" : "all";
-  const view: ItemView = searchParams.view === "grid" ? "grid" : "list";
+  // 주소에 보기 방식이 없으면 null을 돌려줘 화면이 기기에 기억된 설정을 쓰게 한다.
+  const view: ItemView | null = searchParams.view === "grid" || searchParams.view === "list" ? searchParams.view : null;
   return { q: searchParams.q ?? "", status, view };
 }
 

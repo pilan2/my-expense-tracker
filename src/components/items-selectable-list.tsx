@@ -4,13 +4,12 @@ import { useState } from "react";
 import { LocalForm } from "@/components/local-form";
 import { assignShippingFee } from "@/lib/actions/shipping";
 import { itemFilterHref, itemStatusFilters, matchesItemFilter, type ItemStatusFilter, type ItemView } from "@/lib/item-filter";
-import Link from "@/lib/local/navigation";
-import { ItemThumb } from "@/components/item-card";
-import { itemStatusChip } from "@/lib/item-status";
-import { won } from "@/lib/money";
+import { ItemGridCard } from "@/components/item-grid-card";
+import { ItemViewToggle } from "@/components/item-view-toggle";
+import { saveItemView } from "@/lib/item-view";
 import { ItemCardWithDelivery } from "@/components/item-card-with-delivery";
 import { itemHref } from "@/lib/nav";
-import { buttonClass, inputClass, chipClass, EmptyState } from "@/components/ui";
+import { buttonClass, inputClass, EmptyState } from "@/components/ui";
 import { ManwonInput } from "@/components/manwon-input";
 
 type Item = Omit<Parameters<typeof ItemCardWithDelivery>[0], "href"> & {
@@ -43,6 +42,7 @@ export function ItemsSelectableList({
   // 상세에서 돌아왔을 때와 새로고침 때 같은 검색 결과를 다시 보여준다.
   function update(nextQuery: string, nextStatus: ItemStatusFilter, nextView: ItemView = view) {
     setQuery(nextQuery); setStatus(nextStatus); setView(nextView);
+    if (nextView !== view) saveItemView(nextView);
     if (nextStatus !== status) setSelectMode(false);
     try { history.replaceState(history.state, "", itemFilterHref(nextQuery, nextStatus, nextView)); } catch {}
   }
@@ -91,22 +91,7 @@ export function ItemsSelectableList({
         </div>
         <div className="flex items-center justify-between gap-3">
           <p role="status" className="text-sm text-muted">{resultCount}개 품목</p>
-          <div role="group" aria-label="보기 방식" className="flex rounded-xl bg-surface-soft p-1">
-            {(["list", "grid"] as const).map((option) => (
-              <button
-                key={option}
-                type="button"
-                aria-pressed={view === option}
-                aria-label={option === "list" ? "목록 보기" : "사진 그리드 보기"}
-                onClick={() => update(query, status, option)}
-                className={`flex h-9 w-11 items-center justify-center rounded-lg ${view === option ? "bg-surface text-accent shadow-card" : "text-muted"}`}
-              >
-                <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                  <path d={option === "list" ? "M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" : "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"} />
-                </svg>
-              </button>
-            ))}
-          </div>
+          <ItemViewToggle view={view} onChange={(option) => update(query, status, option)} />
         </div>
       </div>
 
@@ -168,7 +153,7 @@ export function ItemsSelectableList({
         )}
       </div>
 
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-10">
         {filteredGroups.map((genreGroup) => {
           // 묶음 판매(배송비 나누기가 아닐 때) 선택 중에는 이미 다 팔린 품목은 더 팔 수 없으니
           // 목록 자체에서 뺀다. 그 결과 캐릭터/장르에 남는 품목이 없으면 그 제목도 같이 숨긴다.
@@ -186,13 +171,13 @@ export function ItemsSelectableList({
 
           return (
             <div key={genreGroup.genre}>
-              <h2 className="mb-3 text-xl font-bold">{genreGroup.genre}</h2>
-              <div className="flex flex-col gap-4">
+              <h2 className="mb-4 border-b-2 border-line pb-2 text-xl font-bold">{genreGroup.genre}</h2>
+              <div className="flex flex-col gap-7">
                 {visibleSubgroups.map((subgroup) => (
                   <div key={`${subgroup.character}-${subgroup.series ?? ""}`}>
                     {/* "기타" 장르는 캐릭터도 항상 "기타"라, 장르 제목과 중복되는 캐릭터 제목은 생략한다. */}
                     {!(genreGroup.genre === "기타" && subgroup.character === "기타") && (
-                      <h3 className="mb-2 flex items-baseline gap-1.5 text-base font-bold">
+                      <h3 className="mb-3 flex items-baseline gap-2 rounded-xl bg-accent-soft px-3 py-2 text-base font-bold text-accent-ink">
                         {subgroup.character}
                         <span className="text-sm font-medium text-muted">
                           {subgroup.series ? `${subgroup.series} · ` : ""}{subgroup.items.length}
@@ -201,24 +186,9 @@ export function ItemsSelectableList({
                     )}
                     {showGrid ? (
                       <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                        {subgroup.items.map((item) => {
-                          const status = itemStatusChip(item);
-                          return (
-                            <li key={item.id}>
-                              <Link href={itemHref(item.id, from)} className="flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-card hover:opacity-80">
-                                <span className="relative block">
-                                  <ItemThumb imageUrl={item.imageUrl} name={item.detail} seed={item.detail} className="aspect-square w-full text-3xl" />
-                                  {status && <span className={`absolute top-2 left-2 ${chipClass(status.kind)}`}>{status.label}</span>}
-                                </span>
-                                <span className="flex flex-col gap-0.5 px-3 pt-2 pb-3">
-                                  <span className="truncate text-sm font-semibold">{item.detail}</span>
-                                  <span className="truncate text-xs text-muted">{[item.series, item.itemType].filter(Boolean).join(" · ")}</span>
-                                  <span className="mt-0.5 text-sm font-semibold">{won(Number(item.price) * item.quantity)}</span>
-                                </span>
-                              </Link>
-                            </li>
-                          );
-                        })}
+                        {subgroup.items.map((item) => (
+                          <li key={item.id}><ItemGridCard item={item} href={itemHref(item.id, from)} /></li>
+                        ))}
                       </ul>
                     ) : (
                     <ul className="flex flex-col gap-2">

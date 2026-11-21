@@ -1,7 +1,7 @@
 import { localAction } from "@/lib/local/action";
 
 import { transactionDb as db } from "@/lib/local/repository";
-import { autoAssignShippingGroup } from "@/lib/shipping-group-matching";
+import { autoAssignShippingGroup, shippingGroupLabel } from "@/lib/shipping-group-matching";
 
 
 export const renameShippingGroup = localAction(async function renameShippingGroup(id: string, formData: FormData) {
@@ -47,13 +47,22 @@ export const addItemsToShippingGroup = localAction(async function addItemsToShip
 // 이 기능이 생기기 전에 등록된 품목들은 저장 시점에 자동 그룹화가 걸리지 않았으므로, 아직
 // 그룹에 없는 미현물 품목 전체를 다시 훑어서 매칭을 시도한다. 이미 그룹에 들어간 품목은
 // 건드리지 않는다(사용자가 직접 뺐을 수 있으므로).
+// 품목 화면에서 직접 그룹을 고른다. "new"면 이 품목만 든 새 그룹을 만들고, 빈 값이면 그룹에서 뺀다.
+export const setItemShippingGroup = localAction(async function setItemShippingGroup(itemId: string, formData: FormData) {
+  const choice = String(formData.get("shippingGroupId") ?? "");
+  const item = db.item.findUniqueOrThrow({ where: { id: itemId } });
+  let groupId: string | null = choice || null;
+  if (choice === "new") groupId = db.shippingGroup.create({ data: { label: shippingGroupLabel([item]) } }).id;
+  else if (groupId) db.shippingGroup.findUniqueOrThrow({ where: { id: groupId } });
+  db.item.update({ where: { id: itemId }, data: { shippingGroupId: groupId } });
+});
+
 export const backfillShippingGroups = localAction(async function backfillShippingGroups() {
 
   const candidates = await db.item.findMany({
     where: {
       isPhysical: false,
       shippingGroupId: null,
-      purchasedAt: { not: null },
     },
     select: { id: true },
     orderBy: [{ purchasedAt: "asc" }, { createdAt: "asc" }],

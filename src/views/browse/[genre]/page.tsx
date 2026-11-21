@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Link from "@/lib/local/navigation";
 import { getItemsByGenre } from "@/lib/items";
 import { getCatalogOrderMaps, compareNameByCatalogOrder, compareCharacterByCatalogOrder } from "@/lib/catalog";
@@ -7,6 +10,10 @@ import { ProductGroupCard } from "@/components/product-group-card";
 import { collapseProductGroups } from "@/lib/product-groups";
 import { itemHref } from "@/lib/nav";
 import { EmptyState, PageHeader } from "@/components/ui";
+import { ItemGridCard } from "@/components/item-grid-card";
+import { ItemViewToggle } from "@/components/item-view-toggle";
+import { readItemView, saveItemView } from "@/lib/item-view";
+import type { ItemView } from "@/lib/item-filter";
 
 type GenreItem = ReturnType<typeof getItemsByGenre>[number];
 
@@ -24,7 +31,20 @@ function groupByItemType(items: GenreItem[], itemTypeOrder: Map<string, number>)
 const cardClass = "block rounded-2xl border border-line bg-surface shadow-card p-3";
 
 // 같은 물품으로 묶인 구매 건은 카드 하나로 접어서 보여준다.
-function ItemList({ items, from }: { items: GenreItem[]; from: string }) {
+function ItemList({ items, from, view }: { items: GenreItem[]; from: string; view: ItemView }) {
+  if (view === "grid") {
+    return (
+      <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {collapseProductGroups(items).map((entry) => (
+          <li key={entry.key}>
+            <ItemGridCard item={entry.items[0]} href={itemHref(entry.items[0].id, from)}
+              badge={entry.items.length > 1 ? `${entry.items.length}건` : undefined}
+              total={entry.items.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0)} />
+          </li>
+        ))}
+      </ul>
+    );
+  }
   return (
     <ul className="flex flex-col gap-2">
       {collapseProductGroups(items).map((entry) => (
@@ -42,25 +62,25 @@ function ItemList({ items, from }: { items: GenreItem[]; from: string }) {
 }
 
 // 한 캐릭터 안에서는 시리즈 없는 품목을 먼저 물품 종류별로, 시리즈가 있으면 시리즈 > 물품 종류로 묶는다.
-function CharacterItems({ items, from, itemTypeOrder }: { items: GenreItem[]; from: string; itemTypeOrder: Map<string, number> }) {
+function CharacterItems({ items, from, itemTypeOrder, view }: { items: GenreItem[]; from: string; itemTypeOrder: Map<string, number>; view: ItemView }) {
   const withoutSeries = groupByItemType(items.filter((item) => !item.series), itemTypeOrder);
   const seriesNames = [...new Set(items.flatMap((item) => (item.series ? [item.series] : [])))].sort((a, b) => a.localeCompare(b, "ko"));
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       {withoutSeries.map((group) => (
         <div key={group.itemType}>
           <h3 className="mb-2 text-sm font-semibold text-muted">{group.itemType}</h3>
-          <ItemList items={group.items} from={from} />
+          <ItemList items={group.items} from={from} view={view} />
         </div>
       ))}
       {seriesNames.map((series) => (
         <div key={series}>
-          <h3 className="mb-2 text-base font-bold">{series}</h3>
+          <h3 className="mb-2 border-l-4 border-accent/60 pl-2 text-base font-bold">{series}</h3>
           <div className="flex flex-col gap-3">
             {groupByItemType(items.filter((item) => item.series === series), itemTypeOrder).map((group) => (
               <div key={group.itemType}>
                 <h4 className="mb-2 text-sm font-semibold text-muted">{group.itemType}</h4>
-                <ItemList items={group.items} from={from} />
+                <ItemList items={group.items} from={from} view={view} />
               </div>
             ))}
           </div>
@@ -78,6 +98,7 @@ export default function BrowseGenrePage({
   searchParams: { character?: string };
 }) {
   const genre = decodeURIComponent(params.genre);
+  const [view, setView] = useState<ItemView>(() => readItemView() ?? "list");
   const [items, orderMaps] = [getItemsByGenre(genre), getCatalogOrderMaps()] as const;
   const characters = [...new Set(items.map((item) => item.character))]
     .sort((a, b) => compareCharacterByCatalogOrder(orderMaps.character, genre, a, b));
@@ -92,7 +113,7 @@ export default function BrowseGenrePage({
   return (
     <div className="box-border mx-auto w-full max-w-3xl overflow-x-hidden p-5 sm:p-6">
       <BackButton href="/" />
-      <PageHeader title={genre} />
+      <PageHeader title={genre} action={<ItemViewToggle view={view} onChange={(next) => { setView(next); saveItemView(next); }} />} />
 
       {/* 캐릭터는 들어가서 고르는 단계가 아니라, 전체 목록을 좁히는 필터로 쓴다. */}
       {characters.length > 1 && (
@@ -111,12 +132,17 @@ export default function BrowseGenrePage({
       {items.length === 0 ? (
         <EmptyState>보유 중인 품목이 없습니다.</EmptyState>
       ) : (
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-10">
           {shownCharacters.map((character) => (
             <section key={character} aria-label={character}>
               {/* 캐릭터가 하나뿐이거나 이미 골랐으면 제목이 필터와 겹치므로 생략한다. */}
-              {characters.length > 1 && !selected && <h2 className="mb-3 text-xl font-bold">{character}</h2>}
-              <CharacterItems items={items.filter((item) => item.character === character)} from={from} itemTypeOrder={orderMaps.itemType} />
+              {characters.length > 1 && !selected && (
+                <h2 className="mb-4 flex items-baseline gap-2 rounded-xl bg-accent-soft px-3 py-2 text-lg font-bold text-accent-ink">
+                  {character}
+                  <span className="text-sm font-medium opacity-70">{items.filter((item) => item.character === character).length}</span>
+                </h2>
+              )}
+              <CharacterItems items={items.filter((item) => item.character === character)} from={from} itemTypeOrder={orderMaps.itemType} view={view} />
             </section>
           ))}
         </div>

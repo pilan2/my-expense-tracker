@@ -2,6 +2,7 @@ import Link from "@/lib/local/navigation";
 import { getItems } from "@/lib/items";
 import { getCatalogOrderMaps, compareNameByCatalogOrder, compareCharacterByCatalogOrder } from "@/lib/catalog";
 import { parseItemFilter } from "@/lib/item-filter";
+import { readItemView } from "@/lib/item-view";
 import { ItemsSelectableList } from "@/components/items-selectable-list";
 import { db } from "@/lib/local/repository";
 import { countProductGroups } from "@/lib/product-groups";
@@ -93,7 +94,7 @@ export default  function ItemsPage({
           장르/캐릭터 관리 →
         </Link>
       </div>
-      <ItemsSelectableList groups={groups} initialQuery={filter.q} initialStatus={filter.status} initialView={filter.view} />
+      <ItemsSelectableList groups={groups} initialQuery={filter.q} initialStatus={filter.status} initialView={filter.view ?? readItemView() ?? "list"} />
     </div>
   );
 }

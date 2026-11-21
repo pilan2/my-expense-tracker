@@ -438,7 +438,7 @@ test("홈: 예산 카드, 확인할 것 칩, 발송 예정·최근 구매 사진
   await expect(page).toHaveURL(/\/items\?status=shipping-fee$/);
   await expect(page.getByRole("group", { name: "상태 필터" }).getByRole("button", { name: /^배송비 미정/ })).toHaveAttribute("aria-pressed", "true");
   await tab(page, "홈").click();
-  await page.getByRole("region", { name: "전체 누적" }).getByRole("link", { name: "장르" }).click();
+  await page.getByRole("navigation", { name: "바로가기" }).getByRole("link", { name: "장르", exact: true }).click();
   await expect(page.getByRole("heading", { name: "장르", exact: true })).toBeVisible();
 });
 
@@ -695,7 +695,25 @@ test("같은 물품 구매 순서 번호와, 판매자 정보 없이도 같은 �
   await register("같이 오는 스탠드");
   await register("같이 오는 키링");
   await page.getByRole("link").filter({ hasText: "같이 오는 키링" }).click();
-  await expect(page.getByRole("link", { name: /2026\. 11\. 1\. 구매 · 2030\. 12\. 10\. 발송/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /^2030\. 12\. 10\. 발송 →$/ })).toBeVisible();
+  // 구매일이 달라도 발송일이 같으면(통합 배송) 같은 그룹에 들어간다.
+  await page.goto("/items/new");
+  await page.getByRole("button", { name: "장르", exact: true }).click();
+  await page.getByRole("button", { name: "캐릭터", exact: true }).click();
+  await page.getByRole("button", { name: "인형", exact: true }).click();
+  await page.getByLabel("물품 세부사항").fill("나중에 산 엽서");
+  await page.locator('input[name="price"]').fill("1");
+  await page.locator('input[name="purchasedAt"]').fill("2026-11-15");
+  await page.locator('input[name="expectedShipDate"]').fill("2030-12-10");
+  await page.getByRole("button", { name: "저장", exact: true }).click();
+  await page.getByRole("link").filter({ hasText: "나중에 산 엽서" }).click();
+  await expect(page.getByRole("link", { name: /^2030\. 12\. 10\. 발송 →$/ })).toBeVisible();
+  // 자동으로 안 묶인 품목은 상세에서 직접 그룹을 고른다.
+  await page.goto("/items/item-1");
+  await page.getByRole("button", { name: "바꾸기" }).click();
+  await page.getByLabel("발송 그룹 선택").selectOption({ label: "2030. 12. 10. 발송 (3개)" });
+  await page.getByRole("button", { name: "저장", exact: true }).click();
+  await expect(page.getByRole("link", { name: /^2030\. 12\. 10\. 발송 →$/ })).toBeVisible();
 
   await page.goto("/items/item-1?from=%2Fitems");
   await page.getByRole("link", { name: "+ 같은 물품 추가 구매" }).click();
@@ -704,4 +722,20 @@ test("같은 물품 구매 순서 번호와, 판매자 정보 없이도 같은 �
   await page.getByRole("button", { name: "저장", exact: true }).click();
   await expect(page.getByText("1번째 구매", { exact: true })).toBeVisible();
   await expect(page.getByText("2번째 구매", { exact: true })).toBeVisible();
+});
+
+test("보기 방식 기억: 품목 탭에서 사진 그리드로 바꾸면 장르 화면과 다시 열 때도 그리드, 예산 초과 비율 표시", async ({ page }) => {
+  await importFixture(page);
+  await page.goto("/items");
+  await page.getByRole("button", { name: "사진 그리드 보기" }).click();
+  await page.goto(`/browse/${encodeURIComponent("장르")}`);
+  await expect(page.getByRole("button", { name: "사진 그리드 보기" })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "목록 보기" }).click();
+  await page.goto("/items");
+  await expect(page.getByRole("button", { name: "목록 보기" })).toHaveAttribute("aria-pressed", "true");
+  await page.goto("/budget");
+  await page.getByLabel("이 달만 사용할 예산 (만원)").fill("2.5");
+  await page.getByRole("button", { name: "이 달 예산 저장", exact: true }).click();
+  await expect(page.getByLabel("월별 예산 현황")).toContainText("5,000원 초과");
+  await expect(page.getByLabel("월별 예산 현황")).toContainText("120% · 20% 초과");
 });
