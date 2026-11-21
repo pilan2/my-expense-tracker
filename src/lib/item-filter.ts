@@ -55,6 +55,7 @@ export function matchesItemFilter(item: Filterable, q: string, status: ItemStatu
     case "physical": return !sold && item.isPhysical;
     case "sold": return sold;
     case "shipping-fee": return item.hasOverseasShipping;
-    default: return true;
+    // 다 팔린 품목은 "판매 완료"에서만 보여 지금 가진 물건을 보기 쉽게 한다.
+    default: return !sold;
   }
 }

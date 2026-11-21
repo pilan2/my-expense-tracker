@@ -11,6 +11,7 @@ import { ensureInCatalog } from "@/lib/catalog";
 import { uploadItemImage } from "@/lib/local/images";
 import { autoAssignShippingGroup } from "@/lib/shipping-group-matching";
 import { planProductLink } from "@/lib/product-groups";
+import { clearPhotoIfSoldOut } from "@/lib/actions/sales";
 
 function parseItemForm(formData: FormData) {
   const isPhysical = formData.get("isPhysical") === "on";
@@ -132,6 +133,7 @@ export const updateItem = localAction(async function updateItem(id: string, from
     where: { id },
     data: { ...data, expectedShipDate, shipDateApprox, imageUrl },
   });
+  clearPhotoIfSoldOut(id);
   await autoAssignShippingGroup(updated);
   await ensureInCatalog({
     genre: data.genre,
@@ -174,4 +176,13 @@ export const unlinkSameProduct = localAction(async function unlinkSameProduct(id
   // 혼자 남은 품목은 비교할 대상이 없으므로 묶음을 푼다.
   const rest = db.item.findMany({ where: { productGroupId: item.productGroupId } });
   if (rest.length === 1) db.item.update({ where: { id: rest[0].id }, data: { productGroupId: null } });
+});
+
+// 이전 버전에서 이미 다 팔린 품목에 남아 있던 사진을 한 번에 정리한다. 앱을 열 때 남은 게 있을 때만 실행한다.
+export const removeSoldOutPhotos = localAction(async function removeSoldOutPhotos() {
+  for (const item of db.item.findMany({ include: { sales: { select: { quantitySold: true } } } })) {
+    if (item.imageUrl && calcRemainingQuantity(item.quantity, item.sales) === 0) {
+      db.item.update({ where: { id: item.id }, data: { imageUrl: null } });
+    }
+  }
 });

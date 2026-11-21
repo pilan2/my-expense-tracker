@@ -132,6 +132,9 @@ test("카탈로그 이름 변경, 배송비 배분, 묶음 판매와 삭제 확�
   await page.getByRole("button", { name: "선택 완료 →" }).click();
   await page.locator('input[name="totalSaleAmount"]').fill("4");
   await page.getByRole("button", { name: "판매 등록", exact: true }).click();
+  // 다 팔린 품목은 "전체"에서 빠지고 "판매 완료" 필터에서만 보인다.
+  await expect(page.getByText("조건에 맞는 품목이 없습니다.")).toBeVisible();
+  await page.getByRole("group", { name: "상태 필터" }).getByRole("button", { name: new RegExp("^판매 완료 \\d") }).click();
   await expect(page.locator("li").getByText("판매 완료", { exact: true })).toHaveCount(2);
   await page.getByRole("link").filter({ hasText: "원래 품목" }).click();
   await page.getByRole("button", { name: "이 품목 삭제", exact: true }).click();
@@ -638,4 +641,39 @@ test("품목 사진 그리드: 보기 전환, 상태 칩, 상세에서 돌아와
   await expect(page.getByRole("button", { name: "사진 그리드 보기" })).toHaveAttribute("aria-pressed", "true");
   await page.getByRole("button", { name: "묶음 판매", exact: true }).click();
   await expect(page.locator('input[name="itemIds"]')).toHaveCount(1);
+});
+
+test("장르 화면: 캐릭터 고르지 않아도 전체 품목, 캐릭터 필터, 다 팔린 품목은 사진 삭제 후 숨김", async ({ page }) => {
+  await importFixture(page);
+  await page.goto("/items/new");
+  await page.getByRole("button", { name: "장르", exact: true }).click();
+  await page.getByRole("button", { name: "+ 직접 입력" }).nth(1).click();
+  await page.getByPlaceholder("캐릭터 직접 입력").fill("다른 캐릭터");
+  await page.getByRole("button", { name: "인형", exact: true }).click();
+  await page.getByLabel("물품 세부사항").fill("다른 캐릭터 인형");
+  await page.locator('input[name="price"]').fill("1");
+  await page.getByLabel("현물로 보유 중").check();
+  await page.getByRole("button", { name: "저장", exact: true }).click();
+  await page.goto(`/browse/${encodeURIComponent("장르")}`);
+  await expect(page.getByRole("link").filter({ hasText: "원래 품목" })).toBeVisible();
+  await expect(page.getByRole("link").filter({ hasText: "다른 캐릭터 인형" })).toBeVisible();
+  await page.getByRole("navigation", { name: "캐릭터 필터" }).getByRole("link", { name: /^다른 캐릭터/ }).click();
+  await expect(page).toHaveURL(/character=/);
+  await expect(page.getByRole("link").filter({ hasText: "원래 품목" })).toHaveCount(0);
+  await page.goto(`/browse/${encodeURIComponent("장르")}/${encodeURIComponent("캐릭터")}`);
+  await expect(page.getByRole("link").filter({ hasText: "원래 품목" })).toBeVisible();
+  await expect(page.getByRole("link").filter({ hasText: "다른 캐릭터 인형" })).toHaveCount(0);
+
+  await page.goto("/items/item-1");
+  await expect(page.locator("img").first()).toBeVisible();
+  await page.getByText("+ 판매 기록 추가").click();
+  await page.locator('input[name="quantitySold"]').fill("3");
+  await page.locator('input[name="saleAmount"]').fill("4");
+  await page.getByRole("button", { name: "판매 등록", exact: true }).click();
+  await expect(page.getByText("모두 판매되었습니다.")).toBeVisible();
+  await expect(page.locator("img")).toHaveCount(0);
+  await page.goto(`/browse/${encodeURIComponent("장르")}`);
+  await expect(page.getByRole("link").filter({ hasText: "원래 품목" })).toHaveCount(0);
+  await page.goto("/items");
+  await expect(page.getByRole("link").filter({ hasText: "원래 품목" })).toHaveCount(0);
 });

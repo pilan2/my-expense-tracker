@@ -19,6 +19,7 @@ test("상태 필터: 발송 대기·배송중·현물·판매 완료·배송비 
   assert.ok(matchesItemFilter({ ...base, isPhysical: true }, "", "physical"));
   const sold = { ...base, isPhysical: true, remainingQuantity: 0 };
   assert.ok(matchesItemFilter(sold, "", "sold") && !matchesItemFilter(sold, "", "physical"));
+  assert.ok(!matchesItemFilter(sold, "", "all") && matchesItemFilter(base, "", "all"));
   assert.ok(matchesItemFilter({ ...base, hasOverseasShipping: true }, "", "shipping-fee") && !matchesItemFilter(base, "", "shipping-fee"));
 });
 

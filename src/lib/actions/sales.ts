@@ -6,6 +6,15 @@ import { manwonToWon } from "@/lib/money";
 import { calcRemainingQuantity } from "@/lib/sales";
 import { splitProportionally } from "@/lib/split";
 
+// 다 팔린 품목은 사진을 지워 기기 저장 공간을 아낀다. 같은 사진을 쓰는 다른 품목이 있으면
+// 사진 파일은 그 품목을 위해 남는다(참조가 모두 사라질 때만 저장 시 지워진다).
+export function clearPhotoIfSoldOut(itemId: string) {
+  const item = db.item.findUniqueOrThrow({ where: { id: itemId }, include: { sales: { select: { quantitySold: true } } } });
+  if (item.imageUrl && calcRemainingQuantity(item.quantity, item.sales) === 0) {
+    db.item.update({ where: { id: itemId }, data: { imageUrl: null } });
+  }
+}
+
 export const createSale = localAction(async function createSale(itemId: string, formData: FormData) {
 
   const quantitySold = Number(formData.get("quantitySold"));
@@ -25,6 +34,7 @@ export const createSale = localAction(async function createSale(itemId: string, 
   }
 
   await db.sale.create({ data: { itemId, quantitySold, saleAmount, saleDate } });
+  clearPhotoIfSoldOut(itemId);
 
 });
 
@@ -71,6 +81,7 @@ export const createBulkSale = localAction(async function createBulkSale(formData
       }),
     ),
   );
+  for (const item of items) clearPhotoIfSoldOut(item.id);
 
   redirect("/items");
 });
@@ -93,6 +104,7 @@ export const updateSale = localAction(async function updateSale(saleId: string, 
   }
 
   await db.sale.update({ where: { id: saleId }, data: { quantitySold, saleAmount, saleDate } });
+  clearPhotoIfSoldOut(sale.itemId);
 });
 
 export const deleteSale = localAction(async function deleteSale(saleId: string) {

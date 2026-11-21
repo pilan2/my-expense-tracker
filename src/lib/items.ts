@@ -16,18 +16,17 @@ export  function getItems(options?: { pendingShippingOnly?: boolean }) {
   }));
 }
 
-// /browse/[genre]/[character] 드릴다운 마지막 단계에서 쓰는, 해당 장르+캐릭터의 품목만.
-export  function getItemsByCategory(genre: string, character: string) {
+// 장르 화면에서 쓰는, 해당 장르의 아직 남아 있는(다 팔리지 않은) 품목. 캐릭터는 화면에서 거른다.
+export  function getItemsByGenre(genre: string) {
   const items = db.item.findMany({
-    where: { genre, character },
+    where: { genre },
     orderBy: { createdAt: "desc" },
     include: { sales: SALES_FOR_CARD },
   });
 
-  return items.map((item) => ({
-    ...item,
-    remainingQuantity: calcRemainingQuantity(item.quantity, item.sales),
-  }));
+  return items
+    .map((item) => ({ ...item, remainingQuantity: calcRemainingQuantity(item.quantity, item.sales) }))
+    .filter((item) => item.remainingQuantity > 0);
 }
 
 // 묶음 판매 화면에서, 체크박스로 선택된 품목 id들만.

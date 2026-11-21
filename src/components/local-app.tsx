@@ -1,7 +1,8 @@
 "use client";
 
 import { Component, useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
-import { initializeDatabase, refreshDatabase, subscribe, getVersion } from "@/lib/local/database";
+import { initializeDatabase, refreshDatabase, subscribe, getVersion, currentData } from "@/lib/local/database";
+import { removeSoldOutPhotos } from "@/lib/actions/items";
 import { LocationContext, navigate, Redirect, NotFound } from "@/lib/local/navigation";
 import { NavBar } from "./nav-bar";
 import { ScrollRestoration } from "./scroll-restoration";
@@ -49,7 +50,7 @@ function Route({ url }: { url: string }) {
       if (segments.length === 2) return <Group params={{ id: decodeURIComponent(segments[1]) }} />;
       break;
     case "browse":
-      if (segments.length === 2) return <Genres params={{ genre: segments[1] }} />;
+      if (segments.length === 2) return <Genres params={{ genre: segments[1] }} searchParams={searchParams} />;
       if (segments.length === 3) return <Characters params={{ genre: segments[1], character: segments[2] }} />;
       break;
   }
@@ -80,6 +81,14 @@ class PageBoundary extends Component<{ children: ReactNode }, { error: Error | n
   }
 }
 
+// 다 팔린 품목에 사진이 남아 있을 때만 저장 작업을 연다(대부분은 아무 일도 하지 않는다).
+function cleanUpSoldOutPhotos() {
+  const data = currentData();
+  const sold = new Map<string, number>();
+  for (const sale of data.sale) sold.set(sale.itemId, (sold.get(sale.itemId) ?? 0) + sale.quantitySold);
+  if (data.item.some((item) => item.imageUrl && (sold.get(item.id) ?? 0) >= item.quantity)) void removeSoldOutPhotos().catch(() => {});
+}
+
 export default function LocalApp() {
   const [ready, setReady] = useState(false);
   const [error, setError] = useState("");
@@ -89,7 +98,7 @@ export default function LocalApp() {
     let cancelled = false;
     const updateUrl = () => setUrl(location.pathname + location.search);
     updateUrl();
-    void initializeDatabase().then(() => { if (!cancelled) setReady(true); }).catch(cause => { if (!cancelled) setError(cause instanceof Error ? cause.message : "기기 저장소를 열지 못했습니다."); });
+    void initializeDatabase().then(() => { if (!cancelled) setReady(true); cleanUpSoldOutPhotos(); }).catch(cause => { if (!cancelled) setError(cause instanceof Error ? cause.message : "기기 저장소를 열지 못했습니다."); });
     const refresh = () => { if (document.visibilityState === "visible") void refreshDatabase().catch(cause => setError(cause instanceof Error ? cause.message : "기기 저장소를 읽지 못했습니다.")); };
     window.addEventListener("popstate", updateUrl);
     window.addEventListener("expense-navigation", updateUrl);
