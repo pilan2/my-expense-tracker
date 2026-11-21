@@ -16,7 +16,7 @@ import { NumberInput } from "@/components/number-input";
 import { ClearableDateInput } from "@/components/clearable-date-input";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 import { wonToManwon, won, signedWon } from "@/lib/money";
-import { formatShipDDay, formatShipDateLabel, isShipmentOverdue } from "@/lib/dday";
+import { formatShipDDay, formatShipDateLabel, isShipmentOverdue, formatDate } from "@/lib/dday";
 import { safeRedirectTarget } from "@/lib/nav";
 import { todayString } from "@/lib/budget";
 import { profitColor, buttonClass, inputClass, linkClass, warningColor, cardClass, chipClass } from "@/components/ui";
@@ -151,7 +151,7 @@ export default  function ItemDetailPage({
       <dl className={`grid grid-cols-2 gap-x-4 gap-y-4 ${cardClass}`}>
         <Info label="단가" value={<span className="font-semibold">{won(Number(item.price))}</span>} />
         <Info label="수량" value={remaining !== item.quantity ? `${item.quantity}개 (잔여 ${remaining})` : `${item.quantity}개`} />
-        <Info label="구매일" value={item.purchasedAt ? item.purchasedAt.toLocaleDateString("ko-KR") : "모름"} />
+        <Info label="구매일" value={item.purchasedAt ? formatDate(item.purchasedAt) : "모름"} />
         <Info label="배송비" value={item.hasOverseasShipping ? <span className={warningColor}>이후 계산 필요</span> : won(Number(item.shippingFee))} />
         {item.maker && <Info label="제작한 사람" value={item.maker} />}
         {item.organizer && <Info label="공구 개최한 사람" value={item.organizer} />}
@@ -181,15 +181,11 @@ export default  function ItemDetailPage({
           <h2 className="text-lg font-bold">판매 관리</h2>
           <span className="text-sm text-muted">잔여 {remaining}개</span>
         </div>
-        <p className="mb-3 text-sm text-muted">
-          구매 수량 {item.quantity} · 잔여 수량{" "}
-          <span className="font-semibold text-foreground">{remaining}</span>
-          {sales.length > 0 && (
-            <>
-              {" "}· 손익 <span className={`font-semibold ${profitColor(profit)}`}>{signedWon(profit)}</span>
-            </>
-          )}
-        </p>
+        {sales.length > 0 && (
+          <p className="mb-3 text-sm text-muted">
+            판매 손익 <span className={`font-semibold ${profitColor(profit)}`}>{signedWon(profit)}</span>
+          </p>
+        )}
 
         {sales.length > 0 && (
           <ul className="mb-3 divide-y divide-line text-sm">
@@ -209,11 +205,11 @@ export default  function ItemDetailPage({
                 <NumberInput name="quantitySold" min={1} max={remaining} defaultValue={1} required className={inputClass} />
               </label>
               <label className="flex flex-col gap-1 text-sm">
-                <span className="font-medium">판매 금액 (만원 단위, 전체 총액)</span>
+                <span className="font-medium">판매 금액 (만원, 총액)</span>
                 <ManwonInput name="saleAmount" required className={inputClass} />
               </label>
               <label className="flex flex-col gap-1 text-sm">
-                <span className="font-medium">판매일 (날짜 기반 통계에 사용 가능)</span>
+                <span className="font-medium">판매일</span>
                 <ClearableDateInput name="saleDate" defaultValue={today} className={inputClass} />
               </label>
               <button type="submit" className={`mt-1 ${buttonClass()}`}>

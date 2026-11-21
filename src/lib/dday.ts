@@ -30,7 +30,7 @@ export function monthLastDay(monthStart: Date): Date {
 
 // 월 단위로만 아는 예상 발송일은, 1일 기준 D-Day ~ 말일 기준 D-Day 범위로 보여준다.
 export function formatDDayRange(monthStart: Date): string {
-  return `${formatDDay(monthStart)} ~ ${formatDDay(monthLastDay(monthStart))}`;
+  return `${formatDDay(monthStart)}\u00a0~\u00a0${formatDDay(monthLastDay(monthStart))}`;
 }
 
 // 월 단위 예상일은 그 달 마지막 날짜까지 지나야 "지난" 것으로 본다.
@@ -42,8 +42,13 @@ export function formatShipDDay(expectedShipDate: Date, approx: boolean): string 
   return approx ? formatDDayRange(expectedShipDate) : formatDDay(expectedShipDate);
 }
 
+// "2026. 11. 16."처럼 공백이 들어간 날짜가 줄 끝에서 잘리지 않도록 줄바꿈 없는 공백으로 잇는다.
+export function formatDate(date: Date): string {
+  return date.toLocaleDateString("ko-KR").replace(/ /g, "\u00a0");
+}
+
 // 화면에 보여줄 발송예정일 텍스트. 월 단위면 "2026년 9월", 정확한 날짜면 "2026. 9. 15."
 export function formatShipDateLabel(expectedShipDate: Date, approx: boolean): string {
-  if (approx) return `${expectedShipDate.getFullYear()}년 ${expectedShipDate.getMonth() + 1}월`;
-  return expectedShipDate.toLocaleDateString("ko-KR");
+  if (approx) return `${expectedShipDate.getFullYear()}년\u00a0${expectedShipDate.getMonth() + 1}월`;
+  return formatDate(expectedShipDate);
 }

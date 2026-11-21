@@ -4,6 +4,7 @@ import { ItemCardWithDelivery } from "@/components/item-card-with-delivery";
 import { purchaseSourceLabel, summarizeProductGroup } from "@/lib/product-groups";
 import { itemHref } from "@/lib/nav";
 import { won } from "@/lib/money";
+import { formatDate } from "@/lib/dday";
 
 type Purchase = Omit<ComponentProps<typeof ItemCardWithDelivery>, "href" | "price" | "shippingFee"> & {
   price: number; shippingFee: number; maker: string | null; organizer: string | null;
@@ -44,7 +45,7 @@ export function ProductGroupCard({ purchases, from, className, showGenreCharacte
             <ItemCardWithDelivery {...purchase} href={itemHref(purchase.id, from)}
               className="block rounded-2xl border border-line bg-surface shadow-card p-3"
               showGenreCharacter={false} showItemType={false}
-              sourceLabel={`${purchaseSourceLabel({ maker, organizer, purchaseLink })} · ${purchase.purchasedAt ? purchase.purchasedAt.toLocaleDateString("ko-KR") : "구매일 모름"}`} />
+              sourceLabel={`${purchaseSourceLabel({ maker, organizer, purchaseLink })} · ${purchase.purchasedAt ? formatDate(purchase.purchasedAt) : "구매일 모름"}`} />
           </li>
         ))}
       </ul>

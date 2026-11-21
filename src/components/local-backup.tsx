@@ -21,7 +21,7 @@ export default function LocalBackup() {
   return <div className="mx-auto max-w-xl space-y-6 p-6">
     <BackButton href="/more" /><h1 className="text-xl font-semibold">백업 및 기기 저장</h1>
     <BackupStatusSummary persistedChanged={persistedChanged} />
-    <p className="text-sm text-neutral-500">데이터와 사진은 이 기기의 현재 브라우저에만 저장됩니다. 브라우저 데이터 삭제나 기기 변경에 대비해 백업 파일을 앱 밖에 보관해주세요.</p>
+    <p className="text-sm text-muted">기록은 이 기기에만 있어요. 백업 파일을 따로 보관해 주세요.</p>
     <LocalForm action={async () => {
       setMessage("");
       const { backup: exported, revision } = await exportBackupWithRevision();
@@ -29,10 +29,8 @@ export default function LocalBackup() {
       await recordBackup(revision);
       setMessage(`전체 백업 파일을 만들었습니다: 품목 ${exported.data.item.length}개 · 판매 ${exported.data.sale.length}개 · 행사 ${exported.data.event.length}개 · 체크리스트 ${exported.data.eventChecklistItem.length}개 · 사진 ${Object.keys(exported.images).length}개 · 예산 설정 ${exported.data.budgetRule.length + exported.data.monthlyBudget.length}개 · 구매 후보 ${exported.data.wish.length}개. 다운로드한 파일을 보관해주세요.`);
     }} className="rounded-2xl border border-line bg-surface p-4 shadow-card">
-      <h2 className="mb-2 font-medium">전체 백업 다운로드</h2>
-      <p className="mb-3 text-sm">품목, 판매, 행사, 체크리스트, 카탈로그 순서, 발송 그룹, 사진, 월별 예산과 구매 후보를 모두 포함합니다.</p>
-      <p className="mb-3 text-sm">현재 기기의 행사 {data.event.length}개 · 체크리스트 {data.eventChecklistItem.length}개도 함께 백업합니다.</p>
-      <p className="mb-3 text-sm">예산 설정 {data.budgetRule.length + data.monthlyBudget.length}개 · 구매 후보 {data.wish.length}개도 포함합니다.</p>
+      <h2 className="mb-1 font-bold">전체 백업 다운로드</h2>
+      <p className="mb-3 text-sm text-muted">사진 포함 모든 기록 · 품목 {data.item.length}개 · 행사 {data.event.length}개 · 체크리스트 {data.eventChecklistItem.length}개</p>
       <button type="submit" className={buttonClass()}>다운로드</button>
     </LocalForm>
     <LocalForm action={async () => {
@@ -41,8 +39,8 @@ export default function LocalBackup() {
       await restoreParsedBackup(backup);
       setMessage("백업을 이 기기에 저장했습니다."); setBackup(undefined);
     }} className="space-y-3 rounded-2xl border border-loss/40 bg-surface p-4">
-      <h2 className="font-medium">백업 불러오기</h2>
-      <p className="text-sm">선택한 파일로 현재 기기의 전체 데이터를 교체합니다. 먼저 현재 데이터를 다운로드해주세요.</p>
+      <h2 className="font-bold">백업 불러오기</h2>
+      <p className="text-sm text-muted">현재 기기의 데이터가 파일 내용으로 모두 바뀌어요.</p>
       <input aria-label="백업 파일" type="file" accept=".json,application/json" onChange={async event => {
         const selected = ++selection.current;
         const file = event.target.files?.[0]; setBackup(undefined); setError(""); setMessage("");

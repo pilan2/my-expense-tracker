@@ -36,7 +36,7 @@ export default  function CatalogPage() {
       <BackButton href="/items" />
       <PageHeader
         title="장르/캐릭터 관리"
-        description="여기서 추가/삭제한 목록은 품목 등록 화면의 버튼 선택지에 반영돼요. 삭제해도 이미 등록된 품목의 값은 그대로 남아있고, 앞으로 선택지에서만 빠집니다. 이름 옆의 ✎을 누르면 이름을 바꿀 수 있고, 이때는 그 이름을 쓰던 품목들에도 한 번에 반영됩니다. ⠿을 눌러 끌면 순서를 바꿀 수 있어요."
+        description="✎ 이름 바꾸기 · ⠿ 끌어서 순서 바꾸기"
       />
 
       <LocalForm action={addGenre} className="mb-8 flex gap-2">
@@ -77,7 +77,7 @@ export default  function CatalogPage() {
       />
 
       <div className="mt-8 rounded-2xl border border-line bg-surface p-4 shadow-card">
-        <h2 className="mb-2 font-semibold">물품 종류 (대분류)</h2>
+        <h2 className="mb-2 font-semibold">물품 종류</h2>
         <p className="mb-3 text-sm text-neutral-500">장르/캐릭터와 무관하게 전역으로 사용되는 목록이에요.</p>
         <ItemTypeList itemTypes={itemTypes} actions={{ deleteItemType, renameItemType, reorderItemTypes }} />
         <LocalForm action={addItemType} className="flex gap-2">

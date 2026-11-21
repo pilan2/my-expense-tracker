@@ -29,7 +29,7 @@ export default  function ShippingGroupsPage() {
       <BackButton href="/shipments" />
       <PageHeader
         title="발송 그룹"
-        description="같은 날 구매하고 제작자/공구자가 같은 품목은 자동으로 묶여요. 발송일이 밀리면 그룹 전체를 한 번에 수정할 수 있어요."
+        description="같은 날 산 품목 중 판매자나 발송일이 같으면 자동으로 묶여요."
       />
 
       <LocalForm action={backfillShippingGroups} className="mb-6">

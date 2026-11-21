@@ -10,6 +10,7 @@ import { EditBoothForm } from "@/components/edit-booth-form";
 import { itemHref } from "@/lib/nav";
 import { won } from "@/lib/money";
 import { EmptyState, buttonClass } from "@/components/ui";
+import { formatDate } from "@/lib/dday";
 
 export default  function EventDetailPage({ params }: { params: { id: string } }) {
   const { id } = params;
@@ -31,7 +32,7 @@ export default  function EventDetailPage({ params }: { params: { id: string } })
       <BackButton href="/events" />
       <h1 className="mb-1 text-xl font-semibold">{event.name}</h1>
       <p className="mb-6 text-sm text-neutral-500">
-        {event.date ? event.date.toLocaleDateString("ko-KR") : "날짜 미정"}
+        {event.date ? formatDate(event.date) : "날짜 미정"}
       </p>
 
       <ChecklistItemForm
@@ -120,8 +121,8 @@ export default  function EventDetailPage({ params }: { params: { id: string } })
                       <p className={`mt-1 text-sm ${entry.checked ? "line-through" : ""}`}>{label}</p>
                       {price > 0 && (
                         <p className="mt-0.5 text-xs text-neutral-500">
-                          {won(price)} × {quantity}개 ={" "}
-                          {won(price * quantity)}
+                          <span className="whitespace-nowrap">{won(price)} × {quantity}개</span>{" "}
+                          <span className="whitespace-nowrap">= {won(price * quantity)}</span>
                         </p>
                       )}
                     </div>

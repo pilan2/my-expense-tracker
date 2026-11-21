@@ -116,7 +116,7 @@ export function ItemCardContent({
         {meta && <p className="text-sm text-muted">{meta}</p>}
         {sourceLabel && <p className="break-words text-sm text-muted">{sourceLabel}</p>}
         <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
-          <span className="font-semibold">{won(Number(price))}{quantity > 1 ? ` × ${quantity}` : ""}</span>
+          <span className="whitespace-nowrap font-semibold">{won(Number(price))}{quantity > 1 ? ` × ${quantity}` : ""}</span>
           {Number(shippingFee) > 0 && <span className="text-muted">배송비 {won(Number(shippingFee))}</span>}
           {hasOverseasShipping && <span className={chipClass("fee")}>배송비 미정</span>}
           {profit !== null && <span className={`font-semibold ${profitColor(profit)}`}>손익 {signedWon(profit)}</span>}

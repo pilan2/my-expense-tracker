@@ -3,6 +3,7 @@ import { BackButton } from "@/components/back-button";
 import { ItemCardWithDelivery } from "@/components/item-card-with-delivery";
 import { itemHref } from "@/lib/nav";
 import { EmptyState, PageHeader } from "@/components/ui";
+import { formatDate } from "@/lib/dday";
 
 export default  function PurchasesPage() {
   const items = getRecentPurchases();
@@ -30,7 +31,7 @@ export default  function PurchasesPage() {
           {dateGroups.map(([dateStr, groupItems]) => (
             <div key={dateStr}>
               <h2 id={`d-${dateStr}`} className="mb-2 scroll-mt-4 text-base font-medium text-neutral-500">
-                {groupItems[0].purchasedAt!.toLocaleDateString("ko-KR")}
+                {formatDate(groupItems[0].purchasedAt!)}
               </h2>
               <ul className="flex flex-col gap-2">
                 {groupItems.map((item) => (

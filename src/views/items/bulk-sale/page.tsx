@@ -62,7 +62,7 @@ export default  function BulkSalePage({
         </div>
 
         <label className="flex flex-col gap-1 text-sm">
-          <span className="font-medium">총 판매 금액 (만원 단위, 선택한 품목 전체 총액)</span>
+          <span className="font-medium">총 판매 금액 (만원)</span>
           <ManwonInput
             name="totalSaleAmount"
             required
@@ -71,7 +71,7 @@ export default  function BulkSalePage({
         </label>
 
         <label className="flex flex-col gap-1 text-sm">
-          <span className="font-medium">판매일 (날짜 기반 통계에 사용 가능)</span>
+          <span className="font-medium">판매일</span>
           <ClearableDateInput
             name="saleDate"
             defaultValue={today}

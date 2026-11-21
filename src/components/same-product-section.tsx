@@ -3,7 +3,7 @@ import { LocalForm } from "@/components/local-form";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 import { linkSameProduct, unlinkSameProduct } from "@/lib/actions/items";
 import { purchaseSourceLabel, summarizeProductGroup } from "@/lib/product-groups";
-import { isShipmentOverdue } from "@/lib/dday";
+import { isShipmentOverdue, formatDate } from "@/lib/dday";
 import type { Item } from "@/lib/local/models";
 import { itemHref } from "@/lib/nav";
 import { won } from "@/lib/money";
@@ -50,7 +50,7 @@ export function SameProductSection({ item, purchases, candidates, from }: {
                     <span className="shrink-0 whitespace-nowrap">{won(purchase.price)} × {purchase.quantity}</span>
                   </span>
                   <span className="text-neutral-500">
-                    {purchase.purchasedAt ? purchase.purchasedAt.toLocaleDateString("ko-KR") : "구매일 모름"}
+                    {purchase.purchasedAt ? formatDate(purchase.purchasedAt) : "구매일 모름"}
                     {purchase.shippingFee > 0 ? ` · 배송비 ${won(purchase.shippingFee)}` : ""} · {statusLabel(purchase)}
                     {purchase.remainingQuantity !== purchase.quantity ? ` · 잔여 ${purchase.remainingQuantity}` : ""}
                   </span>
@@ -74,7 +74,6 @@ export function SameProductSection({ item, purchases, candidates, from }: {
               );
             })}
           </ul>
-          <p className="mb-3 text-sm text-neutral-500">판매는 실제로 판 구매 건의 화면에서 기록해야 손익이 정확합니다.</p>
           <LocalForm action={unlinkSameProduct.bind(null, item.id)}>
             <ConfirmSubmitButton confirmMessage="이 구매 건을 같은 물품 묶음에서 뺄까요? 품목과 판매 기록은 그대로 남습니다."
               className={buttonClass("ghost")}>
@@ -84,14 +83,13 @@ export function SameProductSection({ item, purchases, candidates, from }: {
         </>
       ) : (
         <p className="mb-3 text-sm text-neutral-500">
-          다른 구매처나 다른 가격으로 같은 물품을 또 샀다면 추가 구매로 등록하세요. 구매 건마다 가격·배송·판매가 따로 기록되고 여기서 함께 비교할 수 있습니다.
+          다른 곳에서 같은 물품을 또 샀다면 추가 구매로 등록하세요.
         </p>
       )}
 
       {candidates.length > 0 && (
         <details className="mt-4 text-sm">
           <summary className="cursor-pointer">이미 등록한 품목과 같은 물품으로 연결</summary>
-          <p className="mt-2 text-neutral-500">같은 장르·캐릭터·물품 종류의 품목입니다. 상대 품목이 다른 묶음에 있으면 그 묶음 전체가 합쳐집니다.</p>
           <ul className="mt-2 flex flex-col gap-2">
             {candidates.map((candidate) => (
               <li key={candidate.id} className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface shadow-card p-3">
@@ -99,7 +97,7 @@ export function SameProductSection({ item, purchases, candidates, from }: {
                   {candidate.series ? `(${candidate.series}) ` : ""}{candidate.detail}
                   <span className="block text-neutral-500">
                     {purchaseSourceLabel(candidate)} · {won(candidate.price)} × {candidate.quantity}
-                    {candidate.purchasedAt ? ` · ${candidate.purchasedAt.toLocaleDateString("ko-KR")}` : ""}
+                    {candidate.purchasedAt ? ` · ${formatDate(candidate.purchasedAt)}` : ""}
                   </span>
                 </span>
                 <LocalForm action={linkSameProduct.bind(null, item.id, candidate.id)} className="shrink-0">

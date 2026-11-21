@@ -30,7 +30,7 @@ function DraftEditor({ draftKey, loaded, reset, ...props }: Props & { draftKey: 
   const [initialImage] = useState(() => loaded.image ? new File([loaded.image], "draft-photo", { type: loaded.image.type }) : null);
   const savedImage = useRef<File | null>(initialImage);
   const previous = useRef<{ json: string; image: File | null } | null>(null);
-  const [status, setStatus] = useState(loaded.values ? "임시저장한 내용을 불러왔습니다." : "작성 내용은 이 기기에 자동으로 임시저장됩니다.");
+  const [status, setStatus] = useState(loaded.values ? "임시저장한 내용을 불러왔어요." : "");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -75,11 +75,10 @@ function DraftEditor({ draftKey, loaded, reset, ...props }: Props & { draftKey: 
     } finally { setBusy(false); }
   }
   return <>
-    <div className="mb-4 space-y-2 rounded-2xl border border-line bg-surface p-3 text-sm shadow-card">
-      {status && <p role="status">{status}</p>}
+    <div className="mb-4 flex min-h-11 flex-wrap items-center justify-between gap-2 text-sm text-muted">
+      {status ? <p role="status">{status}</p> : <span />}
       {error && <p role="alert" className="text-loss">{error}</p>}
-      <p className="text-neutral-500">등록 전 내용은 통계와 전체 백업에 포함되지 않습니다.</p>
-      <button type="button" disabled={busy} onClick={() => void discard()} className="underline disabled:opacity-40">임시저장 지우고 새로 작성</button>
+      {(status || loaded.values) && <button type="button" disabled={busy} onClick={() => void discard()} className="min-h-11 underline disabled:opacity-40">임시저장 지우고 새로 작성</button>}
     </div>
     <fieldset disabled={busy} className="min-w-0">
       <ItemForm {...props} defaultValues={loaded.values ? { ...props.defaultValues, ...loaded.values } : props.defaultValues} initialImage={initialImage} onDraftChange={save} action={submit} />

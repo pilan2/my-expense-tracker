@@ -9,6 +9,7 @@ import { ClearableDateInput } from "@/components/clearable-date-input";
 import { updateSale, deleteSale } from "@/lib/actions/sales";
 import { won, wonToManwon } from "@/lib/money";
 import { buttonClass, inputClass } from "@/components/ui";
+import { formatDate } from "@/lib/dday";
 
 // 판매 기록 한 줄. 잘못 입력한 금액·날짜·수량을 삭제 후 재입력하지 않고 바로 고친다.
 export function SaleRow({ sale, maxQuantity }: {
@@ -16,7 +17,7 @@ export function SaleRow({ sale, maxQuantity }: {
   maxQuantity: number;
 }) {
   const [editing, setEditing] = useState(false);
-  const label = `${sale.saleDate ? sale.saleDate.toLocaleDateString("ko-KR") : "날짜 모름"} · ${sale.quantitySold}개 · ${won(sale.saleAmount)}`;
+  const label = `${sale.saleDate ? formatDate(sale.saleDate) : "날짜 모름"} · ${sale.quantitySold}개 · ${won(sale.saleAmount)}`;
   if (editing) {
     return (
       <li className="py-2">
@@ -30,7 +31,7 @@ export function SaleRow({ sale, maxQuantity }: {
             <NumberInput name="quantitySold" min={1} max={maxQuantity} defaultValue={sale.quantitySold} required className={inputClass} />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="font-medium">판매 금액 (만원 단위, 전체 총액)</span>
+            <span className="font-medium">판매 금액 (만원, 총액)</span>
             <ManwonInput name="saleAmount" defaultValue={wonToManwon(sale.saleAmount)} required className={inputClass} />
           </label>
           <label className="flex flex-col gap-1">

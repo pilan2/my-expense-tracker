@@ -5,7 +5,7 @@ import { parseMonthParam, monthParamString } from "@/lib/month";
 import { BackButton } from "@/components/back-button";
 import { ItemCardWithDelivery } from "@/components/item-card-with-delivery";
 import { itemHref } from "@/lib/nav";
-import { formatShipDateLabel } from "@/lib/dday";
+import { formatShipDateLabel, formatDate } from "@/lib/dday";
 import { EmptyState, linkClass } from "@/components/ui";
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
@@ -214,7 +214,7 @@ export default  function ShipmentsPage({
           <h2 className="mb-2 text-base font-medium text-neutral-500">
             {groupItems[0].shipDateApprox
               ? `${formatShipDateLabel(groupItems[0].expectedShipDate!, true)} 중`
-              : groupItems[0].expectedShipDate!.toLocaleDateString("ko-KR")}
+              : formatDate(groupItems[0].expectedShipDate!)}
           </h2>
           <ul className="flex flex-col gap-2">
             {groupItems.map((item) => (

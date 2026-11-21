@@ -122,8 +122,7 @@ export function ItemsSelectableList({
             {pendingOnly && (
               <label className="flex flex-1 flex-col gap-1">
                 <span className="font-medium">
-                  아래에서 같이 배송받은 품목을 체크하고, 총 배송비(만원 단위)를 입력하면 각
-                  품목의 수량 비율대로 나눠서 배정됩니다.
+                  함께 받은 품목을 고르고 총 배송비(만원)를 입력하세요. 수량 비율로 나눠요.
                 </span>
                 <ManwonInput
                   name="totalShippingFee"

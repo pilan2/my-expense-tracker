@@ -4,6 +4,7 @@ import { BackButton } from "@/components/back-button";
 import { itemHref } from "@/lib/nav";
 import { won, signedWon } from "@/lib/money";
 import { profitColor, EmptyState, PageHeader } from "@/components/ui";
+import { formatDate } from "@/lib/dday";
 
 export default  function SalesPage() {
   const sales = getRecentSales();
@@ -50,7 +51,7 @@ export default  function SalesPage() {
                     </p>
                   </div>
                   <span className="text-sm text-neutral-500">
-                    {sale.saleDate ? sale.saleDate.toLocaleDateString("ko-KR") : "날짜 모름"}
+                    {sale.saleDate ? formatDate(sale.saleDate) : "날짜 모름"}
                   </span>
                 </Link>
               </li>

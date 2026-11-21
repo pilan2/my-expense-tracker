@@ -6,6 +6,7 @@ import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 import { EditEventForm } from "@/components/edit-event-form";
 import { won } from "@/lib/money";
 import { buttonClass, inputClass, EmptyState, PageHeader } from "@/components/ui";
+import { formatDate } from "@/lib/dday";
 
 export default  function EventsPage() {
   const events = getEvents();
@@ -14,7 +15,6 @@ export default  function EventsPage() {
     <div className="box-border mx-auto w-full max-w-3xl overflow-x-hidden p-6">
       <PageHeader
         title="행사 체크리스트"
-        description="행사 당일 부스별로 수령/구매할 것을 미리 적어두고, 현장에서 부스별로 묶어서 확인할 수 있어요."
       />
 
       <LocalForm action={createEvent} className="mb-8 flex flex-col gap-2 sm:flex-row">
@@ -56,7 +56,7 @@ export default  function EventsPage() {
                 <Link href={`/events/${event.id}`} className="flex-1 hover:opacity-70">
                   <p className="font-medium">{event.name}</p>
                   <p className="text-sm text-neutral-500">
-                    {event.date ? event.date.toLocaleDateString("ko-KR") : "날짜 미정"} · {doneCount}/
+                    {event.date ? formatDate(event.date) : "날짜 미정"} · {doneCount}/
                     {event.entries.length}개 완료
                   </p>
                   {(totalSpent > 0 || dueAmount > 0) && (

@@ -1,4 +1,5 @@
 import { transactionDb as db, type Where } from "@/lib/local/repository";
+import { formatDate } from "@/lib/dday";
 
 // 같은 날 구매 + 제작자 또는 공구자가 같은, 아직 발송 그룹에 안 들어간 다른 미현물 품목이
 // 있으면 자동으로 같은 발송 그룹에 넣는다. 이미 그룹에 들어간 품목은 사용자가 직접 뺐을 수도
@@ -36,7 +37,7 @@ export async function autoAssignShippingGroup(item: {
     return;
   }
 
-  const label = `${item.maker ?? item.organizer} · ${item.purchasedAt.toLocaleDateString("ko-KR")} 구매`;
+  const label = `${item.maker ?? item.organizer} · ${formatDate(item.purchasedAt)} 구매`;
   const group = await db.shippingGroup.create({ data: { label } });
   await db.item.updateMany({
     where: { id: { in: [item.id, ...candidates.map((c) => c.id)] } },

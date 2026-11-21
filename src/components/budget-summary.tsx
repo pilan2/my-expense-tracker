@@ -27,7 +27,7 @@ export function BudgetSummary({ month = currentMonth(), link = true }: { month?:
         {exceeded ? " · 예산을 초과했어요." : ratio !== null && ratio >= 0.8 ? " · 80% 넘게 썼어요." : ""}
       </p>
     </>}
-    {budget.undated > 0 && <p className="text-sm text-warn">구매일 없는 품목 {budget.undated}개는 월별 계산에서 제외됩니다.</p>}
-    {budget.pendingShipping > 0 && <p className="text-sm text-warn">이번 달 품목 {budget.pendingShipping}개는 배송비가 추가될 수 있어요.</p>}
+    {/* 계산 방식에 관한 참고는 홈에서는 빼고 예산 화면에서만 보여준다. */}
+    {!link && budget.pendingShipping > 0 && <p className="text-sm text-warn">배송비가 아직 안 정해진 품목 {budget.pendingShipping}개가 있어요.</p>}
   </section>;
 }

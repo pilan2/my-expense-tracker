@@ -22,7 +22,8 @@ async function importFixture(page: Page) {
   page.once("dialog", dialog => dialog.accept());
   await page.getByRole("button", { name: "불러오기 (기존 데이터 교체)" }).click();
   await expect(page.getByText("백업을 이 기기에 저장했습니다.")).toBeVisible();
-  await expect(page.getByText("기기에 저장 · 오프라인 사용 준비 완료")).toBeVisible({ timeout: 30000 });
+  // 오프라인 준비 완료는 화면에 표시하지 않으므로 서비스 워커가 활성화될 때까지 직접 기다린다.
+  await page.waitForFunction(async () => Boolean((await navigator.serviceWorker.ready).active), undefined, { timeout: 30000 });
 }
 
 test("모바일: 전체 백업 복원 후 오프라인 조회·등록·판매·행사·통계·사진·재시작", async ({ page, context }) => {
@@ -196,7 +197,7 @@ test("전체 백업 왕복: 행사 2개·체크리스트 35개와 모든 데이�
     return JSON.parse(Buffer.concat(chunks).toString());
   }
   await restore(page, original);
-  await expect(page.getByText("현재 기기의 행사 2개 · 체크리스트 35개도 함께 백업합니다.")).toBeVisible();
+  await expect(page.getByText(/행사 2개 · 체크리스트 35개/).first()).toBeVisible();
   const exported = await download(page);
   expect(exported.data).toEqual(json.data);
   expect(exported.images).toEqual(json.images);
@@ -205,7 +206,7 @@ test("전체 백업 왕복: 행사 2개·체크리스트 35개와 모든 데이�
     const target = await isolated.newPage();
     await restore(target, exported);
     await target.reload();
-    await expect(target.getByText("현재 기기의 행사 2개 · 체크리스트 35개도 함께 백업합니다.")).toBeVisible();
+    await expect(target.getByText(/행사 2개 · 체크리스트 35개/).first()).toBeVisible();
     const roundTrip = await download(target);
     expect(roundTrip.data).toEqual(json.data);
     expect(roundTrip.images).toEqual(json.images);
@@ -412,7 +413,7 @@ test("같은 물품 추가 구매: 정보·사진 이어받기, 구매 건 비�
   await page.goto("/items/item-1?from=%2Fitems");
   await page.getByRole("button", { name: "이 구매 건을 묶음에서 빼기" }).click();
   await page.getByRole("dialog").getByRole("button").last().click();
-  await expect(page.getByText("다른 구매처나 다른 가격으로 같은 물품을 또 샀다면")).toBeVisible();
+  await expect(page.getByText("다른 곳에서 같은 물품을 또 샀다면")).toBeVisible();
   await page.getByText("이미 등록한 품목과 같은 물품으로 연결").click();
   await page.getByRole("button", { name: "연결", exact: true }).click();
   await expect(page.getByText(/구매 2건 · 총 수량 4/)).toBeVisible();
@@ -636,7 +637,7 @@ test("판매 기록 수정: 수량·금액·날짜를 고치고 잔여 수량과
   await form.locator('input[name="saleDate"]').fill("2026-11-05");
   await form.getByRole("button", { name: "수정 저장" }).click();
   await expect(page.getByText("2026. 11. 5. · 2개 · 26,000원")).toBeVisible();
-  await expect(page.getByText(/잔여 수량\s*1/)).toBeVisible();
+  await expect(page.getByText("잔여 1개")).toBeVisible();
   await expect(page.getByText(/손익 \+6,000원/).first()).toBeVisible();
 });
 

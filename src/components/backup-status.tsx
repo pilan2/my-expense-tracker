@@ -5,6 +5,7 @@ import Link from "@/lib/local/navigation";
 import { currentData, currentRevision } from "@/lib/local/database";
 import { backupReminder, daysSince, onBackupRecorded, readLastBackup, type BackupRecord } from "@/lib/local/backup-status";
 import { warningColor } from "@/components/ui";
+import { formatDate } from "@/lib/dday";
 
 function useLastBackup() {
   const [state, setState] = useState<{ loaded: boolean; record?: BackupRecord }>({ loaded: false });
@@ -28,8 +29,8 @@ export function BackupReminder() {
     <Link href="/backup" role="status" className="flex min-h-11 items-center justify-between gap-3 rounded-2xl bg-chip-fee-bg px-4 py-3 text-sm">
       <span className={warningColor}>
         {reminder.kind === "never"
-          ? "아직 백업한 적이 없어요. 기록이 이 기기에만 있으니 백업 파일을 보관해주세요."
-          : `마지막 백업 후 ${reminder.days}일이 지났고 바뀐 내용이 있어요.`}
+          ? "아직 백업한 적이 없어요."
+          : `마지막 백업 후 ${reminder.days}일이 지났어요.`}
       </span>
       <span className="shrink-0 font-medium underline">백업하기 →</span>
     </Link>
@@ -61,7 +62,7 @@ export function BackupStatusSummary({ persistedChanged }: { persistedChanged: nu
       <li>
         마지막 백업:{" "}
         {!loaded ? "확인 중…" : record
-          ? `${new Date(record.at).toLocaleDateString("ko-KR")} (${daysSince(record.at) === 0 ? "오늘" : `${daysSince(record.at)}일 전`})${changed ? " · 이후 바뀐 내용 있음" : " · 이후 변경 없음"}`
+          ? `${formatDate(new Date(record.at))} (${daysSince(record.at) === 0 ? "오늘" : `${daysSince(record.at)}일 전`})${changed ? " · 이후 바뀐 내용 있음" : " · 이후 변경 없음"}`
           : "아직 없음"}
       </li>
       {storage.usage !== undefined && (

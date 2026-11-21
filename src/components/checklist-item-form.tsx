@@ -125,7 +125,7 @@ export function ChecklistItemForm({
                 step={0.01}
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
-                placeholder="가격 (만원 단위)"
+                placeholder="가격 (만원)"
                 className={inputClass}
               />
             </div>

@@ -227,7 +227,7 @@ export function ItemForm({
           onChange={handleCharacterChange}
         />
         <PickerField
-          label="시리즈 (선택, 예: 오리지널/리부트)"
+          label="시리즈 (선택)"
           name="series"
           options={seriesOptions}
           value={series}
@@ -235,7 +235,7 @@ export function ItemForm({
           required={false}
         />
         <PickerField
-          label="물품 종류 (대분류)"
+          label="물품 종류"
           name="itemType"
           options={itemTypeOptions}
           value={itemType}
@@ -254,7 +254,7 @@ export function ItemForm({
       </FormSection>
 
       <FormSection title="구매">
-        <Field label="구매일 (날짜 기반 통계에 사용 가능)">
+        <Field label="구매일">
           <ClearableDateInput
             name="purchasedAt"
             defaultValue={defaultValues?.purchasedAt ?? todayString()}
@@ -290,7 +290,7 @@ export function ItemForm({
           </div>
         </div>
 
-        <Field label="단가 (만원 단위, 예: 1.5 = 15,000원)">
+        <Field label="단가 (만원)">
           <ManwonInput
             name="price"
             value={price}
@@ -341,7 +341,7 @@ export function ItemForm({
           이후 배송비 계산 필요
         </label>
 
-        <Field label="배송비 (만원 단위, 목록에서 여러 품목에 분배도 가능)">
+        <Field label="배송비 (만원)">
           {/* 자동 분배는 원 단위까지 정확하게 나누므로(1원 = 0.0001만원), 수기 입력도 같은 정밀도를 허용한다. */}
           <ManwonInput
             name="shippingFee"
