@@ -16,13 +16,25 @@ function getRadianAngle(degrees: number): number {
   return (degrees * Math.PI) / 180;
 }
 
-// 회전된 이미지를 그대로 담기 위해 필요한 최소 캔버스 크기.
-function getRotatedSize(width: number, height: number, rotation: number) {
+// 회전한 사진 안에 빈 곳 없이 들어가는 가장 큰 가로·세로 직사각형의 크기.
+// 회전 결과를 이 크기로만 남기면, 다음 자르기 단계에서 사진 밖(빈 모서리)을 고를 수 없다.
+export function largestInscribedSize(width: number, height: number, rotation: number) {
+  const quarter = ((Math.round(rotation) % 360) + 360) % 90 === 0;
+  if (quarter) {
+    const sideways = Math.abs(Math.round(rotation / 90)) % 2 === 1;
+    return sideways ? { width: height, height: width } : { width, height };
+  }
   const rad = getRadianAngle(rotation);
-  return {
-    width: Math.abs(Math.cos(rad) * width) + Math.abs(Math.sin(rad) * height),
-    height: Math.abs(Math.sin(rad) * width) + Math.abs(Math.cos(rad) * height),
-  };
+  const sin = Math.abs(Math.sin(rad)), cos = Math.abs(Math.cos(rad));
+  const widthIsLonger = width >= height;
+  const long = widthIsLonger ? width : height, short = widthIsLonger ? height : width;
+  if (short <= 2 * sin * cos * long || Math.abs(sin - cos) < 1e-10) {
+    // 긴 변 쪽 모서리가 먼저 닿는 경우: 짧은 변의 절반이 직사각형의 반대각선 길이를 정한다.
+    const x = short / 2;
+    return widthIsLonger ? { width: x / sin, height: x / cos } : { width: x / cos, height: x / sin };
+  }
+  const cos2 = cos * cos - sin * sin;
+  return { width: (width * cos - height * sin) / cos2, height: (height * cos - width * sin) / cos2 };
 }
 
 // 원본 이미지를 주어진 각도로 회전시킨 새 이미지를 만든다(회전 부분만 담당, 자르기는 하지 않음).
@@ -39,7 +51,10 @@ export async function rotateImage(imageSrc: string, rotation: number): Promise<B
     return canvasToBlob(canvas);
   }
 
-  const { width, height } = getRotatedSize(image.naturalWidth, image.naturalHeight, rotation);
+  // 원본 픽셀 크기 기준으로, 회전 후 빈 모서리를 뺀 안쪽 영역만 캔버스에 담는다.
+  const inner = largestInscribedSize(image.naturalWidth, image.naturalHeight, rotation);
+  const width = Math.max(1, Math.floor(inner.width));
+  const height = Math.max(1, Math.floor(inner.height));
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;

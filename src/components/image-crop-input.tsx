@@ -86,7 +86,7 @@ export function ImageCropInput({ name, className, initialFile, onFileChange }: {
     <div className="flex flex-col gap-2">
       <input ref={hiddenInputRef} type="file" name={name} className="hidden" />
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         {hasPreview && (
           // eslint-disable-next-line @next/next/no-img-element
           <img ref={previewRef} src={previewUrl ?? undefined} alt="선택한 사진" className="h-24 w-24 rounded-md object-cover" />
@@ -99,6 +99,12 @@ export function ImageCropInput({ name, className, initialFile, onFileChange }: {
         >
           {hasPreview ? "다시 선택" : "사진 선택"}
           <input type="file" accept="image/*" onChange={handlePick} className="hidden" />
+        </label>
+        {/* capture를 주면 휴대폰에서는 앨범 대신 카메라가 바로 열린다. 찍은 사진도 같은 회전·자르기를 거친다. */}
+        <label className={className ?? `w-fit cursor-pointer ${buttonClass("secondary")}`}>
+          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z" /><circle cx="12" cy="13" r="3.5" /></svg>
+          사진 찍기
+          <input type="file" accept="image/*" capture="environment" onChange={handlePick} className="hidden" />
         </label>
         {hasPreview && <button type="button" className={linkClass} onClick={() => {
           if (hiddenInputRef.current) hiddenInputRef.current.value = "";
@@ -123,7 +129,7 @@ export function ImageCropInput({ name, className, initialFile, onFileChange }: {
               />
             </div>
             <label className="flex flex-col gap-1 text-xs text-neutral-500">
-              회전 ({rotation}도)
+              회전 ({rotation}도){rotation % 90 !== 0 ? " · 사진 밖 빈 모서리는 잘려요" : ""}
               <input
                 type="range"
                 min={-180}

@@ -655,6 +655,8 @@ test("장르 화면: 캐릭터 고르지 않아도 전체 품목, 캐릭터 필�
   await page.locator('input[name="price"]').fill("1");
   await page.getByLabel("현물로 보유 중").check();
   await page.getByRole("button", { name: "저장", exact: true }).click();
+  // 저장이 끝나 목록으로 이동한 뒤에 다른 화면을 연다(그 전에 이동하면 저장과 경쟁한다).
+  await expect(page.getByRole("heading", { name: "전체 품목", exact: true })).toBeVisible();
   await page.goto(`/browse/${encodeURIComponent("장르")}`);
   await expect(page.getByRole("link").filter({ hasText: "원래 품목" })).toBeVisible();
   await expect(page.getByRole("link").filter({ hasText: "다른 캐릭터 인형" })).toBeVisible();
@@ -739,4 +741,35 @@ test("보기 방식 기억: 품목 탭에서 사진 그리드로 바꾸면 장�
   await page.getByRole("button", { name: "이 달 예산 저장", exact: true }).click();
   await expect(page.getByLabel("월별 예산 현황")).toContainText("5,000원 초과");
   await expect(page.getByLabel("월별 예산 현황")).toContainText("120% · 20% 초과");
+});
+
+test("사진: 카메라로 찍기 버튼, 회전 후 자르기는 사진 밖 빈 모서리를 포함하지 않음", async ({ page }) => {
+  await importFixture(page);
+  await page.goto("/items/item-1?mode=edit");
+  await expect(page.getByLabel("사진 찍기")).toHaveAttribute("capture", "environment");
+  const dataUrl = await page.evaluate(() => {
+    const canvas = document.createElement("canvas"); canvas.width = 400; canvas.height = 300;
+    const ctx = canvas.getContext("2d")!; ctx.fillStyle = "#ff9900"; ctx.fillRect(0, 0, 400, 300);
+    return canvas.toDataURL("image/png");
+  });
+  await page.getByLabel("사진 선택", { exact: true }).setInputFiles({ name: "orange.png", mimeType: "image/png", buffer: Buffer.from(dataUrl.split(",")[1], "base64") });
+  await page.locator('input[type="range"]').fill("30");
+  await expect(page.getByText("사진 밖 빈 모서리는 잘려요")).toBeVisible();
+  await page.getByRole("button", { name: "다음: 자르기", exact: true }).click();
+  await page.getByRole("button", { name: "적용", exact: true }).click();
+  await page.getByRole("button", { name: "저장", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "원래 품목", level: 1 })).toBeVisible();
+  const result = await page.locator("img").first().evaluate(async (img: HTMLImageElement) => {
+    await img.decode();
+    const canvas = document.createElement("canvas"); canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext("2d")!; ctx.drawImage(img, 0, 0);
+    const corners = [[1, 1], [img.naturalWidth - 2, 1], [1, img.naturalHeight - 2], [img.naturalWidth - 2, img.naturalHeight - 2]]
+      .map(([x, y]) => Array.from(ctx.getImageData(x, y, 1, 1).data.slice(0, 3)));
+    return { width: img.naturalWidth, height: img.naturalHeight, corners };
+  });
+  // 400x300을 30도 돌리면 안쪽 직사각형은 약 300x173, 자르기 기본값 90%면 약 270x156.
+  expect(Math.abs(result.width / result.height - 300 / 173.2)).toBeLessThan(0.05);
+  for (const [r, g, b] of result.corners) {
+    expect(r).toBeGreaterThan(200); expect(g).toBeGreaterThan(110); expect(b).toBeLessThan(80);
+  }
 });
