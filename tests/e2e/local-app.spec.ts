@@ -773,3 +773,42 @@ test("사진: 카메라로 찍기 버튼, 회전 후 자르기는 사진 밖 빈
     expect(r).toBeGreaterThan(200); expect(g).toBeGreaterThan(110); expect(b).toBeLessThan(80);
   }
 });
+
+test("사진 그리드에서 품목을 보고 뒤로 오면 누르기 전 위치 그대로 보인다", async ({ page }) => {
+  const backup = fixture();
+  const db = createRepository(() => backup.data, true);
+  for (let i = 1; i <= 24; i++) {
+    db.item.create({ data: { id: `photo-${i}`, genre: "장르", character: "캐릭터", itemType: "인형", detail: `사진 품목 ${String(i).padStart(2, "0")}`, quantity: 1, price: 1000, isPhysical: true, imageUrl: "local-image:photo-1" } });
+  }
+  await page.goto("/backup");
+  await page.getByLabel("백업 파일").setInputFiles({ name: "grid.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(backup)) });
+  page.once("dialog", dialog => dialog.accept());
+  await page.getByRole("button", { name: "불러오기 (기존 데이터 교체)" }).click();
+  await expect(page.getByText("백업을 이 기기에 저장했습니다.")).toBeVisible();
+  // 휴대폰처럼 사진을 늦게 읽는 상황을 재현한다: 사진 저장소 읽기 완료를 잠시 늦춘다.
+  await page.addInitScript(() => {
+    const original = IDBDatabase.prototype.transaction;
+    IDBDatabase.prototype.transaction = function (...args: Parameters<typeof original>) {
+      const tx = original.apply(this, args);
+      if (args[0] === "images" && (args[1] ?? "readonly") === "readonly") {
+        Object.defineProperty(tx, "oncomplete", {
+          set(handler: (event: Event) => void) { tx.addEventListener("complete", (event) => setTimeout(() => handler(event), 1200)); },
+        });
+      }
+      return tx;
+    };
+  });
+  await page.goto("/items?view=grid");
+  const target = page.getByRole("link").filter({ hasText: "사진 품목 14" });
+  await page.waitForTimeout(2000);
+  await target.scrollIntoViewIfNeeded();
+  await page.evaluate(() => window.scrollBy(0, 37));
+  await page.waitForTimeout(300);
+  const before = await target.evaluate((el) => el.getBoundingClientRect().top);
+  await target.click();
+  await page.getByRole("link", { name: "← 뒤로가기" }).click();
+  await expect(target).toBeVisible();
+  await page.waitForTimeout(2500);
+  const after = await target.evaluate((el) => el.getBoundingClientRect().top);
+  expect(Math.abs(after - before)).toBeLessThan(4);
+});
